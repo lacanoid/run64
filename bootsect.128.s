@@ -86,13 +86,16 @@ cmds:
 .if LOADMODE
         .byte ",", .string(LOADMODE)
 .endif
-;        .byte CR, CR, CR, CR, CR
+        .byte CR, CR, CR, CR, CR
+        .byte "SYS1024"
+;        .byte "IFNOTDSTHENSYS1024"
 ;        .byte "SYS3072"
         .byte HOME
         .byte 0
 
 keys:   .byte CR
+        .byte CR
 ;        .byte "SYS 3072:", CR
-        .byte "SYS 1024:", CR
+;        .byte "SYS 1024:", CR
         .byte 0 ; keystrokes to inject into keyboard buffer
 
