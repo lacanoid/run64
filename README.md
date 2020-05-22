@@ -1,8 +1,12 @@
 # Boot loader for Commodore 64 programs on Commodore 128
 
+This project started as a fork of [128boot64](https://github.com/rhalkyard/128boot64), 
+but things got changed around a lot.
+
 Unlike the C64, the Commodore 128 is able to boot automatically off a disk. This
-project contains a simple boot loader that switches the machine into C64 mode,
-and automatically loads and runs a program, with no user intervention required.
+project contains a simple boot loader that loads a basic program using c128 burst mode,
+then switches to c64 mode and runs it. This greatly speeds up loading of c64 programs
+on stock c128, with no user intervention required.
 
 ## Requirements
 
@@ -116,7 +120,7 @@ sector, like the SD2IEC does).
 - When booting from SD2IEC, add option to mount a disk image or change
   directories.
 
-- Load program *before* going into 64 mode (MUCH faster on drives that support
+- [DONE] Load program *before* going into 64 mode (MUCH faster on drives that support
   fast serial, but will need to handle differences in memory layout).
 
 - Allow device number to be overridden, to support booting from one device and
