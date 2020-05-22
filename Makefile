@@ -28,37 +28,23 @@ check: test.d64
 
 test.d64: hello bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d64 test.d64 \
-		-write  prg/wedge \
-		-write  'prg/dos 5.1' \
+		-write hello \
 		-bwrite bootsect.128 1 0 \
 		-bwrite bootsect2.128 1 1
 
 test.d71: hello bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d71 test.d71 \
-		-write  prg/wedge \
-		-write  'prg/dos 5.1' \
+		-write hello \
 		-bwrite bootsect.128 1 0 \
 		-bwrite bootsect2.128 1 1
 
 test.d81: hello bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d81 test.d81 \
-		-write prg/wedge \
-		-write 'prg/dos 5.1' \
-		-write prg/hello \
-		-write prg/hello2 \
-		-write prg/artstudio \
-		-write prg/simonsbasic \
-		-write prg/sjload \
-		-write prg/blitz64 \
-		-write prg/supermon \
-		-write prg/speedscript \
-		-write prg/diskdoctor \
-		-write prg/spectrum.p00 \
 		-bwrite bootsect.128 1 0 \
 		-bwrite bootsect2.128 1 1
 
 bootsect.128: LDFLAGS += -C linker.cfg
-bootsect.128: bootsect.128.o 
+bootsect.128: bootsect.128.o bootsect2.128.o autostart64.o
 
 bootsect2.128: LDFLAGS += -C linker.cfg
 bootsect2.128: bootsect.128.o bootsect2.128.o autostart64.o
