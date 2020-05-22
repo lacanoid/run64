@@ -1,0 +1,69 @@
+AS := ca65
+CC := cl65
+C1541 := c1541
+X128 := x128
+
+ifdef CC65_HOME
+	AS := $(CC65_HOME)/bin/$(AS)
+	CC := $(CC65_HOME)/bin/$(CC)
+endif
+
+ifdef VICE_HOME
+	C1541 := $(VICE_HOME)/$(C1541)
+	X128 := $(VICE_HOME)/$(X128)
+endif
+
+.PHONY: all clean check zap
+
+ASFLAGS = --create-dep $(@:.o=.dep)
+
+all: bootsect.128 bootsect2.128 hello
+clean:
+	rm -rf *.o test.d64 test.d81 bootsect.128 bootsect2.128 hello
+zap: clean
+	rm -rf *.dep
+
+check: test.d64
+	$(X128) -debugcart -limitcycles 10000000 -sounddev dummy -silent -console -8 $+
+
+test.d64: hello bootsect2.128 bootsect.128 Makefile
+	$(C1541) -format test,xx d64 test.d64 \
+		-write  prg/wedge \
+		-write  'prg/dos 5.1' \
+		-bwrite bootsect.128 1 0 \
+		-bwrite bootsect2.128 1 1
+
+test.d71: hello bootsect2.128 bootsect.128 Makefile
+	$(C1541) -format test,xx d71 test.d71 \
+		-write  prg/wedge \
+		-write  'prg/dos 5.1' \
+		-bwrite bootsect.128 1 0 \
+		-bwrite bootsect2.128 1 1
+
+test.d81: hello bootsect2.128 bootsect.128 Makefile
+	$(C1541) -format test,xx d81 test.d81 \
+		-write prg/wedge \
+		-write 'prg/dos 5.1' \
+		-write prg/hello \
+		-write prg/hello2 \
+		-write prg/artstudio \
+		-write prg/simonsbasic \
+		-write prg/sjload \
+		-write prg/blitz64 \
+		-write prg/supermon \
+		-write prg/speedscript \
+		-write prg/diskdoctor \
+		-write prg/spectrum.p00 \
+		-bwrite bootsect.128 1 0 \
+		-bwrite bootsect2.128 1 1
+
+bootsect.128: LDFLAGS += -C linker.cfg
+bootsect.128: bootsect.128.o 
+
+bootsect2.128: LDFLAGS += -C linker.cfg
+bootsect2.128: bootsect.128.o bootsect2.128.o autostart64.o
+
+hello: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
+hello: hello.o
+
+-include *.dep
