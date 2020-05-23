@@ -19,7 +19,7 @@ ASFLAGS = --create-dep $(@:.o=.dep)
 
 all: bootsect.128 bootsect2.128 hello
 clean:
-	rm -rf *.o test.d64 test.d81 bootsect.128 bootsect2.128 hello
+	rm -rf *.o test.d64 test.d71 test.d81 bootsect.128 bootsect2.128 hello
 zap: clean
 	rm -rf *.dep
 
@@ -29,17 +29,21 @@ check: test.d64
 test.d64: hello bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d64 test.d64 \
 		-write hello \
+		-write install \
 		-bwrite bootsect.128 1 0 \
 		-bwrite bootsect2.128 1 1
 
 test.d71: hello bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d71 test.d71 \
 		-write hello \
+		-write install \
 		-bwrite bootsect.128 1 0 \
 		-bwrite bootsect2.128 1 1
 
 test.d81: hello bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d81 test.d81 \
+		-write hello \
+		-write install \
 		-bwrite bootsect.128 1 0 \
 		-bwrite bootsect2.128 1 1
 
