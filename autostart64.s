@@ -65,8 +65,8 @@ init2:
         TXS
         ; normally the main BASIC loop starts here, but we have more work to do ;)
 
-;        LDA devnum_sav  ; restore saved device #
-;        STA DEVNUM
+        LDA devnum_sav  ; restore saved device #
+        STA DEVNUM
 
 print:  LDX #$00        ; Print load/run commands to screen
 @loop:  LDA cmds, X
@@ -161,4 +161,4 @@ cmds:
 
 keys:   .byte CR, CR, CR, 0 ; keystrokes to inject into keyboard buffer
 
-devnum_sav:     .byte 0
+devnum_sav:     .byte 8

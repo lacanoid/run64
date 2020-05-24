@@ -8,6 +8,7 @@
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
 .import __RUN64_RUN__
 .import __TBUFFR_RUN__
+.import devnum_sav
 
 KBDBUF = $034A  ; start of keyboard buffer for C64 screen editor
 KBDCNT = $D0    ; keyboard buffer count for C64 screen editor

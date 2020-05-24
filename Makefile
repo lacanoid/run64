@@ -28,6 +28,7 @@ check: test.d64
 
 test.d64: hello bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d64 test.d64 \
+		-write prg/fb64 \
 		-write hello \
 		-write install \
 		-bwrite bootsect.128 1 0 \
