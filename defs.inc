@@ -3,6 +3,7 @@ COLORAM   = $D800  ; color ram
 
 C64MODE   = $FF4D  ; go 64 mode
 CHROUT    = $FFD2  ; output character
+STOP      = $FFE1  ; check for stop key
 
 VICSCN  = $0400
 VICGO64 = VICSCN + 40*22

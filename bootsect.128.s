@@ -69,7 +69,12 @@ kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
 ; go to 64 mode, preserving 
 .segment "RUN64"
 run64:
-; set some 
+        jsr STOP
+        bne colors
+        rts          ; stop was presseed, do nothing
+
+; set some colors
+colors:
         lda #12
         sta EXTCOL
         sta COLOR
@@ -112,7 +117,8 @@ UP = $91
 HOME = $13
 
 cmds:
-        .byte 27,"T",CR,CR
+        .byte 27,"T"   ; fix the screen top
+        .byte CR,CR
         .byte "LOAD", DQUOTE, FILE, DQUOTE, ",8"
 .if LOADMODE
         .byte ",", .string(LOADMODE)
