@@ -1,10 +1,11 @@
 VIC2      = $D000  ; VIC-II base
-COLOR     = $D800  ; color ram
+COLORAM   = $D800  ; color ram
 
 C64MODE   = $FF4D  ; go 64 mode
 CHROUT    = $FFD2  ; output character
 
-VICSCN  = $400
+VICSCN  = $0400
+VICGO64 = VICSCN + 40*22
 VICAS64 = VICSCN + 40*15
 VICCRTB = VICSCN + 40*20
 

@@ -6,16 +6,18 @@
 
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
 .import __GO64_SIZE__, __GO64_LOAD__, __GO64_RUN__
+.import __CARTHDR_SIZE__, __CARTHDR_LOAD__
 .import devnum_sav
 
 KBDBUF = $034A  ; start of keyboard buffer for C64 screen editor
 KBDCNT = $D0    ; keyboard buffer count for C64 screen editor
 DEVNUM = $BA
+COLOR  = 241
 
 .segment "DISKHDR"
 magic:  .byte "CBM"     ; magic number for boot sector
 
-addr:   .addr $0400     ; address to load chained blocks to
+addr:   .addr $0C00     ; address to load chained blocks to
 bank:   .byte $00       ; bank to load chained blocks to
 nblks:  .byte $01       ; number of chained blocks to load
 
@@ -23,8 +25,30 @@ msg:    .asciiz NAME    ; name for "BOOTING ..." message
 
 prg:    .asciiz ""      ; don't load a .PRG - we do that in stage2
 
+        jmp boot128
+
+; config parameters
+bootctl:.byte 0         ; boot control
+bootbgc:.byte 255       ; background color
+bootfgc:.byte 255       ; foreground color
+bootexc:.byte 255       ; border color
+
+; actual bootloader
 .segment "BOOT128"
-print:  LDX #$00        ; Print load/run commands to screen
+boot128:  
+        lda bootfgc
+        bmi cfg1
+        sta COLOR
+cfg1:   lda bootbgc
+        bmi cfg2
+        sta BGCOL0
+cfg2:   lda bootexc
+        bmi cfg3
+        sta EXTCOL
+cfg3:
+
+cmds128:
+        LDX #$00        ; Print load/run commands to screen
 @loop:  LDA cmds, X
         BEQ @done
         JSR CHROUT
@@ -47,12 +71,13 @@ kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
 run64:
 ; set some 
         lda #12
-        sta $d020
-        sta 241
+        sta EXTCOL
+        sta COLOR
 
-        ldx #(40*4)
-@loop:  sta COLOR +40*15 - 1, X
-        sta COLOR +40*19 - 1, X
+        lda BGCOL0
+        ldx #(40*5)
+@loop:  sta COLORAM +40*15 - 1, X
+        sta COLORAM +40*20 - 1, X
         DEX
         bne @loop
 
@@ -62,15 +87,21 @@ run64:
         STA VICAS64 - 1, X
         DEX
         BNE @loop2
-        rts
+
+        LDX #< (__CARTHDR_SIZE__)
+@loop3: LDA __CARTHDR_LOAD__ - 1, X
+        STA VICCRTB - 1, X
+        DEX
+        BNE @loop3
 
 ; copy go64 routine to boot block screen memory, so that boot block buffer can be freed
         LDX  #< (__GO64_SIZE__ + 1)
-@loop3: LDA __GO64_LOAD__ - 1, X
-        STA __GO64_RUN__ - 1, X
+@loop4: LDA __GO64_LOAD__ - 1, X
+        STA VICGO64 - 1, X
         DEX
-        BNE @loop3
-        rts
+        BNE @loop4
+
+        jmp VICGO64 + 3
 
 
 DQUOTE = $22
@@ -87,9 +118,9 @@ cmds:
         .byte ",", .string(LOADMODE)
 .endif
         .byte CR, CR, CR, CR, CR
-        .byte "SYS1024"
+;        .byte "SYS1024"
 ;        .byte "IFNOTDSTHENSYS1024"
-;        .byte "SYS3072"
+        .byte "SYS3072"
         .byte HOME
         .byte 0
 

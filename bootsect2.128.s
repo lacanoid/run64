@@ -20,12 +20,13 @@ RUN64  = __RUN64_RUN__
 
 .segment "GO64"
 go64old:
-        sei
-        jsr RUN64
+        jmp RUN64
 
 .if !LOADMODE
 ; reloacte (copy) basic program loaded in c128 mode at $1c00/$8000 to $0801 for c64
 relocate:
+;        brk
+        sei
         lda #< DEST
         sta DE
         lda #> DEST
@@ -51,9 +52,12 @@ relocate:
 
 ; copy C64 autostart code into place
 copy:   LDX  #< (__CARTHDR_SIZE__ + 1)
-@loop:  LDA __CARTHDR_RUN__ - 1, X
+@loop:  
+        LDA VICCRTB - 1, X
+        TAY
+        LDA __CARTHDR_RUN__ - 1, X
         STA VICCRTB - 1, X
-        LDA __CARTHDR_LOAD__ - 1, X
+        TYA
         STA __CARTHDR_RUN__ - 1, X
         DEX
         BNE @loop

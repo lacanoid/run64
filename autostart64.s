@@ -1,6 +1,7 @@
 ; C64 program autostarter
 ; Copyright 2018, Richard Halkyard <rhalkyard@gmail.com>
-;
+; Copyright 2020, Ziga Kranjec <lacanoid@ljudmila.org>
+
 .include "config.inc"
 .include "defs.inc"
 
