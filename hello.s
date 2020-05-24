@@ -19,6 +19,12 @@ print:  lda msg, x
 done:
 
 ; print end of program address
+        lda 44
+        jsr hexout
+        lda 43
+        jsr hexout
+        lda #'-'
+        jsr CHROUT
         lda 46
         jsr hexout
         lda 45
@@ -50,4 +56,4 @@ hdskip1:adc #$30
         rts
 
 .rodata
-msg:    .asciiz "HELLO WORLD ENDS AT $"
+msg:    .asciiz "HELLO WORLD "
