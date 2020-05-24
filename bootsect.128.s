@@ -11,8 +11,9 @@
 
 KBDBUF = $034A  ; start of keyboard buffer for C64 screen editor
 KBDCNT = $D0    ; keyboard buffer count for C64 screen editor
-DEVNUM = $BA
-COLOR  = 241
+DEVNUM = $BA    ; current device number
+COLOR  = 241    ; current foreground color
+EAL_E  = 174    ; address+1 of the last byte loaded
 
 .segment "DISKHDR"
 magic:  .byte "CBM"     ; magic number for boot sector

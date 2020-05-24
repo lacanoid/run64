@@ -8,8 +8,6 @@
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
 .import __CARTHDR_LOAD__, __CARTHDR_RUN__, __CARTHDR_SIZE__
 
-.export devnum_sav
-
 KBDBUF = $0277  ; start of keyboard buffer for C64 screen editor
 KBDCNT = $C6    ; keyboard buffer count for C64 screen editor
 DEVNUM = $BA    ; zeropage variable for last-used device #
@@ -25,10 +23,15 @@ RESTOR = $FD15  ; Restore RAM Vectors for Default I/O Routines
 RAMTAS = $FD50  ; Perform RAM Test and Set Pointers to the Top and Bottom of RAM
 IOINIT = $FDA3  ; Initialize CIA I/O Devices
 
-hardrst: STX $D016       ; modified version of RESET routine (normally at $FCEF-$FCFE)
+hardrst: 
+        STX $D016       ; modified version of RESET routine (normally at $FCEF-$FCFE)
         JSR IOINIT
+        lda DEVNUM      ; preserve last device number
+        pha
         JSR RAMTAS
         JSR RESTOR
+        pla
+        sta DEVNUM
 
         jsr restoreas64
         jmp init2
@@ -64,9 +67,6 @@ init2:
         LDX #$FB
         TXS
         ; normally the main BASIC loop starts here, but we have more work to do ;)
-
-        LDA devnum_sav  ; restore saved device #
-        STA DEVNUM
 
 print:  LDX #$00        ; Print load/run commands to screen
 @loop:  LDA cmds, X
@@ -160,5 +160,3 @@ cmds:
         .byte 0
 
 keys:   .byte CR, CR, CR, 0 ; keystrokes to inject into keyboard buffer
-
-devnum_sav:     .byte 8

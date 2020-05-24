@@ -34,11 +34,6 @@ relocate:
         sta DE+1
         sta $ff01  ; select bank 0
 
-;        LDA SAL+2
-;        CLC
-;        SBC SAL
-;        TAX
-;        INX
         LDX  #220  ; number of pages
         LDY  #0
 @loop3: lda  (SAL),Y
@@ -63,10 +58,6 @@ copy:   LDX  #< (__CARTHDR_SIZE__ + 1)
         DEX
         BNE @loop
 
-        ; last-used device ID ($BA) seems to get reset when switching to 64 
-        ; mode. Save it, so that we can know to load from the drive we booted from.
-;        LDA DEVNUM
-;        STA devnum_sav
         ; brk
 
         stx $ff00
