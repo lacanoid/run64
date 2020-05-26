@@ -3,14 +3,10 @@
 ; Copyright 2020, Ziga Kranjec <lacanoid@ljudmila.org>
 
 .include "config.inc"
-.include "defs.inc"
+.include "defs64.inc"
 
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
 .import __CARTHDR_LOAD__, __CARTHDR_RUN__, __CARTHDR_SIZE__
-
-KBDBUF = $0277  ; start of keyboard buffer for C64 screen editor
-KBDCNT = $C6    ; keyboard buffer count for C64 screen editor
-DEVNUM = $BA    ; zeropage variable for last-used device #
 
 .segment "CARTHDR"
         ; cartridge header
@@ -26,17 +22,14 @@ IOINIT = $FDA3  ; Initialize CIA I/O Devices
 hardrst: 
         STX $D016       ; modified version of RESET routine (normally at $FCEF-$FCFE)
         JSR IOINIT
-        lda DEVNUM      ; preserve last device number
+        lda FA          ; preserve last device number
         pha
         JSR RAMTAS
         JSR RESTOR
         pla
-        sta DEVNUM
+        sta FA
 
-        jsr restoreas64
-        jmp init2
-
-; restore segmern AUTOSTART64 from VICAS64 to TBUFFER
+; restore segmert AUTOSTART64 from VICAS64 to TBUFFER
 restoreas64:
 copy:   
         txa
@@ -48,8 +41,8 @@ copy:
         BNE @loop
         tya 
         tax
-        rts
 ;bootscr_data:
+        jmp init2
 
 .segment "AUTOSTART64"
         jmp old
@@ -79,8 +72,8 @@ print:  LDX #$00        ; Print load/run commands to screen
 kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
 @loop:  LDA keys, X
         BEQ @done
-        STA KBDBUF, X
-        INC KBDCNT
+        STA KEYD, X
+        INC NDX
         INX
         BNE @loop
 @done:
@@ -136,7 +129,7 @@ cmds:
         .byte CR        ; leave space for READY prompt, since this actually gets printed first
 .endrepeat
         .byte "SYS820:SYS823:"
-;        .byte "D=PEEK(", .sprintf("%d", DEVNUM), "):"
+;        .byte "D=PEEK(", .sprintf("%d", FA), "):"
 ;        .byte "LOAD", DQUOTE, FILE, DQUOTE, ",D,", .string(LOADMODE)
 ;        .byte "POKE2050,1:SYS42291:"
 ;        .byte "POKE46,PEEK(35)-(PEEK(781)>253):"

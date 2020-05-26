@@ -1,12 +1,13 @@
 # Boot loader for Commodore 64 programs on Commodore 128
 
-Unlike the C64, the Commodore 128 is able to boot automatically off a disk. This project contains a simple boot loader that loads a program in C128 mode, switches the machine into C64 mode and runs a program, with no user intervention required.
+Unlike the C64, the Commodore 128 is able to boot automatically off a disk. This project contains a simple boot loader that loads a program in C128 mode, switches the machine into C64 mode and runs the loaded program, with no user intervention required. Now you can just drop .d64 files into your c128
+emulator and they run.
 
-This project started as a fork of [128boot64](https://github.com/rhalkyard/128boot64), 
-but things got changed around a lot since then.
+This project used [128boot64](https://github.com/rhalkyard/128boot64) as a starting point, 
+but stuff got changed a lot since and more stuff added. 
 
-This greatly speeds up loading of c64 programs on stock c128 as serial burst mode is used.
-
+This greatly speeds up loading of c64 programs on stock c128 because serial burst mode is used loading.
+It currently runs only programs which are loaded and run like BASIC programs, that is LOAD + RUN.
 
 ## Requirements
 
@@ -27,7 +28,7 @@ emulated system, but it does still work.
 The `config.inc` file contains a few options to tailor the bootloader to a
 particular application.
 
-Programs that are normally launched with `LOAD "*",8,1` followed by `RUN`,
+Programs that are normally launched with `LOAD "*",8` followed by `RUN`,
 shoudl work just fine with the defaults, however.
 
 ## Building
@@ -38,7 +39,7 @@ on your PATH, you will need to provide their installation locations in the
 VICE_HOME=/opt/vice`).
 
 `make check` constructs a bootable disk image (`test.d64`) with a small test
-program (`testboot`), and checks whether it boots correctly.
+program (`hello`), and checks whether it boots correctly.
 
 ## Making disks bootable
 

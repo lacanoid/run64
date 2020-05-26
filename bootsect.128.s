@@ -2,18 +2,12 @@
 ; to C64 mode.
 
 .include "config.inc"
-.include "defs.inc"
+.include "defs128.inc"
 
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
 .import __GO64_SIZE__, __GO64_LOAD__, __GO64_RUN__
 .import __CARTHDR_SIZE__, __CARTHDR_LOAD__
-.import devnum_sav
 
-KBDBUF = $034A  ; start of keyboard buffer for C64 screen editor
-KBDCNT = $D0    ; keyboard buffer count for C64 screen editor
-DEVNUM = $BA    ; current device number
-COLOR  = 241    ; current foreground color
-EAL_E  = 174    ; address+1 of the last byte loaded
 
 .segment "DISKHDR"
 magic:  .byte "CBM"     ; magic number for boot sector
@@ -60,8 +54,8 @@ cmds128:
 kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
 @loop:  LDA keys, X
         BEQ @done
-        STA KBDBUF, X
-        INC KBDCNT
+        STA KEYD, X
+        INC NDX
         INX
         BNE @loop
 @done:

@@ -2,7 +2,7 @@
 ; to C64 mode.
 
 .include "config.inc"
-.include "defs.inc"
+.include "defs128.inc"
 
 .import __CARTHDR_LOAD__, __CARTHDR_RUN__, __CARTHDR_SIZE__
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
@@ -10,11 +10,7 @@
 .import __TBUFFR_RUN__
 .import devnum_sav
 
-KBDBUF = $034A  ; start of keyboard buffer for C64 screen editor
-KBDCNT = $D0    ; keyboard buffer count for C64 screen editor
-DEVNUM = $BA
-SAL    = $AC
-DEST   = $801
+DEST   = $801   ; relocation destination address (c64 basic)
 DE     = $C3
 
 RUN64  = __RUN64_RUN__

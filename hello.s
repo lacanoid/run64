@@ -1,13 +1,13 @@
 ; Automated test for C64 autostart (use with VICE -debugcart and -limitcycles 
 ; options).
 
+.include "defs64.inc"
+
 .forceimport __EXEHDR__
 
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.
 resultRegister = $d7ff
-
-CHROUT = $ffd2
 
 .code
         ldx #0
@@ -18,16 +18,16 @@ print:  lda msg, x
         bne print
 done:
 
-; print end of program address
-        lda 44
+; print end program address
+        lda TXTTAB+1
         jsr hexout
-        lda 43
+        lda TXTTAB
         jsr hexout
         lda #'-'
         jsr CHROUT
-        lda 46
+        lda VARTAB+1
         jsr hexout
-        lda 45
+        lda VARTAB
         jsr hexout
         lda #13
         jsr CHROUT
@@ -49,11 +49,12 @@ hexout:
         and #$0f
 hexdig:
         cmp #$0a
-        bcc hdskip1
+        bcc hdsk1
         adc #$06
-hdskip1:adc #$30
+hdsk1:  adc #$30
         jsr CHROUT
         rts
 
 .rodata
-msg:    .asciiz "HELLO WORLD "
+msg:    .asciiz "HELLO WORLD AT "
+
