@@ -18,42 +18,10 @@ print:  lda msg, x
         bne print
 done:
 
-; print end program address
-        lda TXTTAB+1
-        jsr hexout
-        lda TXTTAB
-        jsr hexout
-        lda #'-'
-        jsr CHROUT
-        lda VARTAB+1
-        jsr hexout
-        lda VARTAB
-        jsr hexout
-        lda #13
-        jsr CHROUT
-
         jsr raster_setup
 exit:
         lda #0
         sta resultRegister
-        rts
-
-; print hex A
-hexout:
-        pha
-        lsr
-        lsr
-        lsr
-        lsr
-        jsr hexdig
-        pla
-        and #$0f
-hexdig:
-        cmp #$0a
-        bcc hdsk1
-        adc #$06
-hdsk1:  adc #$30
-        jsr CHROUT
         rts
 
 .rodata
@@ -61,6 +29,7 @@ msg:    .asciiz "HELLO RASTER WORLD "
 
 ; --------------------------
 
+.code
 raster_setup:
         sei
 
@@ -123,27 +92,32 @@ raster_chk_wait:
         bcs raster_do_call ; not a wait instruction
 raster_do_wait:
         cmp #0
-        beq raster_list_restart
+        beq raster_list_restart ; end of list reached
         stx RASTER
         iny
         sty T1
-        bne raster_rti
+        bne raster_rti          ; always, return from IRQ
         brk
 
 raster_do_call:
-        ; not implemented
+        ; not implemented yet
         iny
         sty T1
-        bne raster_exec
+        bne raster_exec         ; always
         brk
 
 raster_list_restart:
         ldy #0
         sty T1
-        beq raster_exec       ; always
+        beq raster_exec         ; always
 
 raster_rti:
-        jmp raster_cont
+        pla
+        tay
+        pla
+        tax
+        pla
+        rti
 
 raster_not:
         inc EXTCOL
@@ -152,11 +126,11 @@ raster_cont:
         jmp $ea31
 
 raster_list: 
-        .word 100 ; wait for line 100
-        .word $d020 ; set border to color 2
+        .word 100       ; wait for line 100
+        .word $d020     ; set border to color 2
         .byte 2
-        .word 200 ; wait for line 200
-        .word $d020 ; set border to color 3
+        .word 200       ; wait for line 200
+        .word $d020     ; set border to color 3
         .byte 2
         .word 0 ; end
 
