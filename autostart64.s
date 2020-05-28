@@ -19,28 +19,40 @@ RESTOR = $FD15  ; Restore RAM Vectors for Default I/O Routines
 RAMTAS = $FD50  ; Perform RAM Test and Set Pointers to the Top and Bottom of RAM
 IOINIT = $FDA3  ; Initialize CIA I/O Devices
 
+SXREG  = $030D  ; Storage Area for .X Index Register
+INDEX1 = $22    ; (2) ???
+
 hardrst: 
         STX $D016       ; modified version of RESET routine (normally at $FCEF-$FCFE)
         JSR IOINIT
+
         lda FA          ; preserve last device number
+        pha
+        lda EAL         ; and end-of program address
+        pha
+        lda EAL+1
         pha
         JSR RAMTAS
         JSR RESTOR
         pla
+        sta EAL+1
+        pla
+        sta EAL
+        pla
         sta FA
 
-; restore segmert AUTOSTART64 from VICAS64 to TBUFFER
+; restore segment AUTOSTART64 from VICAS64 to TBUFFER
 restoreas64:
 copy:   
-        txa
-        tay
+;        txa
+;        tay
         LDX  #< (__AUTOSTART64_SIZE__ + 1)
 @loop:  LDA VICAS64 -1, X 
         STA __AUTOSTART64_RUN__ - 1, X
         DEX
         BNE @loop
-        tya 
-        tax
+;        tya 
+;        tax
 ;bootscr_data:
         jmp init2
 
@@ -50,8 +62,8 @@ copy:
 
 ; continue initializaton 
 init2:
-        jsr restorecrtb
-        JSR CINT
+        jsr restorecrtb ; restore memory overwrittent by cartridge
+        JSR CINT        ; video init
         CLI
 
         JSR $E453       ; modified version of BASIC cold-start (normally at $E394-$E39F)
@@ -90,15 +102,22 @@ old:    lda #1
         sta 2050
         jsr LINKPRG
         rts
-old2:   clc
-        lda 781
-        adc #2
-        sta 45
-        sta 2
-        lda 35
-        adc #0
-        sta 46
+old2:   
+        ldx EAL
+        stx VARTAB
+        ldy EAL+1
+        sty VARTAB+1
         rts
+
+;        clc
+;        lda SXREG
+;        adc #2
+;        sta VARTAB
+;        sta 2
+;        lda INDEX1+1
+;        adc #0
+;        sta VARTAB+1
+;        rts
 
 ; restore data overwritten by cartridge autostart header from VICCRTB
 restorecrtb:   

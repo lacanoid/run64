@@ -8,6 +8,7 @@
 .import __GO64_SIZE__, __GO64_LOAD__, __GO64_RUN__
 .import __CARTHDR_SIZE__, __CARTHDR_LOAD__
 
+C64DEST = $0801
 
 .segment "DISKHDR"
 magic:  .byte "CBM"     ; magic number for boot sector
@@ -61,12 +62,13 @@ kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
 @done:
         rts
 
-; go to 64 mode, preserving 
+; go to 64 mode, preserving program through c65 reset routine and running it
+; this is called from $0C00, which is the user entry point
 .segment "RUN64"
 run64:
         jsr STOP
         bne colors
-        rts          ; stop was presseed, do nothing
+        rts             ; stop was presseed, do nothing
 
 ; set some colors
 colors:
@@ -100,6 +102,23 @@ colors:
         STA VICGO64 - 1, X
         DEX
         BNE @loop4
+
+; adjust end-of load pointer for 64
+        clc
+        lda EAL
+        sbc SAL
+        sta EAL
+        lda EAL+1
+        sbc SAL+1
+        sta EAL+1
+        clc
+        lda EAL
+        adc #< C64DEST
+        sta EAL
+        lda EAL+1
+        adc #> C64DEST
+        sta EAL+1
+;        tax
 
         jmp VICGO64 + 3
 

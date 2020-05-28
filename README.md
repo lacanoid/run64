@@ -1,13 +1,13 @@
 # Boot loader for Commodore 64 programs on Commodore 128
 
 Unlike the C64, the Commodore 128 is able to boot automatically off a disk. This project contains a simple boot loader that loads a program in C128 mode, switches the machine into C64 mode and runs the loaded program, with no user intervention required. Now you can just drop .d64 files into your c128
-emulator and they run.
+emulator and they run automatically.
 
 This project used [128boot64](https://github.com/rhalkyard/128boot64) as a starting point, 
 but stuff got changed a lot since and more stuff added. 
 
-This greatly speeds up loading of c64 programs on stock c128 because serial burst mode is used loading.
-It currently runs only programs which are loaded and run like BASIC programs, that is LOAD + RUN.
+This greatly speeds up loading of c64 programs on stock c128 because serial burst mode is used when loading. It currently runs only programs which are loaded and run like BASIC programs, 
+that is LOAD + RUN. It works with many, but not all programs.
 
 ## Requirements
 
@@ -20,7 +20,7 @@ It currently runs only programs which are loaded and run like BASIC programs, th
 - A floppy disk drive or disk-drive emulator (e.g.
   [SD2IEC](https://www.c64-wiki.com/wiki/SD2IEC)).
 
-VICE's own autostart functionality makes it rather pointless to use this on an
+VICE's own functionality makes it somewhat pointless to use this on an
 emulated system, but it does still work.
 
 ## Configuring
@@ -29,7 +29,7 @@ The `config.inc` file contains a few options to tailor the bootloader to a
 particular application.
 
 Programs that are normally launched with `LOAD "*",8` followed by `RUN`,
-shoudl work just fine with the defaults, however.
+should work just fine with the defaults, however.
 
 ## Building
 

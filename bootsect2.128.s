@@ -10,10 +10,10 @@
 .import __TBUFFR_RUN__
 .import devnum_sav
 
-DEST   = $801   ; relocation destination address (c64 basic)
-DE     = $C3
+C64DEST = $801   ; relocation destination address (c64 basic)
+DE      = $C3
 
-RUN64  = __RUN64_RUN__
+RUN64   = __RUN64_RUN__
 
 .segment "GO64"
 go64old:
@@ -22,15 +22,17 @@ go64old:
 .if !LOADMODE
 ; reloacte (copy) basic program loaded in c128 mode at $1c00/$8000 to $0801 for c64
 relocate:
-;        brk
-        sei
-        lda #< DEST
+        lda #< C64DEST
         sta DE
-        lda #> DEST
+        lda #> C64DEST
         sta DE+1
         sta $ff01  ; select bank 0
 
-        LDX  #220  ; number of pages
+        ; LDX  #220  ; number of pages
+        ldx EAL+1 
+        inx
+
+        sei
         LDY  #0
 @loop3: lda  (SAL),Y
         sta  (DE),Y
@@ -54,8 +56,7 @@ copy:   LDX  #< (__CARTHDR_SIZE__ + 1)
         DEX
         BNE @loop
 
-        ; brk
-
         stx $ff00
+        
         JMP C64MODE ; c64 mode will take it from here
 
