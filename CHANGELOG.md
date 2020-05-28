@@ -1,3 +1,8 @@
+Version 0.3
+===========
+- set EAL and set VARTAB according to file loaded. 
+  This seems to make morw programs work. A bit cleaner, too.
+
 Version 0.2
 ===========
 - check for stop key while booting in c128 to allow stopping of boot

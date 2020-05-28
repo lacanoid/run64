@@ -14,13 +14,14 @@
         .addr $fe5e     ; soft reset vector: return to NMI handler immediately after cartridge check
         .byte $C3, $C2, $CD, $38, $30   ; 'CBM80' magic number for autostart cartridge
 
-CINT   = $FF5B  ; Initialize Screen Editor and VIC-II Chip
-RESTOR = $FD15  ; Restore RAM Vectors for Default I/O Routines
-RAMTAS = $FD50  ; Perform RAM Test and Set Pointers to the Top and Bottom of RAM
-IOINIT = $FDA3  ; Initialize CIA I/O Devices
+CINT    = $FF5B  ; Initialize Screen Editor and VIC-II Chip
+RESTOR  = $FD15  ; Restore RAM Vectors for Default I/O Routines
+RAMTAS  = $FD50  ; Perform RAM Test and Set Pointers to the Top and Bottom of RAM
+IOINIT  = $FDA3  ; Initialize CIA I/O Devices
 
-SXREG  = $030D  ; Storage Area for .X Index Register
-INDEX1 = $22    ; (2) ???
+LINKPRG = $A533
+SXREG   = $030D  ; Storage Area for .X Index Register
+INDEX1  = $22    ; (2) ???
 
 hardrst: 
         STX $D016       ; modified version of RESET routine (normally at $FCEF-$FCFE)
@@ -94,14 +95,12 @@ kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
         LDY #>bootmsg
         JMP $A478       ; jump into BASIC
 
-LINKPRG = $A533
-
 ; restore basic program after reset, un-new
 ; these two must be called from basic as SYS820:SYS823:CLR or such
 old:    lda #1
         sta 2050
         jsr LINKPRG
-        rts
+;        rts
 old2:   
         ldx EAL
         stx VARTAB
@@ -147,7 +146,8 @@ cmds:
 .repeat 2
         .byte CR        ; leave space for READY prompt, since this actually gets printed first
 .endrepeat
-        .byte "SYS820:SYS823:"
+        .byte "SYS820:"
+;        .byte "SYS823:"
 ;        .byte "D=PEEK(", .sprintf("%d", FA), "):"
 ;        .byte "LOAD", DQUOTE, FILE, DQUOTE, ",D,", .string(LOADMODE)
 ;        .byte "POKE2050,1:SYS42291:"

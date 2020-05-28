@@ -133,9 +133,10 @@ HOME = $13
 cmds:
         .byte 27,"T"   ; fix the screen top
         .byte CR,CR
-        .byte "LOAD", DQUOTE, FILE, DQUOTE, ",8"
+        .byte "DLOAD", DQUOTE, FILE, DQUOTE
+;        .byte "LOAD", DQUOTE, FILE, DQUOTE, ",8"
 .if LOADMODE
-        .byte ",", .string(LOADMODE)
+;        .byte ",", .string(LOADMODE)
 .endif
         .byte CR, CR, CR, CR, CR
 ;        .byte "SYS1024"
