@@ -33,6 +33,12 @@ msg:    .asciiz "HELLO RASTER WORLD "
 raster_setup:
         sei
 
+;        lda #$7f        ; disable CIA interrupts
+;        sta $dc0d
+;        sta $dd0d
+;        lda $dc0d
+;        lda $dd0d
+
         ldx CINV        ; set new interrupt vector
         stx raster_cont+1
         ldy CINV+1
@@ -65,21 +71,17 @@ raster:
 ;        sta BGCOL0
 ;        cli
 
-        ldx #$6
+        ldx #$7
 @l1:    dex
         bne @l1
-        nop
-        nop
         nop
 
         ldy T1
 raster_exec:   ; execute display list instructions
         lda raster_list,y   ; instruction value
-;        sta $400
         tax
         iny
         lda raster_list,y   ; instruction type
-;        sta $401
 
 raster_chk_poke:
         cmp #$d0            ; is it a poke?
@@ -94,7 +96,7 @@ raster_do_poke:
 raster_poke_sta:
         sta $d020               ; store to register
         iny
-        sty T1
+;        sty T1
         bne raster_exec         ; always
         brk
 
@@ -103,29 +105,28 @@ raster_chk_wait:
         bcs raster_do_call      ; not a wait instruction
 
 raster_do_wait:
-;        jmp raster_rti
-
         cpx #0
         beq raster_list_restart ; end of list reached
         stx RASTER
         iny
         sty T1
- ;       jmp raster_rti
         bne raster_rti          ; always, return from IRQ
         brk
 
 raster_do_call:
-        ; not implemented yet
         iny
         sty T1
- ;       jmp raster_exec
+        stx raster_dc1+1
+        sta raster_dc1+2
+raster_dc1:
+        jsr raster_dummy
+        ldy T1
         bne raster_exec         ; always
         brk
 
 raster_list_restart:
         ldy #0
         sty T1
-;        jmp raster_exec
         beq raster_exec         ; always
 
 raster_rti:
@@ -144,6 +145,11 @@ raster_not:
 
 raster_cont:
         jmp $ea31
+
+raster_dummy:
+        pla
+        pla
+        jmp raster_cont
 
 raster_list: 
         .word 1
@@ -173,11 +179,12 @@ raster_list:
         .word 105        ; wait for line
         .word BGCOL0    ; set bgcolor to color 3
         .byte 0
-        .word 113        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 8
+        .word 112        ; wait for line
         .word EXTCOL    ; set bgcolor to color 3
-        .byte 8
+        .byte 13
+        .word BGCOL0    ; set bgcolor to color 3
+        .byte 11
+;        .word raster_dummy
 
         .word 0 ; end
 
