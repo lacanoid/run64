@@ -1,7 +1,8 @@
 Version 0.3
 ===========
 - set EAL and set VARTAB according to file loaded. 
-  This seems to make morw programs work. A bit cleaner, too.
+  This seems to make more programs work, as some seem to use these to find the end of program. 
+  It's a bit cleaner than calling obscure BASIC routines, too.
 
 Version 0.2
 ===========
