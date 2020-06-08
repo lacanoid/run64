@@ -1,3 +1,7 @@
+Version 0.4
+===========
+- raster demo :)
+
 Version 0.3
 ===========
 - set EAL and set VARTAB according to file loaded. 

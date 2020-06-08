@@ -11,6 +11,7 @@ resultRegister = $d7ff
 
 .code
         ldx #0
+        stx COLOR
 print:  lda msg, x
         beq done
         jsr CHROUT
@@ -25,7 +26,7 @@ exit:
         rts
 
 .rodata
-msg:    .asciiz "HELLO RASTER WORLD "
+msg:    .asciiz "RASTER DISPLAY LIST DEMO"
 
 ; --------------------------
 
@@ -33,11 +34,11 @@ msg:    .asciiz "HELLO RASTER WORLD "
 raster_setup:
         sei
 
-;        lda #$7f        ; disable CIA interrupts
-;        sta $dc0d
-;        sta $dd0d
-;        lda $dc0d
-;        lda $dd0d
+        lda #$7f        ; disable CIA interrupts
+        sta $dc0d
+        sta $dd0d
+        lda $dc0d
+        lda $dd0d
 
         ldx CINV        ; set new interrupt vector
         stx raster_cont+1
@@ -61,9 +62,9 @@ raster_setup:
 
         rts
 
-raster:
-        asl VICIRQ
-        bcc raster_not
+raster:                 ; new interrupt routine
+        asl VICIRQ      ; ckh+clear VIC raster interrupt flag
+        bcc raster_not  ; irq was not raster
 
         ; inc BGCOL0
 ;        lda BGCOL0
@@ -71,12 +72,13 @@ raster:
 ;        sta BGCOL0
 ;        cli
 
-        ldx #$7
+        ldx #$7  ; time delay
 @l1:    dex
         bne @l1
         nop
 
         ldy T1
+
 raster_exec:   ; execute display list instructions
         lda raster_list,y   ; instruction value
         tax
@@ -90,7 +92,6 @@ raster_chk_poke:
 raster_do_poke:
         sta raster_poke_sta+2 ; set up the address
         stx raster_poke_sta+1
-
         iny
         lda raster_list,y       ; register value
 raster_poke_sta:
@@ -105,9 +106,9 @@ raster_chk_wait:
         bcs raster_do_call      ; not a wait instruction
 
 raster_do_wait:
+        stx RASTER
         cpx #0
         beq raster_list_restart ; end of list reached
-        stx RASTER
         iny
         sty T1
         bne raster_rti          ; always, return from IRQ
@@ -127,7 +128,7 @@ raster_dc1:
 raster_list_restart:
         ldy #0
         sty T1
-        beq raster_exec         ; always
+        beq raster_cont         ; always
 
 raster_rti:
         pla
@@ -151,8 +152,16 @@ raster_dummy:
         pla
         jmp raster_cont
 
+raster_buzz:
+        ldx #$f
+@rb1:   inc EXTCOL
+        bne @rb1
+        dex
+        bne @rb1
+        rts
+
 raster_list: 
-        .word 1
+        .word 1         ; wait for line
         .word EXTCOL
         .byte 14
         .word 48        ; wait for line 
@@ -176,15 +185,39 @@ raster_list:
         .word 97        ; wait for line
         .word BGCOL0    ; set bgcolor to color 3
         .byte 6
-        .word 105        ; wait for line
+        .word 105       ; wait for line
         .word BGCOL0    ; set bgcolor to color 3
         .byte 0
-        .word 112        ; wait for line
-        .word EXTCOL    ; set bgcolor to color 3
+        .word 113        ; wait for line
+        .word BGCOL0    ; set bgcolor to color 3
+        .byte 15
+        .word 121        ; wait for line
+        .word BGCOL0    ; set bgcolor to color 3
+        .byte 14
+        .word 129        ; wait for line
+        .word BGCOL0    ; set bgcolor to color 3
         .byte 13
+        .word 137        ; wait for line
+        .word BGCOL0    ; set bgcolor to color 3
+        .byte 12
+        .word 145        ; wait for line
         .word BGCOL0    ; set bgcolor to color 3
         .byte 11
-;        .word raster_dummy
+        .word 153        ; wait for line
+        .word BGCOL0    ; set bgcolor to color 3
+        .byte 10
+        .word 161        ; wait for line
+        .word BGCOL0    ; set bgcolor to color 3
+        .byte 9
+        .word 169        ; wait for line
+        .word BGCOL0    ; set bgcolor to color 3
+        .byte 8
+        .word 177        ; wait for line
+        .word BGCOL0    ; set bgcolor to color 3
+        .byte 11
+        .word EXTCOL    ; set bgcolor to color 3
+        .byte 13
+        .word raster_buzz
 
         .word 0 ; end
 
