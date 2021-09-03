@@ -10,7 +10,7 @@
 resultRegister = $d7ff
 
 .code
-        ldx #0
+        ldx #1
         stx COLOR
 print:  lda msg, x
         beq done
@@ -59,6 +59,14 @@ raster_setup:
         lda SCROLY
         and #$7f
         sta SCROLY
+
+        lda #$FF
+        sta SPRITEN
+        lda #20
+        ldy #$f
+@in1:   sta VIC2,y
+        dey
+        bpl @in1
 
         rts
 
@@ -153,17 +161,40 @@ raster_dummy:
         jmp raster_cont
 
 raster_buzz:
-        ldx #$f
-@rb1:   inc EXTCOL
+        nop
+        ldx #9
+@rb0:   dex
+        bne @rb0
+
+        ldy #$f
+@rb2:   lda cmap,y
+        sta EXTCOL
+        ldx #8
+@rb1:   dex
         bne @rb1
-        dex
-        bne @rb1
+        nop
+        nop
+        nop
+        bit 0
+        dey 
+        bpl @rb2
         rts
+
+cmap:
+        .byte 0,1,0,1,0,1,0,2
+        .byte 0,1,0,1,0,1,0,3
+        .byte 0,1,0,1,0,1,0,4
+        .byte 0,1,0,1,0,1,0,5
 
 raster_list: 
         .word 1         ; wait for line
         .word EXTCOL
         .byte 14
+        .word BGCOL0
+        .byte 14
+        .word 5         ; wait for line
+        .word SCROLY
+        .byte 27
         .word 48        ; wait for line 
         .word BGCOL0    ; set bgcolor to color 2
         .byte 1
@@ -217,6 +248,10 @@ raster_list:
         .byte 11
         .word EXTCOL    ; set bgcolor to color 3
         .byte 13
+        .word 247       ; wiat for line
+        .word SCROLY
+        .byte $13
+        .word 255       ; wait for line
         .word raster_buzz
 
         .word 0 ; end

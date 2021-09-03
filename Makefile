@@ -29,20 +29,24 @@ check: test.d64
 test.d64: raster hello bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d64 test.d64 \
 		-write hello \
+		-write raster \
 		-write install \
 		-bwrite bootsect.128 1 0 \
 		-bwrite bootsect2.128 1 1
 
-test.d71: hello bootsect2.128 bootsect.128 Makefile
+test.d71: raster hello bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d71 test.d71 \
 		-write hello \
+		-write raster \
 		-write install \
+		-write monitor \
 		-bwrite bootsect.128 1 0 \
 		-bwrite bootsect2.128 1 1
 
-test.d81: hello bootsect2.128 bootsect.128 Makefile
+test.d81: raster hello bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d81 test.d81 \
 		-write hello \
+		-write raster \
 		-write install \
 		-bwrite bootsect.128 1 0 \
 		-bwrite bootsect2.128 1 1

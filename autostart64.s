@@ -19,7 +19,6 @@ RESTOR  = $FD15  ; Restore RAM Vectors for Default I/O Routines
 RAMTAS  = $FD50  ; Perform RAM Test and Set Pointers to the Top and Bottom of RAM
 IOINIT  = $FDA3  ; Initialize CIA I/O Devices
 
-LINKPRG = $A533
 SXREG   = $030D  ; Storage Area for .X Index Register
 INDEX1  = $22    ; (2) ???
 

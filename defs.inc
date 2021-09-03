@@ -3,6 +3,7 @@ COLORAM   = $D800   ; color memory
 
 SCROLY  = VIC2+$11
 RASTER  = VIC2+$12
+SPRITEN = VIC2+$15
 SCROLX  = VIC2+$16
 VICIRQ  = VIC2+$19  ; VIC Interrupt Flag Register
 IRQMASK = VIC2+$1A  ; VIC IRQ Mask Register
@@ -11,6 +12,11 @@ BGCOL0  = VIC2+$21  ; background color
 BGCOL1  = VIC2+$22
 BGCOL2  = VIC2+$23
 
+
+MEMTOP    = $FF99
+MEMBOT    = $FF9C 
+
+CHRIN     = $FFCF   ; input a line of characters
 CHROUT    = $FFD2   ; output character
 STOP      = $FFE1   ; check for stop key
 

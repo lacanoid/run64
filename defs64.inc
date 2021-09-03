@@ -6,8 +6,28 @@ COLOR  = $0286  ; current foreground color
 
 TXTTAB = $2B    ; Pointer to the Start of BASIC Program Text
 VARTAB = $2D    ; Pointer to the Start of the BASIC Variable Storage Area
+ARYTAB = $2F    ; Pointer to the Start of the BASIC Array Storage Area
+STREND = $31    ; Pointer to End of the BASIC Array Storage Area (+1)
+FRETOP = $33    ; Pointer to the Bottom of the String Text Storage Area
+MEMSIZ = $37    ; Pointer to the Highest Address Used by BASIC
+
+VERCK  = $0A
+COUNT  = $0B
+
+BUF     = $0200  ; Line Editor Input Buffer
+
+IERROR = $0300  ; Vector to the Print BASIC Error Message Routine
+IMAIN  = $0302  ; Vector to the Main BASIC Program Loop
+ICRNCH = $0304  ; Vector to the Routine That Crunches the ASCII Text of Keywords into Tokens
+IQPLOP = $0306  ; Vector to the Routine That Lists BASIC Program Token as ASCII Text
+IGONE  = $0308  ; Vector to the Routine That Executes the Next BASIC Program Token
+IEVAL  = $030A  ; Vector to the Routine That Evaluates a Single-Term Arithmetic Expression
 
 CINV   = $0314  ; Vector to IRQ Interrupt Routine
 CBINV  = $0316  ; Vector: BRK Instruction Interrupt
 NMINV  = $0318  ; Vector: Non-Maskable Interrupt 
 
+; basic magic api
+LINKPRG = $A533
+SCRTCH  = $A644
+CLEARC  = $A663
