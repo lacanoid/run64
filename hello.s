@@ -12,7 +12,8 @@ resultRegister = $d7ff
 
 kmon:
         msg hello
-        
+;        jsr patch
+
 main:   jsr nl
         lda FA
         jsr hexout
@@ -32,6 +33,7 @@ more:   jsr CHRIN
 ;        txa 
 ;        jsr hexout
 
+;        jmp basexec
         jsr execute
 
 ;        jsr dicfind
@@ -40,6 +42,9 @@ more:   jsr CHRIN
         jmp main
         rts
 
+basexec:
+        jmp (IGONE)
+
 hello:  .byte 14
         .asciiz "KMON 0.1"
 
@@ -47,7 +52,7 @@ len:
         .byte 0
 
 prompt:
-        .asciiz "$"
+        .asciiz "!"
 
 exit:
         lda #0
@@ -62,7 +67,7 @@ execute:
 e1:     cmp #'B'
         bne e2
         jmp basicinfo
-e2:     cmp #'V'
+e2:     cmp #'S'
         bne e3
         jmp vectorinfo
 e3:     cmp #'X'
@@ -75,8 +80,11 @@ e4:     cmp #'.'
         jsr $c000
         rts
 e5:     cmp #'O'
-        bne ee
+        bne e6
         jmp old
+e6:     cmp #'V'
+        bne ee
+        jmp listvars
 ee:     msg err_command
         rts
 
@@ -236,7 +244,66 @@ msgc2:  .asciiz "CBINV   "
 msgc3:  .asciiz "MNINV   "
 
 
+listvars:
+        ldxy  VARTAB
+        stxy  T1
 
+lvl2:   lda T2   ; at end?
+        cmp ARYTAB+1
+        bne lvl3
+        lda T1
+        cmp ARYTAB
+lvl3:   bmi lvlgo
+        rts
+
+lvlgo:
+        ldy #0
+        lda (T1),y
+        bmi lvnext1 ; it's a number
+        iny
+        lda (T1),y
+        bpl lvnext1 ; not a string
+
+        ldxy  T1
+        jsr hexoutxy
+        chrout ':'
+
+        ldy #0
+        lda (T1),y
+        and #$7f
+        jsr CHROUT
+        iny
+        lda (T1),y
+        and #$7f
+        bne @lvl4
+        lda #' '
+@lvl4:  jsr CHROUT
+        chrout ' '
+        iny
+        lda (T1),y
+        sta COUNT
+        jsr hexout
+        chrout ' '
+        iny 
+        lda (T1),y
+        tax
+        iny
+        lda (T1),y
+        tay
+        jsr hexoutxy
+        chrout ' '
+        lda COUNT
+        jsr strout
+        jsr nl
+lvnext1:        
+        ; next
+        lda T1
+        add #7
+        sta T1
+        bcc lvl2
+        inc T2
+        bne lvl2
+;
 msgout:  stx T1
          sty T2
          ldy #0
@@ -248,6 +315,21 @@ moprint: lda (T1),y
 modone:
          rts
 
+
+; print string A = len, XY = addr
+strout:
+        sta COUNT
+        stxy R2D2
+        chrout '"'
+        ldy #0
+@lvl5:
+        lda (R2D2),y
+        jsr CHROUT
+        iny
+        cpy COUNT
+        bmi @lvl5
+        chrout '"'
+        rts
 
 hexoutxynl:
         jsr hexoutxy
@@ -278,6 +360,18 @@ hexdig:
 hdsk1:  adc #$30
         jsr CHROUT
         rts
+
+patch:
+        ldxy IERROR
+        stxy error11+1
+        leaxy error1
+        stxy IERROR
+        rts
+error1:  
+        msg msgerr
+error11: jmp $f763
+
+msgerr:  .byte "ERR",13,0
 
 .rodata
 msg0:   .asciiz "MEMBOT  "

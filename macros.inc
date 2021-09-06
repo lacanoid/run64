@@ -22,3 +22,8 @@
        leaxy addr 
        jsr msgout
 .endmacro  
+
+.macro chrout c
+       lda #c 
+       jsr CHROUT
+.endmacro

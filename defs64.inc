@@ -14,7 +14,14 @@ MEMSIZ = $37    ; Pointer to the Highest Address Used by BASIC
 VERCK  = $0A
 COUNT  = $0B
 
-BUF     = $0200  ; Line Editor Input Buffer
+C3P0   = $94
+BSOUR  = $95
+R2D2   = $A3
+BSOUR1 = $A4
+CMP0   = $B0
+TEMP   = $B1
+
+BUF    = $0200  ; Line Editor Input Buffer
 
 IERROR = $0300  ; Vector to the Print BASIC Error Message Routine
 IMAIN  = $0302  ; Vector to the Main BASIC Program Loop
