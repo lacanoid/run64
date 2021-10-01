@@ -1,6 +1,7 @@
 # Boot loader for Commodore 64 programs on Commodore 128
 
-Unlike the C64, the Commodore 128 is able to boot automatically off a disk. This project contains a simple boot loader that loads a program in C128 mode, switches the machine into C64 mode and runs the loaded program, with no user intervention required. Now you can just drop .d64 files into your c128
+Unlike the C64, the Commodore 128 is able to boot automatically off a disk. This project contains a simple boot loader that loads a program in C128 mode, 
+switches the machine into C64 mode and runs the loaded program, with no user intervention required. Now you can just drop .d64 files into your c128
 emulator and they run automatically.
 
 This project used [128boot64](https://github.com/rhalkyard/128boot64) as a starting point, 
@@ -81,9 +82,8 @@ entire sector to $0B00, optionally loads further raw sectors (or a file), and
 then jumps to the code immediately following the boot header.
 
 The boot sector header, and the C128 boot code, are laid out in
-[`bootsect.128.s`](bootsect.128.s). In summary, it loads the file in C128 mode,
-moves it to '$0800' for C64 mode,
-then copies our C64 boot code embedded the boot sector into ram at `$8000`, 
+[`bootsect.128.s`](bootsect.128.s). In summary, it loads the file in C128 mode at '$1C00',
+moves it to '$0800' for C64 mode, then copies our C64 boot code embedded the boot sector into ram at `$8000`, 
 makes a note of the device ID we booted off, and then kicks the machine over into C64 mode.
 
 The C64 side of the autostarting (in [`autostart64.s`](autostart64.s)) is
@@ -109,10 +109,7 @@ disables this behavior.
 
 ## Tested platforms
 
-So far, I've only tested this on my own machine (128DCR, with internal 1571,
-'big box' 1541 and SD2IEC). However, it should work on any 128, and with any
-drive that supports direct sector access (or at least emulates it for the boot
-sector, like the SD2IEC does).
+So far, I've only tested this on emulator.
 
 ## TODO
 
