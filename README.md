@@ -81,9 +81,10 @@ entire sector to $0B00, optionally loads further raw sectors (or a file), and
 then jumps to the code immediately following the boot header.
 
 The boot sector header, and the C128 boot code, are laid out in
-[`bootsect.128.s`](bootsect.128.s). In summary, it copies our C64 boot code
-embedded the boot sector into ram at `$8000`, makes a note of the device ID we
-booted off, and then kicks the machine over into C64 mode.
+[`bootsect.128.s`](bootsect.128.s). In summary, it loads the file in C128 mode,
+moves it to '$0800' for C64 mode,
+then copies our C64 boot code embedded the boot sector into ram at `$8000`, 
+makes a note of the device ID we booted off, and then kicks the machine over into C64 mode.
 
 The C64 side of the autostarting (in [`autostart64.s`](autostart64.s)) is
 handled by pretending to be a cartridge. Whether or not a cartridge is
@@ -93,16 +94,16 @@ remains intact, and gets jumped to during the boot process.
 
 Since control is handed over to the "cartridge" fairly early on in the boot
 process, we have to mirror portions of the KERNAL's `RESET` routine and the
-BASIC cold-start code. Once everything is ready for action, we print the
-appropriate `LOAD` and `RUN` incantations to the screen, position the cursor so
-that it will be on the `LOAD` line when BASIC starts, and then inject two
+BASIC cold-start code. Once everything is ready for action, 
+print theappropriate `SYS` and `RUN` incantations to the screen, position the cursor so
+that it will be on the first command when the BASIC starts, and then inject two
 carriage-returns into the keyboard buffer.
 
 When we hand control back to BASIC, it starts consuming the keyboard buffer,
 which causes the commands cued up on the screen to be executed, and voilà! We
 have autostart!
 
-For a cleaner look, the `LOAD` and `RUN` commands are printed to the screen with
+For a cleaner look, the `SYS` and `RUN` commands are printed to the screen with
 the same colour as the background, but setting `HIDECMDS` to 0 in `config.inc`
 disables this behavior.
 
