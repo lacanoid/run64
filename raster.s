@@ -10,8 +10,9 @@
 resultRegister = $d7ff
 
 .code
-        ldx #1
-        stx COLOR
+        lda #1
+        sta COLOR
+        ldx #0
 print:  lda msg, x
         beq done
         jsr CHROUT

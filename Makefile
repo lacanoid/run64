@@ -39,7 +39,7 @@ test.d71: raster hello bootsect2.128 bootsect.128 Makefile
 		-write hello \
 		-write raster \
 		-write install \
-		-write monitor \
+		-write smon \
 		-bwrite bootsect.128 1 0 \
 		-bwrite bootsect2.128 1 1
 
