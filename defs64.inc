@@ -22,6 +22,7 @@ CMP0   = $B0
 TEMP   = $B1
 
 BUF    = $0200  ; Line Editor Input Buffer
+ENDIN  = $0259  ; End of input buffer
 
 IERROR = $0300  ; Vector to the Print BASIC Error Message Routine
 IMAIN  = $0302  ; Vector to the Main BASIC Program Loop

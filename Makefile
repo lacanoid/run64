@@ -26,26 +26,26 @@ zap: clean
 check: test.d64
 	$(X128) -debugcart -limitcycles 10000000 -sounddev dummy -silent -console -8 $+
 
-test.d64: raster hello bootsect2.128 bootsect.128 Makefile
+test.d64: raster kmon bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d64 test.d64 \
-		-write hello \
+		-write kmon \
 		-write raster \
 		-write install \
 		-bwrite bootsect.128 1 0 \
 		-bwrite bootsect2.128 1 1
 
-test.d71: raster hello bootsect2.128 bootsect.128 Makefile
+test.d71: raster kmon bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d71 test.d71 \
-		-write hello \
+		-write kmon \
 		-write raster \
 		-write install \
 		-write smon \
 		-bwrite bootsect.128 1 0 \
 		-bwrite bootsect2.128 1 1
 
-test.d81: raster hello bootsect2.128 bootsect.128 Makefile
+test.d81: raster kmon bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d81 test.d81 \
-		-write hello \
+		-write kmon \
 		-write raster \
 		-write install \
 		-bwrite bootsect.128 1 0 \
@@ -57,8 +57,8 @@ bootsect.128: bootsect.128.o bootsect2.128.o autostart64.o
 bootsect2.128: LDFLAGS += -C linker.cfg
 bootsect2.128: bootsect.128.o bootsect2.128.o autostart64.o
 
-hello: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
-hello: hello.o
+kmon: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
+kmon: kmon.o
 
 raster: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
 raster: raster.o
