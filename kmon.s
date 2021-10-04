@@ -12,7 +12,7 @@ resultRegister = $d7ff
 
 ; -----------------------------------------------------------------------------
 ; initial entry point
-SUPER:   LDY #MSG4-MSGBAS    ; display "..SYS "
+SUPER:  LDY #MSG4-MSGBAS    ; display "..SYS "
         JSR SNDMSG
         LDA SUPAD           ; store entry point address in tmp0
         STA TMP0
@@ -51,7 +51,7 @@ kmon:
 
 ; -----------------------------------------------------------------------------
 ; main loop
-STRT:   jsr nl
+STRT:   jsr CRLF
 
         ; print current drive and prompt
         lda FA
@@ -78,12 +78,6 @@ ST1:    JSR GETCHR          ; get a character from the buffer
         BEQ STRT            ; start over if buffer is empty
         CMP #$20            ; skip leading spaces
         BEQ ST1
-
-        jsr nl
-        jsr execute
-
-        jmp STRT
-        rts
 
 S0:     LDX #KEYTOP-KEYW    ; loop through valid command characters
 S1:     CMP KEYW,X          ; see if input character matches
@@ -251,6 +245,13 @@ dctfx:
         rts
 
 info:
+
+DSPLYM: jsr CRLF
+        jsr meminfo
+        jsr CRLF
+        jsr listvars
+        jmp STRT
+
 meminfo:
         msg msg0
         sec
@@ -311,6 +312,11 @@ msgEAL:   .asciiz "EAL     "
 msgFNADR: .asciiz "FNADR   "
 
 
+DSPLYB: jsr CRLF
+        jsr basicinfo
+        jsr CRLF
+        jsr vectorinfo
+        jmp STRT
 
 basicinfo:
         msg msgb1
@@ -409,7 +415,7 @@ lvlgo:
         chrout ' '
         lda COUNT
         jsr strout
-        jsr nl
+        jsr CRLF
 lvnext1:        
         ; next
         lda T1
@@ -995,9 +1001,10 @@ strout:
 
 hexoutxynl:
         jsr hexoutxy
-nl:     lda #13
-        jsr CHROUT
-        rts
+        jmp CRLF
+;nl:     lda #13
+;        jsr CHROUT
+;        rts
 
 ; print hex A
 hexoutxy:
@@ -1037,12 +1044,12 @@ msgerr:  .byte "ERR",13,0
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
-KEYW:    .byte "GJX@"
+KEYW:    .byte "BGJMX@"
 HIKEY:   .byte "$+&%LSV"
 KEYTOP  =*
 
 ; vectors corresponding to commands above
-KADDR:  .WORD GOTO-1,JSUB-1,EXIT-1,DSTAT-1
+KADDR:  .WORD DSPLYB-1,GOTO-1,JSUB-1,DSPLYM-1, EXIT-1,DSTAT-1
 
 ; -----------------------------------------------------------------------------
 MODTAB:  .BYTE $10,$0A,$08,02    ; modulo number systems
