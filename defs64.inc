@@ -36,6 +36,6 @@ CBINV  = $0316  ; Vector: BRK Instruction Interrupt
 NMINV  = $0318  ; Vector: Non-Maskable Interrupt 
 
 ; basic magic api
-LINKPRG = $A533
-SCRTCH  = $A644
-CLEARC  = $A663
+LINKPRG = $A533 ; link basic program
+SCRTCH  = $A644 ; perform NEW
+CLEARC  = $A663 ; perform CLEAR

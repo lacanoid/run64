@@ -26,30 +26,25 @@ zap: clean
 check: test.d64
 	$(X128) -debugcart -limitcycles 10000000 -sounddev dummy -silent -console -8 $+
 
+test: test.d71 test.d81
+
 test.d64: raster kmon bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d64 test.d64 \
 		-write kmon \
-		-write raster \
-		-write install \
-		-bwrite bootsect.128 1 0 \
-		-bwrite bootsect2.128 1 1
+		-write raster
+	./install.sh test.d64
 
 test.d71: raster kmon bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d71 test.d71 \
 		-write kmon \
-		-write raster \
-		-write install \
-		-write smon \
-		-bwrite bootsect.128 1 0 \
-		-bwrite bootsect2.128 1 1
+		-write raster
+	./install.sh test.d71
 
 test.d81: raster kmon bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d81 test.d81 \
 		-write kmon \
-		-write raster \
-		-write install \
-		-bwrite bootsect.128 1 0 \
-		-bwrite bootsect2.128 1 1
+		-write raster
+	./install.sh test.d81
 
 bootsect.128: LDFLAGS += -C linker.cfg
 bootsect.128: bootsect.128.o bootsect2.128.o autostart64.o

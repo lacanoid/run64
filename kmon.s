@@ -140,10 +140,6 @@ SP:      .res 1             ; stack pointer
 
 ; -----------------------------------------------------------------------------
 
-basexec:
-        jmp (IGONE)
-
-
 hello:  .byte 14
         .asciiz "KMON 0.3"
 
@@ -158,43 +154,13 @@ exit:
         sta resultRegister
         rts
 
-execute:
-        lda BUF
-        cmp #'M'
-        bne e1
-        jmp meminfo
-e1:     cmp #'B'
-        bne e2
-        jmp basicinfo
-e2:     cmp #'S'
-        bne e3
-        jmp vectorinfo
-e3:     cmp #'X'
-        bne e4
-        pla
-        pla 
-        rts
-e4:     cmp #'.'
-        bne e5
-        jsr $c000
-        rts
-e5:     cmp #'O'
-        bne e6
-        jmp old
-e6:     cmp #'V'
-        bne ee
-        jmp listvars
-ee:     msg err_command
-        rts
+;----------------------------------------
 
-err_command:
-        .asciiz "?"
-
-old:    lda #1
+cmdold:    lda #1
         tay
         sta (TXTTAB),y
         jsr LINKPRG
-old2:   
+cmdold2:   
         ldx EAL
         stx VARTAB
         ldy EAL+1
@@ -244,6 +210,8 @@ next:  ; next item
 dctfx:
         rts
 
+; ---------------------------------------------------------------
+
 info:
 
 DSPLYM: jsr CRLF
@@ -265,9 +233,9 @@ textinfo:
         msg msg2
         ldxy VARTAB
         jsr hexoutxynl
-        msg msg3
-        ldxy ARYTAB
-        jsr hexoutxynl
+;        msg msg3
+;        ldxy ARYTAB
+;        jsr hexoutxynl
         msg msg4
         ldxy STREND
         jsr hexoutxynl
@@ -299,20 +267,19 @@ textinfo:
 
         rts
 
-msg0:     .asciiz "MEMBOT  "
-msg1:     .asciiz "TXTTAB  "
-msg2:     .asciiz "VARTAB  "
-msg3:     .asciiz "ARYTAB  "
-msg4:     .asciiz "STREND  "
-msg5:     .asciiz "FRETOP  "
-msg6:     .asciiz "MEMSIZ  "
-msgN:     .asciiz "MEMTOP  "
-msgSAL:   .asciiz "SAL     "
-msgEAL:   .asciiz "EAL     "
-msgFNADR: .asciiz "FNADR   "
+msg0:     .asciiz "MEMBOT "
+msg1:     .asciiz "TXTTAB "
+msg2:     .asciiz "VARTAB "
+;msg3:     .asciiz "ARYTAB "
+msg4:     .asciiz "STREND "
+msg5:     .asciiz "FRETOP "
+msg6:     .asciiz "MEMSIZ "
+msgN:     .asciiz "MEMTOP "
+msgSAL:   .asciiz "SAL    "
+msgEAL:   .asciiz "EAL    "
+msgFNADR: .asciiz "FNADR  "
 
-
-DSPLYB: jsr CRLF
+DSPLYI: jsr CRLF
         jsr basicinfo
         jsr CRLF
         jsr vectorinfo
@@ -709,6 +676,18 @@ COPY1P:  BCS CPY1PX          ; do nothing if parameter is empty
 CPY1PX:  RTS 
 
 ; -----------------------------------------------------------------------------
+; new [N]
+NEW:    LDX SP              ; load stack pointer from memory
+        TXS                 ; save in SP register
+NEW2:   JSR COPY1P          ; copy provided address to PC
+        LDA PCH             ; push PC high byte on stack
+        STA TXTTAB+1
+        LDA PCL             ; push PC low byte on stack
+        STA TXTTAB
+        JSR SCRTCH
+        JMP STRT
+
+; -----------------------------------------------------------------------------
 ; goto (run) [G]
 GOTO:    LDX SP              ; load stack pointer from memory
         TXS                 ; save in SP register
@@ -1043,13 +1022,23 @@ error11: jmp $f763
 msgerr:  .byte "ERR",13,0
 
 ; -----------------------------------------------------------------------------
+DSPLYH:
+        jsr CRLF
+        lda #HIKEY-KEYW
+        ldxy KEYW
+        jsr strout
+        jsr CRLF
+        jmp STRT
+
+; -----------------------------------------------------------------------------
 ; single-character commands
-KEYW:    .byte "BGJMX@"
+KEYW:    .byte "GHIJMNX@"
 HIKEY:   .byte "$+&%LSV"
 KEYTOP  =*
 
 ; vectors corresponding to commands above
-KADDR:  .WORD DSPLYB-1,GOTO-1,JSUB-1,DSPLYM-1, EXIT-1,DSTAT-1
+KADDR:  .WORD GOTO-1,DSPLYH-1,DSPLYI-1 
+        .WORD JSUB-1, DSPLYM-1, NEW-1, EXIT-1,DSTAT-1
 
 ; -----------------------------------------------------------------------------
 MODTAB:  .BYTE $10,$0A,$08,02    ; modulo number systems
