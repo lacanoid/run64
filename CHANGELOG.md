@@ -1,3 +1,7 @@
+Version 0.5
+===========
+- major improvements
+
 Version 0.4
 ===========
 - raster demo :)

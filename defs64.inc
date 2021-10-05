@@ -36,6 +36,12 @@ CBINV  = $0316  ; Vector: BRK Instruction Interrupt
 NMINV  = $0318  ; Vector: Non-Maskable Interrupt 
 
 ; basic magic api
+
 LINKPRG = $A533 ; link basic program
 SCRTCH  = $A644 ; perform NEW
+RUNC    = $A659 ; reset execute pointer
 CLEARC  = $A663 ; perform CLEAR
+STXTPT  = $A68E ; reset text pointer 
+LIST    = $A69C ; perform LIST
+RUN     = $A871 ; perform RUN
+NEWSTT  = $A7AE ;

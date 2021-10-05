@@ -23,7 +23,7 @@ SUPER:  LDY #MSG4-MSGBAS    ; display "..SYS "
         LDX #6
         LDY #3
         JSR NMPRNT          ; print entry point address
-        JSR CRLF
+;        JSR CRLF
         LDA LINKAD          ; set BRK vector
         STA CBINV
         LDA LINKAD+1
@@ -44,10 +44,14 @@ BSTACK:  PLA                 ; order: Y,X,A,SR,PCL,PCH
         STX SP
         CLI                 ; enable interupts
 
+        LDY #MSG2-MSGBAS    ; display "?" to indicate error and go to new line
+        JSR SNDMSG
+
 ; -----------------------------------------------------------------------------
 ; kmon init
 kmon:
-        msg hello
+        LDY #MSG0-MSGBAS    ; display "?" to indicate error and go to new line
+        JSR SNDMSG
 
 ; -----------------------------------------------------------------------------
 ; main loop
@@ -70,6 +74,9 @@ SMOVE:  jsr CHRIN
         LDA #0              ; null-terminate input buffer
         STA BUF-1,X         ; (replacing the CR)
 
+STRT2:  ; execute BUF
+        LDA #0
+        STA CHRPNT
         stx COUNT
         dec COUNT
         beq STRT            ; repeat if buffer is empty
@@ -85,6 +92,7 @@ S1:     CMP KEYW,X          ; see if input character matches
         DEX                 ; no match, check next command
         BPL S1              ; keep trying until we've checked them all
                             ; then fall through to error handler
+
 ; -----------------------------------------------------------------------------
 ; handle error
 ERROR:  LDY #MSG3-MSGBAS    ; display "?" to indicate error and go to new line
@@ -138,274 +146,10 @@ XR:      .res 1             ; X register
 YR:      .res 1             ; Y register
 SP:      .res 1             ; stack pointer
 
-; -----------------------------------------------------------------------------
-
-hello:  .byte 14
-        .asciiz "KMON 0.3"
-
-len:
-        .byte 0
-
-prompt:
-        .asciiz "!"
-
-exit:
-        lda #0
-        sta resultRegister
-        rts
-
-;----------------------------------------
-
-cmdold:    lda #1
-        tay
-        sta (TXTTAB),y
-        jsr LINKPRG
-cmdold2:   
-        ldx EAL
-        stx VARTAB
-        ldy EAL+1
-        sty VARTAB+1
-        rts
-
-; in: xy = dict, BUF = string, COUNT = string length
-; out: xy = address 
-dictfind:
-        stxy T1
-        ldy #0
-        lda COUNT
-        sta VERCK
-
-dctfl2:
-        ; compare length
-        lda (T1),y
-        beq dctfx ; end of list, not found
-        sta COUNT
-        cmp VERCK
-        bne next ; no match
-        iny
-
-        ; compare strings
-
-dctfl:
-        lda BUF-1,y
-        cmp (T1),y
-        bne next1 ; no match
-        iny
-        cpy VERCK
-        bne dctfl
-found:
-
-
-next1: ; not found
-       
-
-next:  ; next item
-        tya
-        add COUNT
-        tay
-
-        clc
-        bcc dctfl2
-
-dctfx:
-        rts
-
-; ---------------------------------------------------------------
-
-info:
-
-DSPLYM: jsr CRLF
-        jsr meminfo
-        jsr CRLF
-        jsr listvars
-        jmp STRT
-
-meminfo:
-        msg msg0
-        sec
-        jsr MEMBOT
-        jsr hexoutxynl
-
-textinfo:
-        msg msg1
-        ldxy TXTTAB
-        jsr hexoutxynl
-        msg msg2
-        ldxy VARTAB
-        jsr hexoutxynl
-;        msg msg3
-;        ldxy ARYTAB
-;        jsr hexoutxynl
-        msg msg4
-        ldxy STREND
-        jsr hexoutxynl
-        msg msg5
-        ldxy FRETOP
-        jsr hexoutxynl
-        msg msg6
-        ldxy MEMSIZ
-        jsr hexoutxynl
-        msg msgN
-        sec
-        jsr MEMTOP
-        jsr hexoutxynl
-
-        msg msgSAL
-        ldxy SAL
-        jsr hexoutxynl
-
-        msg msgEAL
-        ldxy EAL
-        jsr hexoutxynl
-
-        msg msgFNADR
-        ldxy FNADR
-        jsr hexoutxy
-        chrout ' '
-        lda FNLEN
-        jsr strout
-
-        rts
-
-msg0:     .asciiz "MEMBOT "
-msg1:     .asciiz "TXTTAB "
-msg2:     .asciiz "VARTAB "
-;msg3:     .asciiz "ARYTAB "
-msg4:     .asciiz "STREND "
-msg5:     .asciiz "FRETOP "
-msg6:     .asciiz "MEMSIZ "
-msgN:     .asciiz "MEMTOP "
-msgSAL:   .asciiz "SAL    "
-msgEAL:   .asciiz "EAL    "
-msgFNADR: .asciiz "FNADR  "
-
-DSPLYI: jsr CRLF
-        jsr basicinfo
-        jsr CRLF
-        jsr vectorinfo
-        jmp STRT
-
-basicinfo:
-        msg msgb1
-        ldxy IERROR
-        jsr hexoutxynl
-        msg msgb2
-        ldxy IMAIN
-        jsr hexoutxynl
-        msg msgb3
-        ldxy ICRNCH
-        jsr hexoutxynl
-        msg msgb4
-        ldxy IQPLOP
-        jsr hexoutxynl
-        msg msgb5
-        ldxy IGONE
-        jsr hexoutxynl
-        msg msgb6
-        ldxy IEVAL
-        jsr hexoutxynl
-
-        rts
-
-msgb1:  .asciiz "IERROR  "
-msgb2:  .asciiz "IMAIN   "
-msgb3:  .asciiz "ICRNCH  "
-msgb4:  .asciiz "IQPLOP  "
-msgb5:  .asciiz "IGONE   "
-msgb6:  .asciiz "IEVAL   "
-
-
-vectorinfo:
-        msg msgc1
-        ldxy CINV
-        jsr hexoutxynl
-        msg msgc2
-        ldxy CBINV
-        jsr hexoutxynl
-        msg msgc3
-        ldxy NMINV
-        jsr hexoutxynl
-        rts
-
-msgc1:  .asciiz "CINV    "
-msgc2:  .asciiz "CBINV   "
-msgc3:  .asciiz "MNINV   "
-
-
-listvars:
-        ldxy  VARTAB
-        stxy  T1
-
-lvl2:   lda T2   ; at end?
-        cmp ARYTAB+1
-        bne lvl3
-        lda T1
-        cmp ARYTAB
-lvl3:   bmi lvlgo
-        rts
-
-lvlgo:
-        ldy #0
-        lda (T1),y
-        bmi lvnext1 ; it's a number
-        iny
-        lda (T1),y
-        bpl lvnext1 ; not a string
-
-        ldxy  T1
-        jsr hexoutxy
-        chrout ':'
-
-        ldy #0
-        lda (T1),y
-        and #$7f
-        jsr CHROUT
-        iny
-        lda (T1),y
-        and #$7f
-        bne @lvl4
-        lda #' '
-@lvl4:  jsr CHROUT
-        chrout ' '
-        iny
-        lda (T1),y
-        sta COUNT
-        jsr hexout
-        chrout ' '
-        iny 
-        lda (T1),y
-        tax
-        iny
-        lda (T1),y
-        tay
-        jsr hexoutxy
-        chrout ' '
-        lda COUNT
-        jsr strout
-        jsr CRLF
-lvnext1:        
-        ; next
-        lda T1
-        add #7
-        sta T1
-        bcc lvl2
-        inc T2
-        bne lvl2
-;
-msgout:  stx T1
-         sty T2
-         ldy #0
-moprint: lda (T1),y
-         beq modone
-         jsr CHROUT
-         iny
-         bpl moprint
-modone:
-         rts
 
 ; -----------------------------------------------------------------------------
 ; load, save, or verify [LSV]
-LD:      LDY #1              ; default to reading from tape, device #1
+LD:     LDY #1              ; default to reading from tape, device #1
         STY FA
         STY SA              ; default to secondary address #1
         DEY
@@ -948,8 +692,12 @@ SNDMSG:  LDA MSGBAS,Y        ; Y contains offset in msg table
 ; -----------------------------------------------------------------------------
 ; message table; last character has high bit set
 MSGBAS  =*
-MSG2:    .BYTE $0D               ; header for registers
-        .byte "   PC  SR AC XR YR SP   V1.2"
+MSG0:   .BYTE 14
+        .BYTE "KMON 0.",'5'+$80
+MSG1:   .BYTE $0D               ; header for registers
+        .BYTE "*ERR",'*'+$80
+MSG2:   .BYTE $0D               ; header for registers
+        .BYTE "*BRK*"
         .BYTE $0D+$80
 MSG3:    .BYTE $1D,$3F+$80       ; syntax error: move right, display "?"
 MSG4:    .byte "..SYS"           ; SYS call to enter monitor
@@ -960,6 +708,229 @@ MSG6:    .byte " ERRO"           ; I/O error: display " ERROR"
 MSG7:    .BYTE $41,$20+$80       ; assemble next instruction: "A " + addr
 MSG8:    .byte "  "              ; pad non-existent byte: skip 3 spaces
         .BYTE $20+$80
+
+
+; -----------------------------------------------------------------------------
+
+hello:  .byte 14
+        .asciiz "KMON 0.3"
+
+len:
+        .byte 0
+
+prompt:
+        .asciiz "!"
+
+exit:
+        lda #0
+        sta resultRegister
+        rts
+
+;----------------------------------------
+
+cmdold:    lda #1
+        tay
+        sta (TXTTAB),y
+        jsr LINKPRG
+cmdold2:   
+        ldx EAL
+        stx VARTAB
+        ldy EAL+1
+        sty VARTAB+1
+        rts
+
+; ---------------------------------------------------------------
+
+info:
+
+DSPLYM: jsr CRLF
+        jsr meminfo
+        jsr CRLF
+        jsr listvars
+        jmp STRT
+
+meminfo:
+        msg msg0
+        sec
+        jsr MEMBOT
+        jsr hexoutxynl
+
+textinfo:
+        msg msg1
+        ldxy TXTTAB
+        jsr hexoutxynl
+        msg msg2
+        ldxy VARTAB
+        jsr hexoutxynl
+;        msg msg3
+;        ldxy ARYTAB
+;        jsr hexoutxynl
+        msg msg4
+        ldxy STREND
+        jsr hexoutxynl
+        msg msg5
+        ldxy FRETOP
+        jsr hexoutxynl
+        msg msg6
+        ldxy MEMSIZ
+        jsr hexoutxynl
+        msg msgN
+        sec
+        jsr MEMTOP
+        jsr hexoutxynl
+
+        msg msgSAL
+        ldxy SAL
+        jsr hexoutxynl
+
+        msg msgEAL
+        ldxy EAL
+        jsr hexoutxynl
+
+        msg msgFNADR
+        ldxy FNADR
+        jsr hexoutxy
+        chrout ' '
+        lda FNLEN
+        jsr strout
+
+        rts
+
+msg0:     .asciiz "MEMBOT "
+msg1:     .asciiz "TXTTAB "
+msg2:     .asciiz "VARTAB "
+;msg3:     .asciiz "ARYTAB "
+msg4:     .asciiz "STREND "
+msg5:     .asciiz "FRETOP "
+msg6:     .asciiz "MEMSIZ "
+msgN:     .asciiz "MEMTOP "
+msgSAL:   .asciiz "SAL    "
+msgEAL:   .asciiz "EAL    "
+msgFNADR: .asciiz "FNADR  "
+
+DSPLYI: jsr CRLF
+        jsr basicinfo
+        jsr CRLF
+        jsr vectorinfo
+        jmp STRT
+
+basicinfo:
+        msg msgb1
+        ldxy IERROR
+        jsr hexoutxynl
+        msg msgb2
+        ldxy IMAIN
+        jsr hexoutxynl
+        msg msgb3
+        ldxy ICRNCH
+        jsr hexoutxynl
+        msg msgb4
+        ldxy IQPLOP
+        jsr hexoutxynl
+        msg msgb5
+        ldxy IGONE
+        jsr hexoutxynl
+        msg msgb6
+        ldxy IEVAL
+        jsr hexoutxynl
+
+        rts
+
+msgb1:  .asciiz "IERROR  "
+msgb2:  .asciiz "IMAIN   "
+msgb3:  .asciiz "ICRNCH  "
+msgb4:  .asciiz "IQPLOP  "
+msgb5:  .asciiz "IGONE   "
+msgb6:  .asciiz "IEVAL   "
+
+
+vectorinfo:
+        msg msgc1
+        ldxy CINV
+        jsr hexoutxynl
+        msg msgc2
+        ldxy CBINV
+        jsr hexoutxynl
+        msg msgc3
+        ldxy NMINV
+        jsr hexoutxynl
+        rts
+
+msgc1:  .asciiz "CINV    "
+msgc2:  .asciiz "CBINV   "
+msgc3:  .asciiz "MNINV   "
+
+
+listvars:
+        ldxy  VARTAB
+        stxy  T1
+
+lvl2:   lda T2   ; at end?
+        cmp ARYTAB+1
+        bne lvl3
+        lda T1
+        cmp ARYTAB
+lvl3:   bmi lvlgo
+        rts
+
+lvlgo:
+        ldy #0
+        lda (T1),y
+        bmi lvnext1 ; it's a number
+        iny
+        lda (T1),y
+        bpl lvnext1 ; not a string
+
+        ldxy  T1
+        jsr hexoutxy
+        chrout ':'
+
+        ldy #0
+        lda (T1),y
+        and #$7f
+        jsr CHROUT
+        iny
+        lda (T1),y
+        and #$7f
+        bne @lvl4
+        lda #' '
+@lvl4:  jsr CHROUT
+        chrout ' '
+        iny
+        lda (T1),y
+        sta COUNT
+        jsr hexout
+        chrout ' '
+        iny 
+        lda (T1),y
+        tax
+        iny
+        lda (T1),y
+        tay
+        jsr hexoutxy
+        chrout ' '
+        lda COUNT
+        jsr strout
+        jsr CRLF
+lvnext1:        
+        ; next
+        lda T1
+        add #7
+        sta T1
+        bcc lvl2
+        inc T2
+        bne lvl2
+;
+msgout:  stx T1
+         sty T2
+         ldy #0
+moprint: lda (T1),y
+         beq modone
+         jsr CHROUT
+         iny
+         bpl moprint
+modone:
+         rts
 
 ; -----------------------------------------------------------------------------
 
@@ -1009,17 +980,26 @@ hdsk1:  adc #$30
         jsr CHROUT
         rts
 
-patch:
+; -----------------------------------------------------------------------------
+; 
+MAIN_SET:
         ldxy IERROR
-        stxy error11+1
-        leaxy error1
+        stxy MAIN_JMP+1
+        leaxy MAIN
         stxy IERROR
         rts
-error1:  
-        msg msgerr
-error11: jmp $f763
 
-msgerr:  .byte "ERR",13,0
+MAIN:
+MAIN_CLR:
+        ldxy MAIN_JMP+1
+        stxy IERROR
+
+        LDY #MSG1-MSGBAS    ; display "?" to indicate error and go to new line
+        JSR SNDMSG
+        jmp STRT
+
+MAIN_JMP:
+        jmp $A483
 
 ; -----------------------------------------------------------------------------
 DSPLYH:
@@ -1031,14 +1011,54 @@ DSPLYH:
         jmp STRT
 
 ; -----------------------------------------------------------------------------
+CMDBOOT:
+        jmp ($FFFC)
+        rts
+
+; -----------------------------------------------------------------------------
+CMDRUN:
+        jsr MAIN_SET
+        jsr CRLF
+        ldxy EAL
+        stxy VARTAB
+        jsr LINKPRG
+        jsr RUNC
+        jsr STXTPT
+        jmp NEWSTT
+        rts
+
+; -----------------------------------------------------------------------------
+CMDLIST:
+        jsr MAIN_SET
+        jsr LINKPRG
+        jsr RUNC
+        jsr LIST
+        rts
+
+; -----------------------------------------------------------------------------
+CMDDIR:
+        ldx #0
+CMDDI2: lda CMDDI0,X
+        sta BUF,X
+        bne CMDDI1
+        inx
+        jmp STRT2
+CMDDI1: inx
+        bpl CMDDI2
+        brk
+        rts
+
+CMDDI0: .asciiz "@,$"
+
+; -----------------------------------------------------------------------------
 ; single-character commands
-KEYW:    .byte "GHIJMNX@"
+KEYW:    .byte "BDEGHIJMNRX@"
 HIKEY:   .byte "$+&%LSV"
 KEYTOP  =*
 
 ; vectors corresponding to commands above
-KADDR:  .WORD GOTO-1,DSPLYH-1,DSPLYI-1 
-        .WORD JSUB-1, DSPLYM-1, NEW-1, EXIT-1,DSTAT-1
+KADDR:  .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1 
+        .WORD JSUB-1, DSPLYM-1, NEW-1, CMDRUN-1, EXIT-1, DSTAT-1
 
 ; -----------------------------------------------------------------------------
 MODTAB:  .BYTE $10,$0A,$08,02    ; modulo number systems
