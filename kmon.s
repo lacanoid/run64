@@ -50,6 +50,15 @@ BSTACK:  PLA                 ; order: Y,X,A,SR,PCL,PCH
         LDY #MSG2-MSGBAS    ; display "?" to indicate error and go to new line
         JSR SNDMSG
 
+        lda SP
+        jsr hexout
+
+        chrout ' '
+
+        ldx PCL
+        ldy PCH
+        jsr hexoutxynl
+
 ; -----------------------------------------------------------------------------
 ; kmon init
 kmon:
@@ -95,7 +104,6 @@ S1:     CMP KEYW,X          ; see if input character matches
         DEX                 ; no match, check next command
         BPL S1              ; keep trying until we've checked them all
                             ; then fall through to error handler
-
 ; -----------------------------------------------------------------------------
 ; handle error
 ERROR:  LDY #MSG3-MSGBAS    ; display "?" to indicate error and go to new line
@@ -104,9 +112,10 @@ ERROR:  LDY #MSG3-MSGBAS    ; display "?" to indicate error and go to new line
 
 ; -----------------------------------------------------------------------------
 ; dispatch command
-S2:      CPX #$13            ; last 3 commands in table are load/save/validate
+S2:
+        CPX #KEYTOP-KEYW-3  ; last 3 commands in table are load/save/validate
         BCS LSV             ;   which are handled by the same subroutine
-        CPX #$0F            ; next 4 commands are base conversions
+        CPX #KEYTOP-KEYW-7  ; next 4 commands are base conversions
         BCS CNVLNK          ;   which are handled by the same subroutine
         TXA                 ; remaining commands dispatch through vector table
         ASL A               ; multiply index of command by 2
@@ -115,8 +124,9 @@ S2:      CPX #$13            ; last 3 commands in table are load/save/validate
         PHA                 ;   so that the RTS from GETPAR will jump there
         LDA KADDR,X
         PHA
-        JMP GETPAR          ; get the first parameter for the command
-LSV:     STA SAVY            ; handle load/save/validate
+;        JMP GETPAR          ; get the first parameter for the command
+        RTS
+LSV:    STA SAVY            ; handle load/save/validate
         JMP LD
 CNVLNK:  JMP CONVRT          ; handle base conversion
 
@@ -558,14 +568,17 @@ ZERSUP:  DEX                 ; decrement number of leading zeros
         RTS
 ; -----------------------------------------------------------------------------
 ; disk status/command [@]
-DSTAT:   BNE CHGDEV          ; if device address was given, use it
-        LDX #8              ; otherwise, default to 8
+DSTAT:   
+        JSR GETPAR
+        BNE CHGDEV          ; if device address was given, use it
+        LDX FA              ; otherwise, default to 8
         .BYTE $2C           ; absolute BIT opcode consumes next word (LDX TMP0)
 CHGDEV:  LDX TMP0            ; load device address from parameter
         CPX #4              ; make sure device address is in range 4-31
         BCC IOERR
         CPX #32
         BCS IOERR
+        STX FA
         STX TMP0
         LDA #0              ; clear status
         STA STATUS
@@ -700,7 +713,7 @@ MSG0:   .BYTE 14
 MSG1:   .BYTE $0D               ; header for registers
         .BYTE "*ERR",'*'+$80
 MSG2:   .BYTE $0D               ; header for registers
-        .BYTE "*BRK*",$0D+$80
+        .BYTE "*BRK*",$20+$80
 MSG3:    .BYTE $1D,$3F+$80       ; syntax error: move right, display "?"
 MSG4:    .byte "..SYS"           ; SYS call to enter monitor
         .BYTE $20+$80
@@ -960,14 +973,17 @@ hexout:
         lsr
         lsr
         jsr hexdig
+        jsr CHROUT
         pla
         and #$0f
+        jsr hexdig
+        jsr CHROUT
+        rts
 hexdig:
         cmp #$0a
         bcc hdsk1
         adc #$06
 hdsk1:  adc #$30
-        jsr CHROUT
         rts
 
 ; -----------------------------------------------------------------------------
@@ -1017,17 +1033,17 @@ CMDRUN:
 CMDRU1: JSR GETCHR          ; get a character
         BNE CMDRU2
 
-        jsr __TBUFFR_RUN__+3
+        jsr __TBUFFR_RUN__
         bcc CMDRUNNE   ; no error
         jsr hexout     ; print error code
 CMDRUNNE:
         rts
 
 CMDRU2: 
-        brk
         CMP #$20            ; skip leading spaces
         BEQ CMDRU1
 
+        dec CHRPNT
         lda #<BUF
         add CHRPNT
         tax
@@ -1035,6 +1051,7 @@ CMDRU2:
         adc #0
         tay
         stxy FNADR
+        inc CHRPNT
 
         ldy #0              ; get file name length
 CMDRU4: lda (FNADR),y
@@ -1050,7 +1067,7 @@ CMDRU3: tya                 ; set file name
         ldxy FNADR
         JSR SETNAM
 
-        jsr __TBUFFR_RUN__
+        jsr __TBUFFR_RUN__+3
         bcc CMDRUN1   ; no error
         jsr hexout    ; print error code
 CMDRUN1:
@@ -1077,19 +1094,27 @@ CMDLIST:
         rts
 
 ; -----------------------------------------------------------------------------
-CMDDIR:
+CMDDIR:            ; directory command
+        jsr GETPAR
+        bcs CMDDI3
+
+
+CMDDI3:
         ldx #0
 CMDDI2: lda CMDDI0,X
         sta BUF,X
         bne CMDDI1
-        inx
+        lda FA     ; substitute current device number
+        jsr hexdig
+        sta BUF+1
+;        inx         ; end of command        
         jmp STRT2
 CMDDI1: inx
         bpl CMDDI2
         brk
         rts
 
-CMDDI0: .asciiz "@,$"
+CMDDI0: .asciiz "@8,$"
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
@@ -1110,15 +1135,14 @@ LINKAD:  .WORD BREAK             ; address of brk handler
 SUPAD:   .WORD SUPER             ; address of entry point
 
 ; -----------------------------------------------------------------------------
-
-
+; Tape buffer (resident) section
 .segment "TBUFFR"
-        jmp run_prg   
         jmp run_mon
+        jmp run_prg
 ; -----------------------------------------------------------------------------
 ; display message from table
 run_mon:
-        lda #1
+        lda #4
         leaxy FN
         JSR SETNAM
 
@@ -1146,8 +1170,29 @@ TBSTART:
         jsr LINKPRG
         jsr RUNC
         jsr STXTPT
+        jsr IERROR_SET
         jmp NEWSTT
         rts
+
+IERROR_SET:
+        ldxy IERROR
+        stxy IERROR_JMP+1
+        ldxy IERROR_W
+        stxy IERROR
+        rts
+IERROR_GO:
+IERROR_CLR:
+        ldxy IERROR_JMP+1
+        stxy IERROR
+
+        LDY #MSG2_2-MSGBAS2    ; display "?" to indicate error and go to new line
+        JSR SNDMSG2
+        jmp run_mon
+IERROR_JMP:
+        jmp $A483
+IERROR_W: .word IERROR_GO
+
+
 
 SNDMSG2:  
         LDA MSGBAS2,Y        ; Y contains offset in msg table
@@ -1161,5 +1206,6 @@ SNDMSG2:
 
 MSGBAS2  =*
 MSG2_0: .BYTE $0D+$80
-MSG2_1: .BYTE $0d,"*IO* ",$20+$80
-FN:     .byte "*"
+MSG2_1: .BYTE $0d,"?EIO",$d+$80
+MSG2_2: .BYTE $0d,"?ERROR",$d+$80
+FN:     .byte "KMON"

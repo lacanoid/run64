@@ -3,7 +3,6 @@
 DISKIMG=$1
 for i in prg/*
 do
- echo $i
  c1541 $DISKIMG -write $i
 done
 
