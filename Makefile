@@ -52,7 +52,7 @@ bootsect.128: bootsect.128.o bootsect2.128.o autostart64.o
 bootsect2.128: LDFLAGS += -C linker.cfg
 bootsect2.128: bootsect.128.o bootsect2.128.o autostart64.o
 
-kmon: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
+kmon: LDFLAGS += -t c64 -C kmon.cfg -u __EXEHDR__
 kmon: kmon.o
 
 raster: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__

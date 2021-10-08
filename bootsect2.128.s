@@ -15,7 +15,7 @@ DE      = $C3
 
 RUN64   = __RUN64_RUN__
 
-.segment "GO64"
+.segment "VICGO64"
 go64old:
         jmp RUN64
 

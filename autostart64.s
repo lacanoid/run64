@@ -4,6 +4,7 @@
 
 .include "config.inc"
 .include "defs64.inc"
+.include "macros.inc"
 
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
 .import __CARTHDR_LOAD__, __CARTHDR_RUN__, __CARTHDR_SIZE__
@@ -101,10 +102,8 @@ old:    lda #1
         jsr LINKPRG
 ;        rts
 old2:   
-        ldx EAL
-        stx VARTAB
-        ldy EAL+1
-        sty VARTAB+1
+        ldxy EAL
+        stxy VARTAB
         rts
 
 ;        clc

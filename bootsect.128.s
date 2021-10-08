@@ -5,7 +5,7 @@
 .include "defs128.inc"
 
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
-.import __GO64_SIZE__, __GO64_LOAD__, __GO64_RUN__
+.import __VICGO64_SIZE__, __VICGO64_LOAD__, __VICGO64_RUN__
 .import __CARTHDR_SIZE__, __CARTHDR_LOAD__
 
 C64DEST = $0801
@@ -97,8 +97,8 @@ colors:
         BNE @loop3
 
 ; copy go64 routine to boot block screen memory, so that boot block buffer can be freed
-        LDX  #< (__GO64_SIZE__ + 1)
-@loop4: LDA __GO64_LOAD__ - 1, X
+        LDX  #< (__VICGO64_SIZE__ + 1)
+@loop4: LDA __VICGO64_LOAD__ - 1, X
         STA VICGO64 - 1, X
         DEX
         BNE @loop4

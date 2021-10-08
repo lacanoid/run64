@@ -6,6 +6,9 @@
 
 .forceimport __EXEHDR__
 
+.import __TBUFFR_SIZE__, __TBUFFR_LOAD__, __TBUFFR_RUN__
+
+
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.
 resultRegister = $d7ff
@@ -697,8 +700,7 @@ MSG0:   .BYTE 14
 MSG1:   .BYTE $0D               ; header for registers
         .BYTE "*ERR",'*'+$80
 MSG2:   .BYTE $0D               ; header for registers
-        .BYTE "*BRK*"
-        .BYTE $0D+$80
+        .BYTE "*BRK*",$0D+$80
 MSG3:    .BYTE $1D,$3F+$80       ; syntax error: move right, display "?"
 MSG4:    .byte "..SYS"           ; SYS call to enter monitor
         .BYTE $20+$80
@@ -712,19 +714,8 @@ MSG8:    .byte "  "              ; pad non-existent byte: skip 3 spaces
 
 ; -----------------------------------------------------------------------------
 
-hello:  .byte 14
-        .asciiz "KMON 0.3"
-
-len:
-        .byte 0
-
 prompt:
         .asciiz "!"
-
-exit:
-        lda #0
-        sta resultRegister
-        rts
 
 ;----------------------------------------
 
@@ -836,12 +827,12 @@ basicinfo:
 
         rts
 
-msgb1:  .asciiz "IERROR  "
-msgb2:  .asciiz "IMAIN   "
-msgb3:  .asciiz "ICRNCH  "
-msgb4:  .asciiz "IQPLOP  "
-msgb5:  .asciiz "IGONE   "
-msgb6:  .asciiz "IEVAL   "
+msgb1:  .asciiz "IERROR "
+msgb2:  .asciiz "IMAIN  "
+msgb3:  .asciiz "ICRNCH "
+msgb4:  .asciiz "IQPLOP "
+msgb5:  .asciiz "IGONE  "
+msgb6:  .asciiz "IEVAL  "
 
 
 vectorinfo:
@@ -856,9 +847,9 @@ vectorinfo:
         jsr hexoutxynl
         rts
 
-msgc1:  .asciiz "CINV    "
-msgc2:  .asciiz "CBINV   "
-msgc3:  .asciiz "MNINV   "
+msgc1:  .asciiz "CINV   "
+msgc2:  .asciiz "CBINV  "
+msgc3:  .asciiz "MNINV  "
 
 
 listvars:
@@ -933,7 +924,6 @@ modone:
          rts
 
 ; -----------------------------------------------------------------------------
-
 ; print string A = len, XY = addr
 strout:
         sta COUNT
@@ -982,30 +972,30 @@ hdsk1:  adc #$30
 
 ; -----------------------------------------------------------------------------
 ; 
-MAIN_SET:
+ON_ERR_SET:
         ldxy IERROR
-        stxy MAIN_JMP+1
-        leaxy MAIN
+        stxy ON_ERR_JMP+1
+        ldxy ERRAD
         stxy IERROR
         rts
 
-MAIN:
-MAIN_CLR:
-        ldxy MAIN_JMP+1
+ON_ERR:
+ON_ERR_CLR:
+        ldxy ON_ERR_JMP+1
         stxy IERROR
 
         LDY #MSG1-MSGBAS    ; display "?" to indicate error and go to new line
         JSR SNDMSG
         jmp STRT
 
-MAIN_JMP:
+ON_ERR_JMP:
         jmp $A483
 
 ; -----------------------------------------------------------------------------
 DSPLYH:
         jsr CRLF
         lda #HIKEY-KEYW
-        ldxy KEYW
+        leaxy KEYW
         jsr strout
         jsr CRLF
         jmp STRT
@@ -1017,7 +1007,58 @@ CMDBOOT:
 
 ; -----------------------------------------------------------------------------
 CMDRUN:
-        jsr MAIN_SET
+;        jsr ON_ERR_SET
+        LDX  #< (__TBUFFR_SIZE__ + 1)
+@loop:  LDA __TBUFFR_LOAD__ - 1, X
+        STA __TBUFFR_RUN__ - 1, X
+        DEX
+        BNE @loop
+
+CMDRU1: JSR GETCHR          ; get a character
+        BNE CMDRU2
+
+        jsr __TBUFFR_RUN__+3
+        bcc CMDRUNNE   ; no error
+        jsr hexout     ; print error code
+CMDRUNNE:
+        rts
+
+CMDRU2: 
+        brk
+        CMP #$20            ; skip leading spaces
+        BEQ CMDRU1
+
+        lda #<BUF
+        add CHRPNT
+        tax
+        lda #>BUF
+        adc #0
+        tay
+        stxy FNADR
+
+        ldy #0              ; get file name length
+CMDRU4: lda (FNADR),y
+        beq CMDRU3
+        CMP #$20            ; skip leading spaces
+        BEQ CMDRU3
+        iny
+        bpl CMDRU4
+
+CMDRU5: jmp ERROR
+
+CMDRU3: tya                 ; set file name
+        ldxy FNADR
+        JSR SETNAM
+
+        jsr __TBUFFR_RUN__
+        bcc CMDRUN1   ; no error
+        jsr hexout    ; print error code
+CMDRUN1:
+        rts
+
+; -----------------------------------------------------------------------------
+CMDRUN0:
+        jsr ON_ERR_SET
         jsr CRLF
         ldxy EAL
         stxy VARTAB
@@ -1029,7 +1070,7 @@ CMDRUN:
 
 ; -----------------------------------------------------------------------------
 CMDLIST:
-        jsr MAIN_SET
+        jsr ON_ERR_SET
         jsr LINKPRG
         jsr RUNC
         jsr LIST
@@ -1064,5 +1105,61 @@ KADDR:  .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1
 MODTAB:  .BYTE $10,$0A,$08,02    ; modulo number systems
 LENTAB:  .BYTE $04,$03,$03,$01   ; bits per digit
 
+ERRAD:   .word ON_ERR            ;
 LINKAD:  .WORD BREAK             ; address of brk handler
 SUPAD:   .WORD SUPER             ; address of entry point
+
+; -----------------------------------------------------------------------------
+
+
+.segment "TBUFFR"
+        jmp run_prg   
+        jmp run_mon
+; -----------------------------------------------------------------------------
+; display message from table
+run_mon:
+        lda #1
+        leaxy FN
+        JSR SETNAM
+
+run_prg:
+        lda #1
+        ldx FA
+        bne TBINIT1
+        ldx #8
+TBINIT1:ldy #0
+        jsr SETLFS
+
+        lda #0        ; load, mot verify
+        ldxy TXTTAB
+        JSR LOAD
+        bcc TBSTART
+        LDY #MSG2_1-MSGBAS2    ;
+        JSR SNDMSG2
+        rts ; error
+
+TBSTART:
+        LDY #MSG2_0-MSGBAS2    ;
+        JSR SNDMSG2
+        ldxy EAL
+        stxy VARTAB
+        jsr LINKPRG
+        jsr RUNC
+        jsr STXTPT
+        jmp NEWSTT
+        rts
+
+SNDMSG2:  
+        LDA MSGBAS2,Y        ; Y contains offset in msg table
+        PHP
+        AND #$7F            ; strip high bit before output
+        JSR CHOUT
+        INY
+        PLP
+        BPL SNDMSG2          ; loop until high bit is set
+        RTS
+
+MSGBAS2  =*
+MSG2_0: .BYTE $0D+$80
+MSG2_1: .BYTE $0d,"*IO* ",$20+$80
+FN:     .byte "*"
