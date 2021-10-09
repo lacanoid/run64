@@ -69,6 +69,8 @@ raster_setup:
         dey
         bpl @in1
 
+        jsr CHRIN      ; wait for enter
+
         rts
 
 raster:                 ; new interrupt routine

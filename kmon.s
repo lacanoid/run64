@@ -31,8 +31,13 @@ SUPER:  LDY #MSG4-MSGBAS    ; display "..SYS "
         STA CBINV
         LDA LINKAD+1
         STA CBINV+1
+
         LDA #$80            ; disable kernel control messages
         JSR SETMSG          ; and enable error messages
+
+        ldxy IERROR
+        stxy ON_ERR_SAV
+
         BRK
 
 ; -----------------------------------------------------------------------------
@@ -52,13 +57,14 @@ BSTACK:  PLA                 ; order: Y,X,A,SR,PCL,PCH
 
         lda SP
         jsr hexout
-
-        chrout ' '
-
+        jsr SPACE
         ldx PCL
         ldy PCH
-        jsr hexoutxynl
-
+        jsr hexoutxy
+        jsr SPACE
+        lda ACC
+        jsr hexout
+        jsr CRLF
 ; -----------------------------------------------------------------------------
 ; kmon init
 kmon:
@@ -132,7 +138,10 @@ CNVLNK:  JMP CONVRT          ; handle base conversion
 
 ; -----------------------------------------------------------------------------
 ; exit monitor [X]
-EXIT:    JMP ($A002)         ; jump to warm-start vector to reinitialize BASIC
+EXIT:    
+        ldxy ON_ERR_SAV
+        stxy IERROR
+        JMP ($A002)         ; jump to warm-start vector to reinitialize BASIC
 
 
 ; -----------------------------------------------------------------------------
@@ -434,7 +443,8 @@ CPY1PX:  RTS
 
 ; -----------------------------------------------------------------------------
 ; new [N]
-NEW:    LDX SP              ; load stack pointer from memory
+NEW:    JSR GETPAR
+        LDX SP              ; load stack pointer from memory
         TXS                 ; save in SP register
 NEW2:   JSR COPY1P          ; copy provided address to PC
         LDA PCH             ; push PC high byte on stack
@@ -709,7 +719,7 @@ SNDMSG:  LDA MSGBAS,Y        ; Y contains offset in msg table
 ; message table; last character has high bit set
 MSGBAS  =*
 MSG0:   .BYTE 14
-        .BYTE "KMON 0.",'5'+$80
+        .BYTE "KMON 0.",'6'+$80
 MSG1:   .BYTE $0D               ; header for registers
         .BYTE "*ERR",'*'+$80
 MSG2:   .BYTE $0D               ; header for registers
@@ -794,7 +804,7 @@ textinfo:
         msg msgFNADR
         ldxy FNADR
         jsr hexoutxy
-        chrout ' '
+        jsr SPACE
         lda FNLEN
         jsr strout
 
@@ -1003,14 +1013,15 @@ ON_ERR_CLR:
         LDY #MSG1-MSGBAS    ; display "?" to indicate error and go to new line
         JSR SNDMSG
         jmp STRT
-
 ON_ERR_JMP:
-        jmp $A483
+        jmp $0000
+ON_ERR_SAV:
+        .word 0
 
 ; -----------------------------------------------------------------------------
 DSPLYH:
         jsr CRLF
-        lda #HIKEY-KEYW
+        lda #KEYTOP-KEYW
         leaxy KEYW
         jsr strout
         jsr CRLF
@@ -1097,8 +1108,8 @@ CMDLIST:
 CMDDIR:            ; directory command
         jsr GETPAR
         bcs CMDDI3
-
-
+        lda TMP0
+        sta FA
 CMDDI3:
         ldx #0
 CMDDI2: lda CMDDI0,X
@@ -1173,23 +1184,26 @@ TBSTART:
         jsr IERROR_SET
         jmp NEWSTT
         rts
-
 IERROR_SET:
         ldxy IERROR
         stxy IERROR_JMP+1
         ldxy IERROR_W
         stxy IERROR
         rts
-IERROR_GO:
 IERROR_CLR:
         ldxy IERROR_JMP+1
         stxy IERROR
+        rts
+IERROR_GO:
+        jsr IERROR_CLR
+;        LDY #MSG2_2-MSGBAS2    ; display "?" to indicate error and go to new line
+;        JSR SNDMSG2
+        LDA #0            ; disable kernel control messages
+        JSR SETMSG        ; and enable error messages
 
-        LDY #MSG2_2-MSGBAS2    ; display "?" to indicate error and go to new line
-        JSR SNDMSG2
         jmp run_mon
 IERROR_JMP:
-        jmp $A483
+        jmp $e38b
 IERROR_W: .word IERROR_GO
 
 
@@ -1206,6 +1220,5 @@ SNDMSG2:
 
 MSGBAS2  =*
 MSG2_0: .BYTE $0D+$80
-MSG2_1: .BYTE $0d,"?EIO",$d+$80
-MSG2_2: .BYTE $0d,"?ERROR",$d+$80
+MSG2_1: .BYTE $0d,"?EIO",$20+$80
 FN:     .byte "KMON"
