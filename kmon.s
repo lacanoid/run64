@@ -1043,6 +1043,7 @@ CMDRUN:
         BNE @loop
 
 CMDRU1: JSR GETCHR          ; get a character
+        BEQ CMDRUN0
         BNE CMDRU2
 
         jsr __TBUFFR_RUN__
@@ -1079,6 +1080,7 @@ CMDRU3: tya                 ; set file name
         ldxy FNADR
         JSR SETNAM
 
+        ; call resident code in TBUFF which does not return on success
         jsr __TBUFFR_RUN__+3
         bcc CMDRUN1   ; no error
         jsr hexout    ; print error code
@@ -1094,8 +1096,6 @@ CMDRUN1:
 CMDRUN0:
         jsr ON_ERR_SET
         jsr CRLF
-        ldxy EAL
-        stxy VARTAB
         jsr LINKPRG
         jsr RUNC
         jsr STXTPT
