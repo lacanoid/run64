@@ -1081,6 +1081,11 @@ CMDRU3: tya                 ; set file name
         jsr __TBUFFR_RUN__+3
         bcc CMDRUN1   ; no error
         jsr hexout    ; print error code
+        lda #'@'
+        sta BUF
+        lda #0
+        sta BUF+1
+        JMP STRT2
 CMDRUN1:
         rts
 
