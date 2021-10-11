@@ -1165,7 +1165,7 @@ run_prg:
 TBINIT1:ldy #0
         jsr SETLFS
 
-        lda #0        ; load, mot verify
+        lda #0        ; load, not verify
         ldxy TXTTAB
         JSR LOAD
         bcc TBSTART
@@ -1174,8 +1174,13 @@ TBINIT1:ldy #0
         rts ; error
 
 TBSTART:
-        LDY #MSG2_0-MSGBAS2    ;
-        JSR SNDMSG2
+        stxy EAL
+
+        lda #$0D
+        jsr CHROUT
+;        LDY #MSG2_0-MSGBAS2    ;
+;        JSR SNDMSG2
+
         ldxy EAL
         stxy VARTAB
         jsr LINKPRG
@@ -1184,6 +1189,7 @@ TBSTART:
         jsr IERROR_SET
         jmp NEWSTT
         rts
+
 IERROR_SET:
         ldxy IERROR
         stxy IERROR_JMP+1
@@ -1219,6 +1225,6 @@ SNDMSG2:
         RTS
 
 MSGBAS2  =*
-MSG2_0: .BYTE $0D+$80
+MSG2_0: .BYTE $0d,"..RUN",$0D+$80
 MSG2_1: .BYTE $0d,"?EIO",$20+$80
 FN:     .byte "KMON"
