@@ -764,10 +764,10 @@ DSPLYM: jsr CRLF
         jmp STRT
 
 meminfo:
-        msg msg0
-        sec
-        jsr MEMBOT
-        jsr hexoutxynl
+;        msg msg0
+;        sec
+;        jsr MEMBOT
+;        jsr hexoutxynl
 
 textinfo:
         msg msg1
@@ -788,14 +788,15 @@ textinfo:
         msg msg6
         ldxy MEMSIZ
         jsr hexoutxynl
-        msg msgN
-        sec
-        jsr MEMTOP
-        jsr hexoutxynl
 
-        msg msgSAL
-        ldxy SAL
-        jsr hexoutxynl
+;        msg msgN
+;        sec
+;        jsr MEMTOP
+;        jsr hexoutxynl
+
+;        msg msgSAL
+;        ldxy SAL
+;        jsr hexoutxynl
 
         msg msgEAL
         ldxy EAL
@@ -810,15 +811,15 @@ textinfo:
 
         rts
 
-msg0:     .asciiz "MEMBOT "
+;msg0:     .asciiz "MEMBOT "
 msg1:     .asciiz "TXTTAB "
 msg2:     .asciiz "VARTAB "
 ;msg3:     .asciiz "ARYTAB "
 msg4:     .asciiz "STREND "
 msg5:     .asciiz "FRETOP "
 msg6:     .asciiz "MEMSIZ "
-msgN:     .asciiz "MEMTOP "
-msgSAL:   .asciiz "SAL    "
+;msgN:     .asciiz "MEMTOP "
+;msgSAL:   .asciiz "SAL    "
 msgEAL:   .asciiz "EAL    "
 msgFNADR: .asciiz "FNADR  "
 
@@ -1149,6 +1150,7 @@ LENTAB:  .BYTE $04,$03,$03,$01   ; bits per digit
 ERRAD:   .word ON_ERR            ;
 LINKAD:  .WORD BREAK             ; address of brk handler
 SUPAD:   .WORD SUPER             ; address of entry point
+PRGEND:
 
 ; -----------------------------------------------------------------------------
 ; Tape buffer (resident) section
@@ -1212,9 +1214,17 @@ IERROR_GO:
         LDA #0            ; disable kernel control messages
         JSR SETMSG        ; and enable error messages
 
+        lda #> PRGEND     ; check if kmon was overwritten
+        cmp TXTTAB+1
+        bcs IERROR_KMON   ; no, return there
+        jmp STRT
+IERROR_KMON:
+        jmp run_mon       ; need to reload kmon
+
         jmp run_mon
 IERROR_JMP:
         jmp $e38b
+
 IERROR_W: .word IERROR_GO
 
 
