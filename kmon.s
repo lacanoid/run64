@@ -1038,6 +1038,34 @@ CMDBOOT:
         BNE @loop
         jmp ($FFFC)
         rts
+; -----------------------------------------------------------------------------
+GETFNADR:
+        JSR GETCHR
+        BEQ GETFNADR1  ; end of string
+        CMP #20        ; skip leading spaces
+        BEQ GETFNADR
+
+GETFNADR1:
+        lda #<BUF
+        add CHRPNT
+        tax
+        lda #>BUF
+        adc #0
+        tay
+        stxy FNADR
+
+        ldy #0              ; compute file name length
+@loop:  lda (FNADR),y
+        beq GETFNADR2
+        CMP #$20            ; space terminates
+        BEQ GETFNADR2
+        iny
+        bpl @loop
+GETFNADR2:
+        tya
+        ldxy FNADR
+        cmp #0
+        rts
 
 ; -----------------------------------------------------------------------------
 TBUFFR_INST:
@@ -1051,15 +1079,19 @@ TBUFFR_INST:
 CMDRUN:
         jsr TBUFFR_INST
 
-CMDRU1: JSR GETCHR          ; get a character
-        BEQ CMDRUN0
-        BNE CMDRU2
+        jmp CMDRU1
 
-        jsr __TBUFFR_RUN__
-        bcc CMDRUNNE   ; no error
-        jsr hexout     ; print error code
-CMDRUNNE:
-        rts
+        jsr GETFNADR
+        jsr hexoutxy
+        jmp STRT
+;        jmp CMDRUNGO
+;        BEQ CMDRUN0     ; run only
+;        JMP CMDRUNGO    ; load+run
+
+
+CMDRU1: JSR GETCHR          ; get a character
+        BEQ CMDRUNLOADED
+        BNE CMDRU2
 
 CMDRU2: 
         CMP #$20            ; skip leading spaces
@@ -1087,6 +1119,10 @@ CMDRU5: jmp ERROR
 
 CMDRU3: tya                 ; set file name
         ldxy FNADR
+CMDRUNGO:
+        pha
+;        jsr hexoutxy
+        pla
         JSR SETNAM
 
         ; call resident code in TBUFF which does not return on success
@@ -1102,7 +1138,7 @@ CMDRUN1:
         rts
 
 ; -----------------------------------------------------------------------------
-CMDRUN0:
+CMDRUNLOADED:
         jsr ON_ERR_SET
         jsr CRLF
         jsr LINKPRG
@@ -1189,11 +1225,11 @@ TBINIT1:ldy #0
         lda #0        ; load, not verify
         ldxy TXTTAB
         JSR LOAD
-        bcc TBSTART
-        LDY #MSG2_1-MSGBAS2    ;
+        bcc TBSTART   ; no error
+
+        LDY #MSG2_1-MSGBAS2 
         JSR SNDMSG2
         rts           ; error
-
 
 TBSTART:
 ;        stxy EAL
