@@ -45,3 +45,10 @@ STXTPT  = $A68E ; reset text pointer
 LIST    = $A69C ; perform LIST
 RUN     = $A871 ; perform RUN
 NEWSTT  = $A7AE ;
+
+; kernal magic api
+
+RESTOR    = $FD15  ; Restore RAM Vectors for Default I/O Routines
+RAMTAS    = $FD50  ; Perform RAM Test and Set Pointers to the Top and Bottom of RAM
+IOINIT    = $FDA3  ; Initialize CIA I/O Devices
+CINT      = $FF5B  ; Initialize Screen Editor and VIC-II Chip

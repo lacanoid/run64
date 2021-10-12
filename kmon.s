@@ -7,6 +7,7 @@
 .forceimport __EXEHDR__
 
 .import __TBUFFR_SIZE__, __TBUFFR_LOAD__, __TBUFFR_RUN__
+.import __CARTHDR_SIZE__, __CARTHDR_LOAD__, __CARTHDR_RUN__
 
 
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
@@ -1011,8 +1012,8 @@ ON_ERR_CLR:
         ldxy ON_ERR_JMP+1
         stxy IERROR
 
-        LDY #MSG1-MSGBAS    ; display "?" to indicate error and go to new line
-        JSR SNDMSG
+;        LDY #MSG1-MSGBAS    ; display "?" to indicate error and go to new line
+;        JSR SNDMSG
         jmp STRT
 ON_ERR_JMP:
         jmp $0000
@@ -1030,17 +1031,25 @@ DSPLYH:
 
 ; -----------------------------------------------------------------------------
 CMDBOOT:
+        LDX  #< (__CARTHDR_SIZE__ + 1)
+@loop:  LDA __CARTHDR_LOAD__ - 1, X
+        STA __CARTHDR_RUN__ - 1, X
+        DEX
+        BNE @loop
         jmp ($FFFC)
         rts
 
 ; -----------------------------------------------------------------------------
-CMDRUN:
-;        jsr ON_ERR_SET
+TBUFFR_INST:
         LDX  #< (__TBUFFR_SIZE__ + 1)
 @loop:  LDA __TBUFFR_LOAD__ - 1, X
         STA __TBUFFR_RUN__ - 1, X
         DEX
         BNE @loop
+        rts
+; -----------------------------------------------------------------------------
+CMDRUN:
+        jsr TBUFFR_INST
 
 CMDRU1: JSR GETCHR          ; get a character
         BEQ CMDRUN0
@@ -1159,12 +1168,17 @@ PRGEND:
         jmp run_prg
 ; -----------------------------------------------------------------------------
 ; display message from table
+loadflags:
+        .word 0
 run_mon:
         lda #4
         leaxy FN
         JSR SETNAM
-
+        ldy #0
+        .byte $2c
 run_prg:
+        ldy #1
+        sty loadflags
         lda #1
         ldx FA
         bne TBINIT1
@@ -1178,10 +1192,15 @@ TBINIT1:ldy #0
         bcc TBSTART
         LDY #MSG2_1-MSGBAS2    ;
         JSR SNDMSG2
-        rts ; error
+        rts           ; error
+
 
 TBSTART:
-        stxy EAL
+;        stxy EAL
+        lda loadflags
+        beq TBSTART1
+        jsr IERROR_SET
+TBSTART1:
 
         lda #$0D
         jsr CHROUT
@@ -1193,18 +1212,17 @@ TBSTART:
         jsr LINKPRG
         jsr RUNC
         jsr STXTPT
-        jsr IERROR_SET
         jmp NEWSTT
         rts
 
 IERROR_SET:
         ldxy IERROR
-        stxy IERROR_JMP+1
-        ldxy IERROR_W
+        stxy IERROR_OLD
+        ldxy IERROR_JMP
         stxy IERROR
         rts
 IERROR_CLR:
-        ldxy IERROR_JMP+1
+        ldxy IERROR_OLD
         stxy IERROR
         rts
 IERROR_GO:
@@ -1222,12 +1240,10 @@ IERROR_KMON:
         jmp run_mon       ; need to reload kmon
 
         jmp run_mon
-IERROR_JMP:
-        jmp $e38b
+IERROR_OLD:
+        .word $0000
 
-IERROR_W: .word IERROR_GO
-
-
+IERROR_JMP: .word IERROR_GO
 
 SNDMSG2:  
         LDA MSGBAS2,Y        ; Y contains offset in msg table
@@ -1243,3 +1259,38 @@ MSGBAS2  =*
 MSG2_0: .BYTE $0d,"..RUN",$0D+$80
 MSG2_1: .BYTE $0d,"?EIO",$20+$80
 FN:     .byte "KMON"
+
+.segment "CARTHDR"
+        ; cartridge header
+        .addr hardrst   ; hard reset vector
+        .addr $fe5e     ; soft reset vector: return to NMI handler immediately after cartridge check
+        .byte $C3, $C2, $CD, $38, $30   ; 'CBM80' magic number for autostart cartridge
+
+hardrst: 
+        STX $D016       ; modified version of RESET routine (normally at $FCEF-$FCFE)
+        JSR IOINIT
+        JSR RAMTAS
+        JSR RESTOR
+        JSR CINT        ; video init
+
+        LDA #15
+        STA COLOR
+        STA EXTCOL
+        lda #11
+        STA BGCOL0
+
+        CLI
+        JSR $E453       ; modified version of BASIC cold-start (normally at $E394-$E39F)
+        JSR $E3BF
+        JSR $E422
+        LDX #$FB
+        TXS
+
+        LDA #14
+        JSR CHROUT
+        LDA #$80            ; disable kernel control messages
+        JSR SETMSG          ; and enable error messages
+        JSR TBUFFR_INST
+        JMP __TBUFFR_RUN__
+
+        JMP $A478       ; jump into BASIC

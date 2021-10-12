@@ -15,11 +15,6 @@
         .addr $fe5e     ; soft reset vector: return to NMI handler immediately after cartridge check
         .byte $C3, $C2, $CD, $38, $30   ; 'CBM80' magic number for autostart cartridge
 
-CINT    = $FF5B  ; Initialize Screen Editor and VIC-II Chip
-RESTOR  = $FD15  ; Restore RAM Vectors for Default I/O Routines
-RAMTAS  = $FD50  ; Perform RAM Test and Set Pointers to the Top and Bottom of RAM
-IOINIT  = $FDA3  ; Initialize CIA I/O Devices
-
 SXREG   = $030D  ; Storage Area for .X Index Register
 INDEX1  = $22    ; (2) ???
 
