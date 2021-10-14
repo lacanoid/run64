@@ -1084,14 +1084,9 @@ CMDRUN:
         jsr GETFNADR
         jsr hexoutxy
         jmp STRT
-;        jmp CMDRUNGO
-;        BEQ CMDRUN0     ; run only
-;        JMP CMDRUNGO    ; load+run
-
 
 CMDRU1: JSR GETCHR          ; get a character
-        BEQ CMDRUNLOADED
-        BNE CMDRU2
+        BEQ CMDRUNLOADED    ; run already loaded program if no parameters given
 
 CMDRU2: 
         CMP #$20            ; skip leading spaces

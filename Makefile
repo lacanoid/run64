@@ -30,20 +30,17 @@ test: test.d71 test.d81
 
 test.d64: raster kmon bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d64 test.d64 \
-		-write kmon \
-		-write raster
+		-write kmon
 	./install.sh test.d64
 
 test.d71: raster kmon bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d71 test.d71 \
-		-write kmon \
-		-write raster
+		-write kmon
 	./install.sh test.d71
 
 test.d81: raster kmon bootsect2.128 bootsect.128 Makefile
 	$(C1541) -format test,xx d81 test.d81 \
-		-write kmon \
-		-write raster
+		-write kmon
 	./install.sh test.d81
 
 bootsect.128: LDFLAGS += -C linker.cfg
