@@ -141,7 +141,7 @@ cmds:
         .byte CR, CR, CR, CR, CR
 ;        .byte "SYS1024"
 ;        .byte "IFNOTDSTHENSYS1024"
-        .byte "SYS3072"
+        .byte 151,"SYS3072",153
         .byte HOME
         .byte 0
 

@@ -16,7 +16,7 @@ resultRegister = $d7ff
 
 ; -----------------------------------------------------------------------------
 ; initial entry point
-SUPER:  LDY #MSG4-MSGBAS    ; display "..SYS "
+SUPER: LDY #MSG4-MSGBAS    ; display "..SYS "
         JSR SNDMSG
         LDA SUPAD           ; store entry point address in tmp0
         STA TMP0
@@ -43,8 +43,8 @@ SUPER:  LDY #MSG4-MSGBAS    ; display "..SYS "
 
 ; -----------------------------------------------------------------------------
 ; BRK handler
-BREAK:   LDX #$05            ; pull registers off the stack
-BSTACK:  PLA                 ; order: Y,X,A,SR,PCL,PCH
+BREAK:  LDX #$05            ; pull registers off the stack
+BSTACK: PLA                 ; order:Y,X,A,SR,PCL,PCH
         STA PCH,X           ; store in memory
         DEX 
         BPL BSTACK
@@ -74,7 +74,7 @@ kmon:
 
 ; -----------------------------------------------------------------------------
 ; main loop
-STRT:   jsr CRLF
+STRT:  jsr CRLF
 
         ; print current drive and prompt
         lda FA
@@ -83,7 +83,7 @@ STRT:   jsr CRLF
 
         ldx #0
         stx CHRPNT
-SMOVE:  jsr CHRIN
+SMOVE: jsr CHRIN
         sta BUF,X
         inx
         CPX #ENDIN-BUF   ; error if buffer is full
@@ -93,27 +93,27 @@ SMOVE:  jsr CHRIN
         LDA #0              ; null-terminate input buffer
         STA BUF-1,X         ; (replacing the CR)
 
-STRT2:  ; execute BUF
+STRT2: ; execute BUF
         LDA #0
         STA CHRPNT
         stx COUNT
         dec COUNT
         beq STRT            ; repeat if buffer is empty
 
-ST1:    JSR GETCHR          ; get a character from the buffer
+ST1:   JSR GETCHR          ; get a character from the buffer
         BEQ STRT            ; start over if buffer is empty
         CMP #$20            ; skip leading spaces
         BEQ ST1
 
-S0:     LDX #KEYTOP-KEYW    ; loop through valid command characters
-S1:     CMP KEYW,X          ; see if input character matches
+S0:    LDX #KEYTOP-KEYW    ; loop through valid command characters
+S1:    CMP KEYW,X          ; see if input character matches
         BEQ S2              ; command matched, dispatch it
         DEX                 ; no match, check next command
         BPL S1              ; keep trying until we've checked them all
                             ; then fall through to error handler
 ; -----------------------------------------------------------------------------
 ; handle error
-ERROR:  LDY #MSG3-MSGBAS    ; display "?" to indicate error and go to new line
+ERROR: LDY #MSG3-MSGBAS    ; display "?" to indicate error and go to new line
         JSR SNDMSG
         JMP STRT            ; back to main loop
 
@@ -133,13 +133,13 @@ S2:
         PHA
 ;        JMP GETPAR          ; get the first parameter for the command
         RTS
-LSV:    STA SAVY            ; handle load/save/validate
+LSV:   STA SAVY            ; handle load/save/validate
         JMP LD
-CNVLNK:  JMP CONVRT          ; handle base conversion
+CNVLNK: JMP CONVRT          ; handle base conversion
 
 ; -----------------------------------------------------------------------------
 ; exit monitor [X]
-EXIT:    
+EXIT:   
         ldxy ON_ERR_SAV
         stxy IERROR
         JMP ($A002)         ; jump to warm-start vector to reinitialize BASIC
@@ -148,31 +148,31 @@ EXIT:
 ; -----------------------------------------------------------------------------
 ; variables
 
-SAVX:    .res 1             ; 1 byte temp storage, often to save X register
-SAVY:    .res 1             ; 1 byte temp storage, often to save Y register
-DIGCNT:  .res 1             ; digit count
-INDIG:   .res 1             ; numeric value of single digit
-NUMBIT:  .res 1             ; numeric base of input
-STASH:   .res 2             ; 2-byte temp storage
-U0AA0:   .res 10            ; work buffer
+SAVX:   .res 1             ; 1 byte temp storage, often to save X register
+SAVY:   .res 1             ; 1 byte temp storage, often to save Y register
+DIGCNT: .res 1             ; digit count
+INDIG:  .res 1             ; numeric value of single digit
+NUMBIT: .res 1             ; numeric base of input
+STASH:  .res 2             ; 2-byte temp storage
+U0AA0:  .res 10            ; work buffer
 U0AAE   =*                  ; end of work buffer
-STAGE:   .res 30            ; staging buffer for filename, search, etc.
+STAGE:  .res 30            ; staging buffer for filename, search, etc.
 ESTAGE  =*                  ; end of staging buffer
-STORE:   .res 2             ; 2-byte temp storage
-CHRPNT:  .res 1             ; current position in input buffer
+STORE:  .res 2             ; 2-byte temp storage
+CHRPNT: .res 1             ; current position in input buffer
 
-PCH:     .res 1             ; program counter high byte
-PCL:     .res 1             ; program counter low byte
-SR:      .res 1             ; status register
-ACC:     .res 1             ; accumulator
-XR:      .res 1             ; X register
-YR:      .res 1             ; Y register
-SP:      .res 1             ; stack pointer
+PCH:    .res 1             ; program counter high byte
+PCL:    .res 1             ; program counter low byte
+SR:     .res 1             ; status register
+ACC:    .res 1             ; accumulator
+XR:     .res 1             ; X register
+YR:     .res 1             ; Y register
+SP:     .res 1             ; stack pointer
 
 
 ; -----------------------------------------------------------------------------
 ; load, save, or verify [LSV]
-LD:     LDY #1              ; default to reading from tape, device #1
+LD:    LDY #1              ; default to reading from tape, device #1
         STY FA
         STY SA              ; default to secondary address #1
         DEY
@@ -182,14 +182,14 @@ LD:     LDY #1              ; default to reading from tape, device #1
         STA FNADR+1
         LDA #<STAGE
         STA FNADR
-L1:      JSR GETCHR          ; get a character
+L1:     JSR GETCHR          ; get a character
         BEQ LSHORT          ; no filename given, try load or verify from tape
         CMP #$20            ; skip leading spaces
         BEQ L1
         CMP #$22            ; error if filename doesn't start with a quote
         BNE LERROR
         LDX CHRPNT          ; load current char pointer into index reg
-L3:      LDA BUF,X        ; load current char from buffer to accumulator
+L3:     LDA BUF,X        ; load current char from buffer to accumulator
         BEQ LSHORT          ; no filename given, try load or verify from tape
         INX                 ; next char
         CMP #$22            ; is it a quote?
@@ -199,8 +199,8 @@ L3:      LDA BUF,X        ; load current char from buffer to accumulator
         INY 
         CPY #ESTAGE-STAGE   ; check whether buffer is full
         BCC L3              ; if not, get another character
-LERROR:  JMP ERROR           ; if so, handle error
-L8:      STX CHRPNT          ; set character pointer to the current index
+LERROR: JMP ERROR           ; if so, handle error
+L8:     STX CHRPNT          ; set character pointer to the current index
         JSR GETCHR          ; eat separator between filename and device #
         BEQ LSHORT          ; no separator, try to load or verify from tape
         JSR GETPAR          ; get device number
@@ -222,14 +222,14 @@ L8:      STX CHRPNT          ; set character pointer to the current index
         STA SA            ; set secondary address to 0
         LDA #TMP2           ; put addr of zero-page pointer to data in A
         JSR SAVE            ; call kernal save routine
-LSVXIT:  JMP STRT            ; back to mainloop
-LSHORT:  LDA SAVY            ; check which command we received
+LSVXIT: JMP STRT            ; back to mainloop
+LSHORT: LDA SAVY            ; check which command we received
         CMP #'V'
         BEQ LOADIT          ; we're doing a verify so don't set A to 0
         CMP #'L'
         BNE LERROR          ; error due to not enough params for save
         LDA #0              ; 0 in A signals load, anything else is verify
-LOADIT:  JSR LOAD            ; call kernal load routine
+LOADIT: JSR LOAD            ; call kernal load routine
         LDA STATUS           ; get i/o status
         AND #$10            ; check bit 5 for checksum error
         BEQ LSVXIT          ; if no error go back to mainloop
@@ -238,7 +238,7 @@ LOADIT:  JSR LOAD            ; call kernal load routine
         LDY #MSG6-MSGBAS    ; display "ERROR" if checksum didn't match
         JSR SNDMSG
         JMP STRT            ; back to mainloop
-LDADDR:  LDX TMP2            ; load address low byte in X
+LDADDR: LDX TMP2            ; load address low byte in X
         LDY TMP2+1          ; load address high byte in Y
         LDA #0              ; 0 in A signals load
         STA SA            ; secondary addr 0 means load to addr in X and Y
@@ -246,8 +246,8 @@ LDADDR:  LDX TMP2            ; load address low byte in X
 
 ; -----------------------------------------------------------------------------
 ; read parameters
-RDPAR:   DEC CHRPNT          ; back up one char
-GETPAR:  JSR RDVAL           ; read the value
+RDPAR:  DEC CHRPNT          ; back up one char
+GETPAR: JSR RDVAL           ; read the value
         BCS GTERR           ; carry set indicates error
         JSR GOTCHR          ; check previous character
         BNE CKTERM          ; if it's not null, check if it's a valid separator
@@ -255,22 +255,22 @@ GETPAR:  JSR RDVAL           ; read the value
         LDA DIGCNT          ; get number of digits read
         BNE GETGOT          ; found some digits
         BEQ GTNIL           ; didn't find any digits
-CKTERM:  CMP #$20            ; space or comma are valid separators
+CKTERM: CMP #$20            ; space or comma are valid separators
         BEQ GETGOT          ; anything else is an error
         CMP #','
         BEQ GETGOT
-GTERR:   PLA                 ; encountered error
+GTERR:  PLA                 ; encountered error
         PLA                 ; get rid of command vector pushed on stack
         JMP ERROR           ; handle error
-GTNIL:   SEC                 ; set carry to indicate no parameter found
+GTNIL:  SEC                 ; set carry to indicate no parameter found
         .BYTE $24           ; BIT ZP opcode consumes next byte (CLC)
-GETGOT:  CLC                 ; clear carry to indicate paremeter returned
+GETGOT: CLC                 ; clear carry to indicate paremeter returned
         LDA DIGCNT          ; return number of digits in A
         RTS                 ; return to address pushed from vector table
 
 ; -----------------------------------------------------------------------------
 ; read a value in the specified base
-RDVAL:   LDA #0              ; clear temp
+RDVAL:  LDA #0              ; clear temp
         STA TMP0
         STA TMP0+1
         STA DIGCNT          ; clear digit counter
@@ -278,22 +278,22 @@ RDVAL:   LDA #0              ; clear temp
         PHA
         TYA
         PHA
-RDVMOR:  JSR GETCHR          ; get next character from input buffer
+RDVMOR: JSR GETCHR          ; get next character from input buffer
         BEQ RDNILK          ; null at end of buffer
         CMP #$20            ; skip spaces
         BEQ RDVMOR
         LDX #3              ; check numeric base [$+&%]
-GNMODE:  CMP HIKEY,X
+GNMODE: CMP HIKEY,X
         BEQ GOTMOD          ; got a match, set up base
         DEX
         BPL GNMODE          ; check next base
         INX                 ; default to hex
         DEC CHRPNT          ; back up one character
-GOTMOD:  LDY MODTAB,X        ; get base value
+GOTMOD: LDY MODTAB,X        ; get base value
         LDA LENTAB,X        ; get bits per digit
         STA NUMBIT          ; store bits per digit 
-NUDIG:   JSR GETCHR          ; get next char in A
-RDNILK:  BEQ RDNIL           ; end of number if no more characters
+NUDIG:  JSR GETCHR          ; get next char in A
+RDNILK: BEQ RDNIL           ; end of number if no more characters
         SEC
         SBC #$30            ; subtract ascii value of 0 to get numeric value
         BCC RDNIL           ; end of number if character was less than 0
@@ -302,7 +302,7 @@ RDNILK:  BEQ RDNIL           ; end of number if no more characters
         SBC #$07            ; 7 chars between ascii 9 and A, so subtract 7
         CMP #$10            ; end of number if char is greater than F
         BCS RDNIL
-DIGMOR:  STA INDIG           ; store the digit
+DIGMOR: STA INDIG           ; store the digit
         CPY INDIG           ; compare base with the digit
         BCC RDERR           ; error if the digit >= the base
         BEQ RDERR
@@ -310,12 +310,12 @@ DIGMOR:  STA INDIG           ; store the digit
         CPY #10
         BNE NODECM          ; skip the next part if not using base 10
         LDX #1
-DECLP1:  LDA TMP0,X          ; stash the previous 16-bit value for later use
+DECLP1: LDA TMP0,X          ; stash the previous 16-bit value for later use
         STA STASH,X
         DEX
         BPL DECLP1
-NODECM:  LDX NUMBIT          ; number of bits to shift
-TIMES2:  ASL TMP0            ; shift 16-bit value by specified number of bits
+NODECM: LDX NUMBIT          ; number of bits to shift
+TIMES2: ASL TMP0            ; shift 16-bit value by specified number of bits
         ROL TMP0+1
         BCS RDERR           ; error if we overflowed 16 bits
         DEX
@@ -332,7 +332,7 @@ TIMES2:  ASL TMP0            ; shift 16-bit value by specified number of bits
         ADC TMP0+1
         STA TMP0+1
         BCS RDERR           ; error if we overflowed 16 bits
-NODEC2:  CLC 
+NODEC2: CLC 
         LDA INDIG           ; load current digit
         ADC TMP0            ; add current digit to low byte
         STA TMP0            ; and store result back in low byte
@@ -340,9 +340,9 @@ NODEC2:  CLC
         ADC TMP0+1          ; add carry to high byte
         STA TMP0+1          ; and store result back in high byte
         BCC NUDIG           ; get next digit if we didn't overflow
-RDERR:   SEC                 ; set carry to indicate error
+RDERR:  SEC                 ; set carry to indicate error
         .BYTE $24           ; BIT ZP opcode consumes next byte (CLC)
-RDNIL:   CLC                 ; clear carry to indicate success
+RDNIL:  CLC                 ; clear carry to indicate success
         STY NUMBIT          ; save base of number
         PLA                 ; restore X and Y
         TAY
@@ -352,36 +352,36 @@ RDNIL:   CLC                 ; clear carry to indicate success
         RTS
 ; -----------------------------------------------------------------------------
 ; print address
-SHOWAD:  LDA TMP2
+SHOWAD: LDA TMP2
         LDX TMP2+1
 
-WRADDR:  PHA                 ; save low byte
+WRADDR: PHA                 ; save low byte
         TXA                 ; put high byte in A
         JSR WRTWO           ; output high byte
         PLA                 ; restore low byte
 
-WRBYTE:  JSR WRTWO           ; output byte in A
+WRBYTE: JSR WRTWO           ; output byte in A
 
-SPACE:   LDA #$20            ; output space
+SPACE:  LDA #$20            ; output space
         BNE FLIP
 
-CHOUT:   CMP #$0D            ; output char with special handling of CR
+CHOUT:  CMP #$0D            ; output char with special handling of CR
         BNE FLIP
-CRLF:    LDA #$0D            ; load CR in A
+CRLF:   LDA #$0D            ; load CR in A
         BIT $13             ; check default channel
         BPL FLIP            ; if high bit is clear output CR only
         JSR CHROUT          ; otherwise output CR+LF
         LDA #$0A            ; output LF
-FLIP:    JMP CHROUT
+FLIP:   JMP CHROUT
 
-FRESH:   JSR CRLF            ; output CR
+FRESH:  JSR CRLF            ; output CR
         LDA #$20            ; load space in A
         JSR CHROUT
         JMP SNCLR
 
 ; -----------------------------------------------------------------------------
 ; output two hex digits for byte
-WRTWO:   STX SAVX            ; save X
+WRTWO:  STX SAVX            ; save X
         JSR ASCTWO          ; get hex chars for byte in X (lower) and A (upper)
         JSR CHROUT          ; output upper nybble
         TXA                 ; transfer lower to A
@@ -390,7 +390,7 @@ WRTWO:   STX SAVX            ; save X
 
 ; -----------------------------------------------------------------------------
 ; convert byte in A to hex digits
-ASCTWO:  PHA                 ; save byte
+ASCTWO: PHA                 ; save byte
         JSR ASCII           ; do low nybble
         TAX                 ; save in X
         PLA                 ; restore byte
@@ -400,26 +400,26 @@ ASCTWO:  PHA                 ; save byte
         LSR A
 
 ; convert low nybble in A to hex digit
-ASCII:   AND #$0F            ; clear upper nibble
+ASCII:  AND #$0F            ; clear upper nibble
         CMP #$0A            ; if less than A, skip next step
         BCC ASC1
         ADC #6              ; skip ascii chars between 9 and A
-ASC1:    ADC #$30            ; add ascii char 0 to value
+ASC1:   ADC #$30            ; add ascii char 0 to value
         RTS
 
 ; -----------------------------------------------------------------------------
 ; get prev char from input buffer
-GOTCHR:  DEC CHRPNT
+GOTCHR: DEC CHRPNT
 
 ; get next char from input buffer
-GETCHR:  STX SAVX
+GETCHR: STX SAVX
         LDX CHRPNT          ; get pointer to next char
         LDA BUF,X        ; load next char in A
         BEQ NOCHAR          ; null, :, or ? signal end of buffer
         CMP #':'        
         BEQ NOCHAR
         CMP #'?'
-NOCHAR:  PHP
+NOCHAR: PHP
         INC CHRPNT          ; next char
         LDX SAVX
         PLP                 ; Z flag will signal last character
@@ -427,7 +427,7 @@ NOCHAR:  PHP
 
 ; -----------------------------------------------------------------------------
 ; copy TMP0 to TMP2
-COPY12:  LDA TMP0            ; low byte
+COPY12: LDA TMP0            ; low byte
         STA TMP2
         LDA TMP0+1          ; high byte
         STA TMP2+1
@@ -435,19 +435,19 @@ COPY12:  LDA TMP0            ; low byte
 
 ; -----------------------------------------------------------------------------
 ; copy TMP0 to PC
-COPY1P:  BCS CPY1PX          ; do nothing if parameter is empty
+COPY1P: BCS CPY1PX          ; do nothing if parameter is empty
         LDA TMP0            ; copy low byte
         LDY TMP0+1          ; copy high byte
         STA PCL
         STY PCH
-CPY1PX:  RTS 
+CPY1PX: RTS 
 
 ; -----------------------------------------------------------------------------
 ; new [N]
-NEW:    JSR GETPAR
+NEW:   JSR GETPAR
         LDX SP              ; load stack pointer from memory
         TXS                 ; save in SP register
-NEW2:   JSR COPY1P          ; copy provided address to PC
+NEW2:  JSR COPY1P          ; copy provided address to PC
         LDA PCH             ; push PC high byte on stack
         STA TXTTAB+1
         LDA PCL             ; push PC low byte on stack
@@ -457,9 +457,9 @@ NEW2:   JSR COPY1P          ; copy provided address to PC
 
 ; -----------------------------------------------------------------------------
 ; goto (run) [G]
-GOTO:    LDX SP              ; load stack pointer from memory
+GOTO:   LDX SP              ; load stack pointer from memory
         TXS                 ; save in SP register
-GOTO2:   JSR COPY1P          ; copy provided address to PC
+GOTO2:  JSR COPY1P          ; copy provided address to PC
         SEI                 ; disable interrupts
         LDA PCH             ; push PC high byte on stack
         PHA
@@ -473,7 +473,7 @@ GOTO2:   JSR COPY1P          ; copy provided address to PC
         RTI                 ; return from interrupt (pops PC and SR)
 
 ; jump to subroutine [J]
-JSUB:    LDX SP              ; load stack pointer from memory
+JSUB:   LDX SP              ; load stack pointer from memory
         TXS                 ; save value in SP register
         JSR GOTO2           ; same as goto command
         STY YR              ; save Y to memory
@@ -487,7 +487,7 @@ JSUB:    LDX SP              ; load stack pointer from memory
 
 ; -----------------------------------------------------------------------------
 ; convert base [$+&%]
-CONVRT:  JSR RDPAR           ; read a parameter
+CONVRT: JSR RDPAR           ; read a parameter
         JSR FRESH           ; next line and clear
         LDA #'$'            ; output $ sigil for hex
         JSR CHROUT
@@ -521,20 +521,20 @@ CONVRT:  JSR RDPAR           ; read a parameter
 ; -----------------------------------------------------------------------------
 ; convert binary to BCD
 
-CVTDEC:  JSR COPY12          ; copy value from TMP0 to TMP2
+CVTDEC: JSR COPY12          ; copy value from TMP0 to TMP2
         LDA #0
         LDX #2              ; clear 3 bytes in work buffer
-DECML1:  STA U0AA0,X
+DECML1: STA U0AA0,X
         DEX
         BPL DECML1
         LDY #16             ; 16 bits in input
         PHP                 ; save status register
         SEI                 ; make sure no interrupts occur with BCD enabled
         SED
-DECML2:  ASL TMP2            ; rotate bytes out of input low byte
+DECML2: ASL TMP2            ; rotate bytes out of input low byte
         ROL TMP2+1          ; .. into high byte and carry bit
         LDX #2              ; process 3 bytes
-DECDBL:  LDA U0AA0,X         ; load current value of byte
+DECDBL: LDA U0AA0,X         ; load current value of byte
         ADC U0AA0,X         ; add it to itself plus the carry bit
         STA U0AA0,X         ; store it back in the same location
         DEX                 ; decrement byte counter
@@ -545,7 +545,7 @@ DECDBL:  LDA U0AA0,X         ; load current value of byte
         RTS
 
 ; load the input value and fall through to print it
-PRINUM:  PHA                 ; save accumulator
+PRINUM: PHA                 ; save accumulator
         LDA TMP0            ; copy input low byte to work buffer
         STA U0AA0+2
         LDA TMP0+1          ; copy input high byte to work buffer
@@ -555,11 +555,11 @@ PRINUM:  PHA                 ; save accumulator
         PLA                 ; restore accumulator
 
 ; print number in specified base without leading zeros
-NMPRNT:  STA DIGCNT          ; number of digits in accumulator
+NMPRNT: STA DIGCNT          ; number of digits in accumulator
         STY NUMBIT          ; bits per digit passed in Y register
-DIGOUT:  LDY NUMBIT          ; get bits to process
+DIGOUT: LDY NUMBIT          ; get bits to process
         LDA #0              ; clear accumulator
-ROLBIT:  ASL U0AA0+2         ; shift bits out of low byte
+ROLBIT: ASL U0AA0+2         ; shift bits out of low byte
         ROL U0AA0+1         ; ... into high byte
         ROL U0AA0           ; ... into overflow byte
         ROL A               ; ... into accumulator
@@ -571,20 +571,20 @@ ROLBIT:  ASL U0AA0+2         ; shift bits out of low byte
         BEQ NZERO           ; if not, print it
         LDY DIGCNT          ; how many digits have we output?
         BEQ ZERSUP          ; skip output if digit is 0
-NZERO:   INC DIGCNT          ; increment digit counter
+NZERO:  INC DIGCNT          ; increment digit counter
         ORA #$30            ; add numeric value to ascii '0' to get ascii char
         JSR CHROUT          ; output character
-ZERSUP:  DEX                 ; decrement number of leading zeros
+ZERSUP: DEX                 ; decrement number of leading zeros
         BNE DIGOUT          ; next digit
         RTS
 ; -----------------------------------------------------------------------------
 ; disk status/command [@]
-DSTAT:   
+DSTAT:  
         JSR GETPAR
         BNE CHGDEV          ; if device address was given, use it
         LDX FA              ; otherwise, default to 8
         .BYTE $2C           ; absolute BIT opcode consumes next word (LDX TMP0)
-CHGDEV:  LDX TMP0            ; load device address from parameter
+CHGDEV: LDX TMP0            ; load device address from parameter
         CPX #4              ; make sure device address is in range 4-31
         BCC IOERR
         CPX #32
@@ -605,43 +605,43 @@ CHGDEV:  LDX TMP0            ; load device address from parameter
         JSR SECOND
 
 ; send command to device
-DCOMD:   LDX CHRPNT          ; get next character from buffer
+DCOMD:  LDX CHRPNT          ; get next character from buffer
         INC CHRPNT
         LDA BUF,X
         BEQ INSTAT          ; break out of loop if it's null
         JSR CIOUT           ; otherwise output it to the serial bus
-        BCC DCOMD           ; unconditional loop: CIOUT clears carry before RTS
+        BCC DCOMD           ; unconditional loop:CIOUT clears carry before RTS
 
 ; get device status
-INSTAT:  JSR UNLSN           ; command device to unlisten
-INSTAT1: JSR CRLF            ; new line
+INSTAT: JSR UNLSN           ; command device to unlisten
+INSTAT1:JSR CRLF            ; new line
         LDA TMP0            ; load device address
         JSR TALK            ; command device to talk
         LDA #$6F            ; secondary address 15 (only low nybble used)
         JSR TKSA
-RDSTAT:  JSR ACPTR           ; read byte from serial bus
+RDSTAT: JSR ACPTR           ; read byte from serial bus
         JSR CHROUT          ; print it
         CMP #$0D            ; if the byte is CR, exit loop
         BEQ DEXIT
         LDA STATUS           ; check status
         AND #$BF            ; ignore EOI bit
         BEQ RDSTAT          ; if no errors, read next byte
-DEXIT:   JSR UNTLK           ; command device to stop talking
+DEXIT:  JSR UNTLK           ; command device to stop talking
         JMP STRT            ; back to mainloop
-IOERR:   JMP ERROR           ; handle error
+IOERR:  JMP ERROR           ; handle error
 
 ; get directory
-DIRECT:  LDA TMP0            ; load device address
+DIRECT: LDA TMP0            ; load device address
         JSR LISTEN          ; command device to listen
         LDA #$F0            ; secondary address 0 (only low nybble used)
         JSR SECOND
         LDX CHRPNT          ; get index of next character
-DIR2:    LDA BUF,X        ; get next character from buffer
+DIR2:   LDA BUF,X        ; get next character from buffer
         BEQ DIR3            ; break if it's null
         JSR CIOUT           ; send character to device
         INX                 ; increment characer index
         BNE DIR2            ; loop if it hasn't wrapped to zero
-DIR3:    JSR UNLSN           ; command device to unlisten
+DIR3:   JSR UNLSN           ; command device to unlisten
         JSR CRLF            ; new line
         LDA TMP0            ; load device address
         PHA                 ; save on stack
@@ -649,8 +649,8 @@ DIR3:    JSR UNLSN           ; command device to unlisten
         LDA #$60            ; secondary address 0 (only low nybble used)
         JSR TKSA
         LDY #3              ; read 3 16-bit values from device
-DIRLIN:  STY STORE           ;   ignore the first 2; 3rd is file size
-DLINK:   JSR ACPTR           ; read low byte from device
+DIRLIN: STY STORE           ;   ignore the first 2; 3rd is file size
+DLINK:  JSR ACPTR           ; read low byte from device
         STA TMP0            ; store it
         LDA STATUS           ; check status
         BNE DREXIT          ; exit if error or eof occurred
@@ -667,23 +667,23 @@ DLINK:   JSR ACPTR           ; read low byte from device
         JSR NMPRNT          ; output number
         LDA #' '            ; output space
         JSR CHROUT
-DNAME:   JSR ACPTR           ; get a filename character from the device
+DNAME:  JSR ACPTR           ; get a filename character from the device
         BEQ DMORE           ; if it's null, break out of loop
         LDX STATUS           ; check for errors or eof
         BNE DREXIT          ; if found exit early
         JSR CHROUT          ; output character
         CLC
         BCC DNAME           ; unconditional branch to read next char
-DMORE:   JSR CRLF
+DMORE:  JSR CRLF
         JSR STOP            ; check for stop key
         BEQ DREXIT          ; exit early if pressed
         JSR GETIN           ; pause if a key was pressed
         BEQ NOPAWS
-PAWS:    JSR GETIN           ; wait until another key is pressed
+PAWS:   JSR GETIN           ; wait until another key is pressed
         BEQ PAWS            
-NOPAWS:  LDY #2
+NOPAWS: LDY #2
         BNE DIRLIN          ; unconditional branch to read next file
-DREXIT:  JSR UNTLK           ; command device to untalk
+DREXIT: JSR UNTLK           ; command device to untalk
         PLA                 ; restore accumulator
         JSR LISTEN          ; command device to listen
         LDA #$E0            ; secondary address 0 (only low nybble is used)
@@ -693,11 +693,11 @@ DREXIT:  JSR UNTLK           ; command device to untalk
 
 ; -----------------------------------------------------------------------------
 ; print and clear routines
-CLINE:   JSR CRLF            ; send CR+LF
+CLINE:  JSR CRLF            ; send CR+LF
         JMP SNCLR           ; clear line
-SNDCLR:  JSR SNDMSG
-SNCLR:   LDY #$28            ; loop 40 times
-SNCLP:   LDA #$20            ; output space character
+SNDCLR: JSR SNDMSG
+SNCLR:  LDY #$28            ; loop 40 times
+SNCLP:  LDA #$20            ; output space character
         JSR CHROUT
         LDA #$14            ; output delete character
         JSR CHROUT
@@ -707,7 +707,7 @@ SNCLP:   LDA #$20            ; output space character
 
 ; -----------------------------------------------------------------------------
 ; display message from table
-SNDMSG:  LDA MSGBAS,Y        ; Y contains offset in msg table
+SNDMSG: LDA MSGBAS,Y        ; Y contains offset in msg table
         PHP
         AND #$7F            ; strip high bit before output
         JSR CHOUT
@@ -719,20 +719,20 @@ SNDMSG:  LDA MSGBAS,Y        ; Y contains offset in msg table
 ; -----------------------------------------------------------------------------
 ; message table; last character has high bit set
 MSGBAS  =*
-MSG0:   .BYTE 14
+MSG0:  .BYTE 14
         .BYTE "KMON 0.",'6'+$80
-MSG1:   .BYTE $0D               ; header for registers
+MSG1:  .BYTE $0D               ; header for registers
         .BYTE "*ERR",'*'+$80
-MSG2:   .BYTE $0D               ; header for registers
+MSG2:  .BYTE $0D               ; header for registers
         .BYTE "*BRK*",$20+$80
-MSG3:    .BYTE $1D,$3F+$80       ; syntax error: move right, display "?"
-MSG4:    .byte "..SYS"           ; SYS call to enter monitor
+MSG3:   .BYTE $1D,$3F+$80       ; syntax error:move right, display "?"
+MSG4:   .byte "..SYS"           ; SYS call to enter monitor
         .BYTE $20+$80
-MSG5:    .BYTE $3A,$12+$80       ; ":" then RVS ON for memory ASCII dump
-MSG6:    .byte " ERRO"           ; I/O error: display " ERROR"
+MSG5:   .BYTE $3A,$12+$80       ; ":" then RVS ON for memory ASCII dump
+MSG6:   .byte " ERRO"           ; I/O error:display " ERROR"
         .BYTE 'R'+$80
-MSG7:    .BYTE $41,$20+$80       ; assemble next instruction: "A " + addr
-MSG8:    .byte "  "              ; pad non-existent byte: skip 3 spaces
+MSG7:   .BYTE $41,$20+$80       ; assemble next instruction:"A " + addr
+MSG8:   .byte "  "              ; pad non-existent byte:skip 3 spaces
         .BYTE $20+$80
 
 
@@ -743,11 +743,11 @@ prompt:
 
 ;----------------------------------------
 
-cmdold:    lda #1
+cmdold:   lda #1
         tay
         sta (TXTTAB),y
         jsr LINKPRG
-cmdold2:   
+cmdold2:  
         ldx EAL
         stx VARTAB
         ldy EAL+1
@@ -758,7 +758,7 @@ cmdold2:
 
 info:
 
-DSPLYM: jsr CRLF
+DSPLYM:jsr CRLF
         jsr meminfo
         jsr CRLF
         jsr listvars
@@ -812,19 +812,19 @@ textinfo:
 
         rts
 
-;msg0:     .asciiz "MEMBOT "
-msg1:     .asciiz "TXTTAB "
-msg2:     .asciiz "VARTAB "
-;msg3:     .asciiz "ARYTAB "
-msg4:     .asciiz "STREND "
-msg5:     .asciiz "FRETOP "
-msg6:     .asciiz "MEMSIZ "
-;msgN:     .asciiz "MEMTOP "
-;msgSAL:   .asciiz "SAL    "
-msgEAL:   .asciiz "EAL    "
-msgFNADR: .asciiz "FNADR  "
+;msg0:    .asciiz "MEMBOT "
+msg1:    .asciiz "TXTTAB "
+msg2:    .asciiz "VARTAB "
+;msg3:    .asciiz "ARYTAB "
+msg4:    .asciiz "STREND "
+msg5:    .asciiz "FRETOP "
+msg6:    .asciiz "MEMSIZ "
+;msgN:    .asciiz "MEMTOP "
+;msgSAL:  .asciiz "SAL    "
+msgEAL:  .asciiz "EAL    "
+msgFNADR:.asciiz "FNADR  "
 
-DSPLYI: jsr CRLF
+DSPLYI:jsr CRLF
         jsr basicinfo
         jsr CRLF
         jsr vectorinfo
@@ -852,12 +852,12 @@ basicinfo:
 
         rts
 
-msgb1:  .asciiz "IERROR "
-msgb2:  .asciiz "IMAIN  "
-msgb3:  .asciiz "ICRNCH "
-msgb4:  .asciiz "IQPLOP "
-msgb5:  .asciiz "IGONE  "
-msgb6:  .asciiz "IEVAL  "
+msgb1: .asciiz "IERROR "
+msgb2: .asciiz "IMAIN  "
+msgb3: .asciiz "ICRNCH "
+msgb4: .asciiz "IQPLOP "
+msgb5: .asciiz "IGONE  "
+msgb6: .asciiz "IEVAL  "
 
 
 vectorinfo:
@@ -872,21 +872,21 @@ vectorinfo:
         jsr hexoutxynl
         rts
 
-msgc1:  .asciiz "CINV   "
-msgc2:  .asciiz "CBINV  "
-msgc3:  .asciiz "MNINV  "
+msgc1: .asciiz "CINV   "
+msgc2: .asciiz "CBINV  "
+msgc3: .asciiz "MNINV  "
 
 
 listvars:
         ldxy  VARTAB
         stxy  T1
 
-lvl2:   lda T2   ; at end?
+lvl2:  lda T2   ; at end?
         cmp ARYTAB+1
         bne lvl3
         lda T1
         cmp ARYTAB
-lvl3:   bmi lvlgo
+lvl3:  bmi lvlgo
         rts
 
 lvlgo:
@@ -910,7 +910,7 @@ lvlgo:
         and #$7f
         bne @lvl4
         lda #' '
-@lvl4:  jsr CHROUT
+@lvl4: jsr CHROUT
         chrout ' '
         iny
         lda (T1),y
@@ -928,7 +928,7 @@ lvlgo:
         lda COUNT
         jsr strout
         jsr CRLF
-lvnext1:        
+lvnext1:       
         ; next
         lda T1
         add #7
@@ -937,10 +937,10 @@ lvnext1:
         inc T2
         bne lvl2
 ;
-msgout:  stx T1
+msgout: stx T1
          sty T2
          ldy #0
-moprint: lda (T1),y
+moprint:lda (T1),y
          beq modone
          jsr CHROUT
          iny
@@ -967,7 +967,7 @@ strout:
 hexoutxynl:
         jsr hexoutxy
         jmp CRLF
-;nl:     lda #13
+;nl:    lda #13
 ;        jsr CHROUT
 ;        rts
 
@@ -995,7 +995,7 @@ hexdig:
         cmp #$0a
         bcc hdsk1
         adc #$06
-hdsk1:  adc #$30
+hdsk1: adc #$30
         rts
 
 ; -----------------------------------------------------------------------------
@@ -1031,11 +1031,12 @@ DSPLYH:
 
 ; -----------------------------------------------------------------------------
 CMDBOOT:
-        LDX  #< (__CARTHDR_SIZE__ + 1)
-@loop:  LDA __CARTHDR_LOAD__ - 1, X
-        STA __CARTHDR_RUN__ - 1, X
-        DEX
-        BNE @loop
+        jsr GETFNADR
+        jsr hexout
+        jsr hexoutxy
+        jmp STRT
+
+        jsr INSTALL_CARTHDR
         jmp ($FFFC)
         rts
 ; -----------------------------------------------------------------------------
@@ -1055,7 +1056,7 @@ GETFNADR1:
         stxy FNADR
 
         ldy #0              ; compute file name length
-@loop:  lda (FNADR),y
+@loop: lda (FNADR),y
         beq GETFNADR2
         CMP #$20            ; space terminates
         BEQ GETFNADR2
@@ -1068,16 +1069,24 @@ GETFNADR2:
         rts
 
 ; -----------------------------------------------------------------------------
-TBUFFR_INST:
+INSTALL_CARTHDR:
+        LDX  #< (__CARTHDR_SIZE__ + 1)
+@loop:  LDA __CARTHDR_LOAD__ - 1, X
+        STA __CARTHDR_RUN__ - 1, X
+        DEX
+        BNE @loop
+        RTS
+
+INSTALL_TBUFFR:
         LDX  #< (__TBUFFR_SIZE__ + 1)
 @loop:  LDA __TBUFFR_LOAD__ - 1, X
         STA __TBUFFR_RUN__ - 1, X
         DEX
         BNE @loop
-        rts
+        RTS
 ; -----------------------------------------------------------------------------
 CMDRUN:
-        jsr TBUFFR_INST
+        jsr INSTALL_TBUFFR
 
         jmp CMDRU1
 
@@ -1085,10 +1094,10 @@ CMDRUN:
         jsr hexoutxy
         jmp STRT
 
-CMDRU1: JSR GETCHR          ; get a character
+CMDRU1:JSR GETCHR          ; get a character
         BEQ CMDRUNLOADED    ; run already loaded program if no parameters given
 
-CMDRU2: 
+CMDRU2:
         CMP #$20            ; skip leading spaces
         BEQ CMDRU1
 
@@ -1103,16 +1112,16 @@ CMDRU2:
         inc CHRPNT
 
         ldy #0              ; get file name length
-CMDRU4: lda (FNADR),y
+CMDRU4:lda (FNADR),y
         beq CMDRU3
         CMP #$20            ; skip leading spaces
         BEQ CMDRU3
         iny
         bpl CMDRU4
 
-CMDRU5: jmp ERROR
+CMDRU5:jmp ERROR
 
-CMDRU3: tya                 ; set file name
+CMDRU3:tya                 ; set file name
         ldxy FNADR
 CMDRUNGO:
         pha
@@ -1151,14 +1160,14 @@ CMDLIST:
         rts
 
 ; -----------------------------------------------------------------------------
-CMDDIR:            ; directory command
+CMDDIR:           ; directory command
         jsr GETPAR
         bcs CMDDI3
         lda TMP0
         sta FA
 CMDDI3:
         ldx #0
-CMDDI2: lda CMDDI0,X
+CMDDI2:lda CMDDI0,X
         sta BUF,X
         bne CMDDI1
         lda FA     ; substitute current device number
@@ -1166,30 +1175,30 @@ CMDDI2: lda CMDDI0,X
         sta BUF+1
 ;        inx         ; end of command        
         jmp STRT2
-CMDDI1: inx
+CMDDI1:inx
         bpl CMDDI2
         brk
         rts
 
-CMDDI0: .asciiz "@8,$"
+CMDDI0:.asciiz "@8,$"
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
-KEYW:    .byte "BDEGHIJMNRX@"
-HIKEY:   .byte "$+&%LSV"
+KEYW:   .byte "BDEGHIJMNRX@"
+HIKEY:  .byte "$+&%LSV"
 KEYTOP  =*
 
 ; vectors corresponding to commands above
-KADDR:  .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1 
+KADDR: .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1 
         .WORD JSUB-1, DSPLYM-1, NEW-1, CMDRUN-1, EXIT-1, DSTAT-1
 
 ; -----------------------------------------------------------------------------
-MODTAB:  .BYTE $10,$0A,$08,02    ; modulo number systems
-LENTAB:  .BYTE $04,$03,$03,$01   ; bits per digit
+MODTAB: .BYTE $10,$0A,$08,02    ; modulo number systems
+LENTAB: .BYTE $04,$03,$03,$01   ; bits per digit
 
-ERRAD:   .word ON_ERR            ;
-LINKAD:  .WORD BREAK             ; address of brk handler
-SUPAD:   .WORD SUPER             ; address of entry point
+ERRAD:  .word ON_ERR            ;
+LINKAD: .WORD BREAK             ; address of brk handler
+SUPAD:  .WORD SUPER             ; address of entry point
 PRGEND:
 
 ; -----------------------------------------------------------------------------
@@ -1274,9 +1283,9 @@ IERROR_KMON:
 IERROR_OLD:
         .word $0000
 
-IERROR_JMP: .word IERROR_GO
+IERROR_JMP:.word IERROR_GO
 
-SNDMSG2:  
+SNDMSG2: 
         LDA MSGBAS2,Y        ; Y contains offset in msg table
         PHP
         AND #$7F            ; strip high bit before output
@@ -1287,17 +1296,17 @@ SNDMSG2:
         RTS
 
 MSGBAS2  =*
-MSG2_0: .BYTE $0d,"..RUN",$0D+$80
-MSG2_1: .BYTE $0d,"?EIO",$20+$80
-FN:     .byte "KMON"
+MSG2_0:.BYTE $0d,"..RUN",$0D+$80
+MSG2_1:.BYTE $0d,"?EIO",$20+$80
+FN:    .byte "KMON"
 
 .segment "CARTHDR"
         ; cartridge header
         .addr hardrst   ; hard reset vector
-        .addr $fe5e     ; soft reset vector: return to NMI handler immediately after cartridge check
+        .addr $fe5e     ; soft reset vector:return to NMI handler immediately after cartridge check
         .byte $C3, $C2, $CD, $38, $30   ; 'CBM80' magic number for autostart cartridge
 
-hardrst: 
+hardrst:
         STX $D016       ; modified version of RESET routine (normally at $FCEF-$FCFE)
         JSR IOINIT
         JSR RAMTAS
@@ -1321,7 +1330,7 @@ hardrst:
         JSR CHROUT
         LDA #$80            ; disable kernel control messages
         JSR SETMSG          ; and enable error messages
-        JSR TBUFFR_INST
+        JSR INSTALL_TBUFFR
         JMP __TBUFFR_RUN__
 
         JMP $A478       ; jump into BASIC
