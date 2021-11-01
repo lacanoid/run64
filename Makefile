@@ -17,31 +17,31 @@ endif
 
 ASFLAGS = --create-dep $(@:.o=.dep)
 
-all: bootsect.128 bootsect2.128 hello
+all: bootsect.128 bootsect2.128 disks
 clean:
-	rm -rf *.o test.d64 test.d71 test.d81 bootsect.128 bootsect2.128 hello raster
+	rm -rf *.o run64.d64 run64.d71 run64.d81 bootsect.128 bootsect2.128
 zap: clean
 	rm -rf *.dep
 
-check: test.d64
+check: run64.d64
 	$(X128) -debugcart -limitcycles 10000000 -sounddev dummy -silent -console -8 $+
 
-test: test.d71 test.d81
+disks: run64.d64 run64.d71 run64.d81
 
-test.d64: raster kmon bootsect2.128 bootsect.128 Makefile
-	$(C1541) -format test,xx d64 test.d64 \
+run64.d64: kmon bootsect2.128 bootsect.128 Makefile
+	$(C1541) -format run64,sy d64 run64.d64 \
 		-write kmon
-	./install.sh test.d64
+	./install.sh run64.d64
 
-test.d71: raster kmon bootsect2.128 bootsect.128 Makefile
-	$(C1541) -format test,xx d71 test.d71 \
+run64.d71: kmon bootsect2.128 bootsect.128 Makefile
+	$(C1541) -format run64,sy d71 run64.d71 \
 		-write kmon
-	./install.sh test.d71
+	./install.sh run64.d71
 
-test.d81: raster kmon bootsect2.128 bootsect.128 Makefile
-	$(C1541) -format test,xx d81 test.d81 \
+run64.d81: kmon bootsect2.128 bootsect.128 Makefile
+	$(C1541) -format run64,sy d81 run64.d81 \
 		-write kmon
-	./install.sh test.d81
+	./install.sh run64.d81
 
 bootsect.128: LDFLAGS += -C linker.cfg
 bootsect.128: bootsect.128.o bootsect2.128.o autostart64.o
