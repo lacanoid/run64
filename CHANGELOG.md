@@ -1,7 +1,8 @@
-Version 0.5
+Version 0.6
 ===========
 - base conversions work now
 - r - run command for loading running programs
+- b - boot command for rebooting and autostarting programs
 
 Version 0.5
 ===========

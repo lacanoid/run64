@@ -1031,22 +1031,29 @@ DSPLYH:
 
 ; -----------------------------------------------------------------------------
 CMDBOOT:
-        jsr GETFNADR
-        jsr hexout
-        jsr hexoutxy
-        jmp STRT
-
         jsr INSTALL_CARTHDR
+        jsr GETFNADR
+        beq CMDBOOT1   ; no argsuments
+        sta CH_FNLEN
+        tax
+        ldy #0
+@l1:    lda (FNADR),Y
+        sta CH_FN,Y
+        iny
+        dex
+        bne @l1
+CMDBOOT1:
         jmp ($FFFC)
+CMDBOOTX:
         rts
 ; -----------------------------------------------------------------------------
 GETFNADR:
         JSR GETCHR
         BEQ GETFNADR1  ; end of string
-        CMP #20        ; skip leading spaces
+        CMP #$20        ; skip leading spaces
         BEQ GETFNADR
-
 GETFNADR1:
+        dec CHRPNT
         lda #<BUF
         add CHRPNT
         tax
@@ -1054,9 +1061,10 @@ GETFNADR1:
         adc #0
         tay
         stxy FNADR
+        inc CHRPNT
 
         ldy #0              ; compute file name length
-@loop: lda (FNADR),y
+@loop:  lda (FNADR),y
         beq GETFNADR2
         CMP #$20            ; space terminates
         BEQ GETFNADR2
@@ -1211,8 +1219,8 @@ PRGEND:
 loadflags:
         .word 0
 run_mon:
-        lda #4
-        leaxy FN
+        lda TB_FNLEN
+        leaxy TB_FN
         JSR SETNAM
         ldy #0
         .byte $2c
@@ -1298,12 +1306,14 @@ SNDMSG2:
 MSGBAS2  =*
 MSG2_0:.BYTE $0d,"..RUN",$0D+$80
 MSG2_1:.BYTE $0d,"?EIO",$20+$80
-FN:    .byte "KMON"
+TB_FNLEN: .byte 4
+TB_FN:    .byte "KMON            "
 
 .segment "CARTHDR"
         ; cartridge header
         .addr hardrst   ; hard reset vector
         .addr $fe5e     ; soft reset vector:return to NMI handler immediately after cartridge check
+MAGIC:
         .byte $C3, $C2, $CD, $38, $30   ; 'CBM80' magic number for autostart cartridge
 
 hardrst:
@@ -1331,6 +1341,23 @@ hardrst:
         LDA #$80            ; disable kernel control messages
         JSR SETMSG          ; and enable error messages
         JSR INSTALL_TBUFFR
-        JMP __TBUFFR_RUN__
 
+        lda #0
+        sta MAGIC           ; disable cartridge autostart
+
+        ; set filename
+        lda CH_FNLEN
+        sta TB_FNLEN
+        tax
+        ldy #0
+@l1:    lda CH_FN,Y
+        sta TB_FN,Y
+        iny
+        dex
+        bne @l1
+
+        JMP __TBUFFR_RUN__
         JMP $A478       ; jump into BASIC
+
+CH_FNLEN:.byte 2
+CH_FN:   .byte ":*" 
