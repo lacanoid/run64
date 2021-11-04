@@ -17,6 +17,11 @@
        ldx #<arg
        ldy #>arg
 .endmacro
+
+.macro mov arg1,arg2
+       lda arg2
+       sta arg1
+.endmacro
          
 .macro msg addr 
        leaxy addr 

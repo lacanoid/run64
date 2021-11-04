@@ -81,9 +81,10 @@ STRT:  jsr CRLF
         jsr hexout
         msg prompt
 
+        ; read one line of input into BUF
         ldx #0
         stx CHRPNT
-SMOVE: jsr CHRIN
+SMOVE:  jsr CHRIN
         sta BUF,X
         inx
         CPX #ENDIN-BUF   ; error if buffer is full
@@ -967,11 +968,7 @@ strout:
 hexoutxynl:
         jsr hexoutxy
         jmp CRLF
-;nl:    lda #13
-;        jsr CHROUT
-;        rts
 
-; print hex A
 hexoutxy:
         tya 
         jsr hexout
@@ -979,6 +976,7 @@ hexoutxy:
         jsr hexout
         rts
 hexout:
+        pha
         pha
         lsr
         lsr
@@ -990,12 +988,13 @@ hexout:
         and #$0f
         jsr hexdig
         jsr CHROUT
+        pla
         rts
 hexdig:
         cmp #$0a
         bcc hdsk1
         adc #$06
-hdsk1: adc #$30
+hdsk1:  adc #$30
         rts
 
 ; -----------------------------------------------------------------------------
@@ -1096,45 +1095,14 @@ INSTALL_TBUFFR:
 CMDRUN:
         jsr INSTALL_TBUFFR
 
-        jmp CMDRU1
+;        jmp CMDRU1
 
         jsr GETFNADR
-        jsr hexoutxy
-        jmp STRT
-
-CMDRU1:JSR GETCHR          ; get a character
-        BEQ CMDRUNLOADED    ; run already loaded program if no parameters given
-
-CMDRU2:
-        CMP #$20            ; skip leading spaces
-        BEQ CMDRU1
-
-        dec CHRPNT
-        lda #<BUF
-        add CHRPNT
-        tax
-        lda #>BUF
-        adc #0
-        tay
-        stxy FNADR
-        inc CHRPNT
-
-        ldy #0              ; get file name length
-CMDRU4:lda (FNADR),y
-        beq CMDRU3
-        CMP #$20            ; skip leading spaces
-        BEQ CMDRU3
-        iny
-        bpl CMDRU4
-
-CMDRU5:jmp ERROR
-
-CMDRU3:tya                 ; set file name
-        ldxy FNADR
+        beq CMDRUNLOADED
 CMDRUNGO:
-        pha
+;        pha
 ;        jsr hexoutxy
-        pla
+;        pla
         JSR SETNAM
 
         ; call resident code in TBUFF which does not return on success
@@ -1287,11 +1255,10 @@ IERROR_GO:
 IERROR_KMON:
         jmp run_mon       ; need to reload kmon
 
-        jmp run_mon
 IERROR_OLD:
         .word $0000
-
-IERROR_JMP:.word IERROR_GO
+IERROR_JMP:
+        .word IERROR_GO
 
 SNDMSG2: 
         LDA MSGBAS2,Y        ; Y contains offset in msg table

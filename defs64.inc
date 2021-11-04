@@ -10,6 +10,7 @@ ARYTAB = $2F    ; Pointer to the Start of the BASIC Array Storage Area
 STREND = $31    ; Pointer to End of the BASIC Array Storage Area (+1)
 FRETOP = $33    ; Pointer to the Bottom of the String Text Storage Area
 MEMSIZ = $37    ; Pointer to the Highest Address Used by BASIC
+VARNAM = $45    ; Current BASIC Variable Name
 
 VERCK  = $0A
 COUNT  = $0B
