@@ -1193,12 +1193,12 @@ CMDDI3:
 CMDDI2:lda CMDDI0,X
         sta BUF,X
         bne CMDDI1
-        lda FA     ; substitute current device number
+        lda FA       ; substitute current device number
         jsr hexdig
         sta BUF+1
 ;        inx         ; end of command        
         jmp STRT2
-CMDDI1:inx
+CMDDI1: inx
         bpl CMDDI2
         brk
         rts

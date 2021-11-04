@@ -17,9 +17,9 @@ endif
 
 ASFLAGS = --create-dep $(@:.o=.dep)
 
-all: bootsect.128 bootsect2.128 disks
+all: bootsect.128 autostart64.128 disks
 clean:
-	rm -rf *.o run64.d64 run64.d71 run64.d81 bootsect.128 bootsect2.128
+	rm -rf *.o run64.d64 run64.d71 run64.d81 bootsect.128 autostart64.128
 zap: clean
 	rm -rf *.dep
 
@@ -28,26 +28,26 @@ check: run64.d64
 
 disks: run64.d64 run64.d71 run64.d81
 
-run64.d64: kmon bootsect2.128 bootsect.128 Makefile
+run64.d64: kmon autostart64.128 bootsect.128 Makefile
 	$(C1541) -format run64,sy d64 run64.d64 \
 		-write kmon
 	./install.sh run64.d64
 
-run64.d71: kmon bootsect2.128 bootsect.128 Makefile
+run64.d71: kmon autostart64.128 bootsect.128 Makefile
 	$(C1541) -format run64,sy d71 run64.d71 \
 		-write kmon
 	./install.sh run64.d71
 
-run64.d81: kmon bootsect2.128 bootsect.128 Makefile
+run64.d81: kmon autostart64.128 bootsect.128 Makefile
 	$(C1541) -format run64,sy d81 run64.d81 \
 		-write kmon
 	./install.sh run64.d81
 
 bootsect.128: LDFLAGS += -C linker.cfg
-bootsect.128: bootsect.128.o bootsect2.128.o autostart64.o
+bootsect.128: bootsect.128.o autostart64.128.o autostart64.o
 
-bootsect2.128: LDFLAGS += -C linker.cfg
-bootsect2.128: bootsect.128.o bootsect2.128.o autostart64.o
+autostart64.128: LDFLAGS += -C linker.cfg
+autostart64.128: bootsect.128.o autostart64.128.o autostart64.o
 
 kmon: LDFLAGS += -t c64 -C kmon.cfg -u __EXEHDR__
 kmon: kmon.o
