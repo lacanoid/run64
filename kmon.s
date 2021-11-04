@@ -445,16 +445,33 @@ CPY1PX: RTS
 
 ; -----------------------------------------------------------------------------
 ; new [N]
-NEW:   JSR GETPAR
+NEW:    JSR GETPAR
         LDX SP              ; load stack pointer from memory
         TXS                 ; save in SP register
-NEW2:  JSR COPY1P          ; copy provided address to PC
+NEW2:   JSR COPY1P          ; copy provided address to PC
         LDA PCH             ; push PC high byte on stack
         STA TXTTAB+1
         LDA PCL             ; push PC low byte on stack
         STA TXTTAB
         JSR SCRTCH
         JMP STRT
+
+; -----------------------------------------------------------------------------
+; alter memory [>]
+ALTM:   BCS ALTMX           ; exit if no parameter provided
+        JSR COPY12          ; copy parameter to start address
+        LDY #0
+ALTM1:  JSR GETPAR          ; get value for next byte of memory
+        BCS ALTMX           ; if none given, exit early
+        LDA TMP0            ; poke value into memory at start address + Y
+        STA (TMP2),Y
+        INY                 ; next byte
+        CPY #8              ; have we read 8 bytes yet?
+        BCC ALTM1           ; if not, read the next one
+ALTMX:  LDA #$91            ; move cursor up
+        JSR CHROUT
+        JSR DISPMEM         ; re-display line to make ascii match hex
+        JMP STRT            ; back to main loop
 
 ; -----------------------------------------------------------------------------
 ; goto (run) [G]
@@ -485,6 +502,40 @@ JSUB:   LDX SP              ; load stack pointer from memory
         STA SR              ; save processor status to memory
 ;        JMP DSPLYR          ; display registers
         JMP STRT
+
+; -----------------------------------------------------------------------------
+; display 8 bytes of memory
+DISPMEM:JSR CRLF            ; new line
+        LDA #'>'            ; prefix > so memory can be edited in place
+        JSR CHROUT
+        JSR SHOWAD          ; show address of first byte on line
+        LDY #0
+        BEQ DMEMGO          ; SHOWAD already printed a space after the address
+DMEMLP: JSR SPACE           ; print space between bytes
+DMEMGO: LDA (TMP2),Y        ; load byte from start address + Y
+        JSR WRTWO           ; output hex digits for byte
+        INY                 ; next byte
+        CPY #8              ; have we output 8 bytes yet?
+        BCC DMEMLP          ; if not, output next byte
+        LDY #MSG5-MSGBAS    ; if so, output : and turn on reverse video
+        JSR SNDMSG          ;   before displaying ascii representation
+        LDY #0              ; back to first byte in line
+DCHAR:  LDA (TMP2),Y        ; load byte at start address + Y
+        TAX                 ; stash in X
+        AND #$BF            ; clear 6th bit
+        CMP #$22            ; is it a quote (")?
+        BEQ DDOT            ; if so, print . instead
+        TXA                 ; if not, restore character
+        AND #$7F            ; clear top bit
+        CMP #$20            ; is it a printable character (>= $20)?
+        TXA                 ; restore character
+        BCS DCHROK          ; if printable, output character
+DDOT:   LDA #$2E            ; if not, output '.' instaed
+DCHROK: JSR CHROUT
+        INY                 ; next byte
+        CPY #8              ; have we output 8 bytes yet?
+        BCC DCHAR           ; if not, output next byte
+        RTS 
 
 ; -----------------------------------------------------------------------------
 ; convert base [$+&%]
@@ -720,11 +771,11 @@ SNDMSG: LDA MSGBAS,Y        ; Y contains offset in msg table
 ; -----------------------------------------------------------------------------
 ; message table; last character has high bit set
 MSGBAS  =*
-MSG0:  .BYTE 14
+MSG0:   .BYTE 14
         .BYTE "KMON 0.",'6'+$80
-MSG1:  .BYTE $0D               ; header for registers
+MSG1:   .BYTE $0D               ; header for registers
         .BYTE "*ERR",'*'+$80
-MSG2:  .BYTE $0D               ; header for registers
+MSG2:   .BYTE $0D               ; header for registers
         .BYTE "*BRK*",$20+$80
 MSG3:   .BYTE $1D,$3F+$80       ; syntax error:move right, display "?"
 MSG4:   .byte "..SYS"           ; SYS call to enter monitor
@@ -759,7 +810,7 @@ cmdold2:
 
 info:
 
-DSPLYM:jsr CRLF
+DSPLYM: jsr CRLF
         jsr meminfo
         jsr CRLF
         jsr listvars
@@ -1092,17 +1143,12 @@ INSTALL_TBUFFR:
         BNE @loop
         RTS
 ; -----------------------------------------------------------------------------
+; load and run a program
 CMDRUN:
         jsr INSTALL_TBUFFR
-
-;        jmp CMDRU1
-
         jsr GETFNADR
         beq CMDRUNLOADED
 CMDRUNGO:
-;        pha
-;        jsr hexoutxy
-;        pla
         JSR SETNAM
 
         ; call resident code in TBUFF which does not return on success
@@ -1118,6 +1164,7 @@ CMDRUN1:
         rts
 
 ; -----------------------------------------------------------------------------
+; run already loaded program
 CMDRUNLOADED:
         jsr ON_ERR_SET
         jsr CRLF
@@ -1160,13 +1207,13 @@ CMDDI0:.asciiz "@8,$"
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
-KEYW:   .byte "BDEGHIJMNRX@"
+KEYW:   .byte "BDEGHIJMNRX@>"
 HIKEY:  .byte "$+&%LSV"
 KEYTOP  =*
 
 ; vectors corresponding to commands above
 KADDR: .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1 
-        .WORD JSUB-1, DSPLYM-1, NEW-1, CMDRUN-1, EXIT-1, DSTAT-1
+        .WORD JSUB-1, DSPLYM-1, NEW-1, CMDRUN-1, EXIT-1, DSTAT-1, ALTM-1
 
 ; -----------------------------------------------------------------------------
 MODTAB: .BYTE $10,$0A,$08,02    ; modulo number systems
@@ -1231,16 +1278,6 @@ TBSTART1:
         jmp NEWSTT
         rts
 
-IERROR_SET:
-        ldxy IERROR
-        stxy IERROR_OLD
-        ldxy IERROR_JMP
-        stxy IERROR
-        rts
-IERROR_CLR:
-        ldxy IERROR_OLD
-        stxy IERROR
-        rts
 IERROR_GO:
         jsr IERROR_CLR
 ;        LDY #MSG2_2-MSGBAS2    ; display "?" to indicate error and go to new line
@@ -1250,15 +1287,24 @@ IERROR_GO:
 
         lda #> PRGEND     ; check if kmon was overwritten
         cmp TXTTAB+1
-        bcs IERROR_KMON   ; no, return there
-        jmp STRT
-IERROR_KMON:
-        jmp run_mon       ; need to reload kmon
+        bcs run_mon       ; load kmon back first
+        jmp STRT          ; go to kmon main
+
+IERROR_SET:
+        ldxy IERROR
+        stxy IERROR_OLD
+        ldxy IERROR_NEW
+        stxy IERROR
+        rts
+IERROR_CLR:
+        ldxy IERROR_OLD
+        stxy IERROR
+        rts
 
 IERROR_OLD:
-        .word $0000
-IERROR_JMP:
-        .word IERROR_GO
+        .word $0000,$0000
+IERROR_NEW:
+        .word IERROR_GO, IERROR_GO
 
 SNDMSG2: 
         LDA MSGBAS2,Y        ; Y contains offset in msg table
