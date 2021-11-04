@@ -3,6 +3,9 @@ CC := cl65
 C1541 := c1541
 X128 := x128
 
+TIME := $(shell date +%y%m%d%H%M%S)
+VOLNAME := run64 ${TIME},sy
+
 ifdef CC65_HOME
 	AS := $(CC65_HOME)/bin/$(AS)
 	CC := $(CC65_HOME)/bin/$(CC)
@@ -18,6 +21,7 @@ endif
 ASFLAGS = --create-dep $(@:.o=.dep)
 
 all: bootsect.128 autostart64.128 disks
+
 clean:
 	rm -rf *.o run64.d64 run64.d71 run64.d81 bootsect.128 autostart64.128
 zap: clean
@@ -29,17 +33,17 @@ check: run64.d64
 disks: run64.d64 run64.d71 run64.d81
 
 run64.d64: kmon autostart64.128 bootsect.128 Makefile
-	$(C1541) -format run64,sy d64 run64.d64 \
+	$(C1541) -format "${VOLNAME}" d64 run64.d64 \
 		-write kmon
 	./install.sh run64.d64
 
 run64.d71: kmon autostart64.128 bootsect.128 Makefile
-	$(C1541) -format run64,sy d71 run64.d71 \
+	$(C1541) -format "${VOLNAME}" d71 run64.d71 \
 		-write kmon
 	./install.sh run64.d71
 
 run64.d81: kmon autostart64.128 bootsect.128 Makefile
-	$(C1541) -format run64,sy d81 run64.d81 \
+	$(C1541) -format "${VOLNAME}" d81 run64.d81 \
 		-write kmon
 	./install.sh run64.d81
 
