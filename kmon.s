@@ -74,7 +74,7 @@ kmon:
 
 ; -----------------------------------------------------------------------------
 ; main loop
-STRT:  jsr CRLF
+STRT:   jsr CRLF
 
         ; print current drive and prompt
         lda FA
@@ -94,20 +94,21 @@ SMOVE:  jsr CHRIN
         LDA #0              ; null-terminate input buffer
         STA BUF-1,X         ; (replacing the CR)
 
-STRT2: ; execute BUF
+        ; execute BUF
+STRT2: 
         LDA #0
         STA CHRPNT
         stx COUNT
         dec COUNT
         beq STRT            ; repeat if buffer is empty
 
-ST1:   JSR GETCHR          ; get a character from the buffer
+ST1:    JSR GETCHR          ; get a character from the buffer
         BEQ STRT            ; start over if buffer is empty
         CMP #$20            ; skip leading spaces
         BEQ ST1
 
-S0:    LDX #KEYTOP-KEYW    ; loop through valid command characters
-S1:    CMP KEYW,X          ; see if input character matches
+S0:     LDX #KEYTOP-KEYW    ; loop through valid command characters
+S1:     CMP KEYW,X          ; see if input character matches
         BEQ S2              ; command matched, dispatch it
         DEX                 ; no match, check next command
         BPL S1              ; keep trying until we've checked them all
@@ -933,12 +934,12 @@ listvars:
         ldxy  VARTAB
         stxy  T1
 
-lvl2:  lda T2   ; at end?
+lvl2:   lda T2   ; at end?
         cmp ARYTAB+1
         bne lvl3
         lda T1
         cmp ARYTAB
-lvl3:  bmi lvlgo
+lvl3:   bmi lvlgo
         rts
 
 lvlgo:
@@ -1098,11 +1099,18 @@ CMDBOOTX:
         rts
 ; -----------------------------------------------------------------------------
 GETFNADR:
-        JSR GETCHR
-        BEQ GETFNADR1  ; end of string
-        CMP #$20        ; skip leading spaces
-        BEQ GETFNADR
+        lda #$20
+        sta GETFNTERM
 GETFNADR1:
+        JSR GETCHR
+        BEQ GETFNADR2   ; end of string
+        CMP #$20        ; skip leading spaces
+        BEQ GETFNADR1
+        CMP #'"'
+        BNE GETFNADR2   ; not a quoted string
+        sta GETFNTERM
+        JSR GETCHR      ; skip quote
+GETFNADR2:
         dec CHRPNT
         lda #<BUF
         add CHRPNT
@@ -1115,16 +1123,18 @@ GETFNADR1:
 
         ldy #0              ; compute file name length
 @loop:  lda (FNADR),y
-        beq GETFNADR2
-        CMP #$20            ; space terminates
-        BEQ GETFNADR2
+        beq GETFNADRE
+        CMP GETFNTERM       ; compare with terminator
+        BEQ GETFNADRE
         iny
         bpl @loop
-GETFNADR2:
+GETFNADRE:
         tya
         ldxy FNADR
         cmp #0
         rts
+GETFNTERM:
+        .byte 0
 
 ; -----------------------------------------------------------------------------
 INSTALL_CARTHDR:
@@ -1190,7 +1200,7 @@ CMDDIR:           ; directory command
         sta FA
 CMDDI3:
         ldx #0
-CMDDI2:lda CMDDI0,X
+CMDDI2: lda CMDDI0,X
         sta BUF,X
         bne CMDDI1
         lda FA       ; substitute current device number
@@ -1238,7 +1248,7 @@ run_mon:
         leaxy TB_FN
         JSR SETNAM
         ldy #0
-        .byte $2c
+        nop3
 run_prg:
         ldy #1
         sty loadflags

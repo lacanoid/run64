@@ -1,8 +1,9 @@
 Version 0.6
 ===========
 - base conversions work now
-- r - run command for loading running programs
-- b - boot command for rebooting and autostarting programs
+- r : run command for loading running programs
+- b : boot command for rebooting and autostarting programs
+- quoted arguments supported for r and b commands
 
 Version 0.5
 ===========

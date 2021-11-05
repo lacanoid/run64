@@ -23,6 +23,14 @@
        sta arg1
 .endmacro
          
+.macro nop2
+       .byte $24
+.endmacro
+
+.macro nop3
+       .byte $2c
+.endmacro
+
 .macro msg addr 
        leaxy addr 
        jsr msgout
