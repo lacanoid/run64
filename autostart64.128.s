@@ -3,6 +3,7 @@
 
 .include "config.inc"
 .include "defs128.inc"
+.include "macros.inc"
 
 .import __CARTHDR_LOAD__, __CARTHDR_RUN__, __CARTHDR_SIZE__
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
@@ -19,6 +20,7 @@ RUN64   = __RUN64_RUN__
 go64old:
         jmp RUN64
 
+go64:
 .if !LOADMODE
 ; reloacte (copy) basic program loaded in c128 mode at $1c00/$8000 to $0801 for c64
 relocate:
@@ -44,7 +46,7 @@ relocate:
         bne @loop3
 .endif
 
-; copy C64 autostart code into place
+; copy C64 autostart code into place from screen to $8000
 copy:   LDX  #< (__CARTHDR_SIZE__ + 1)
 @loop:  
         LDA VICCRTB - 1, X

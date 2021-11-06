@@ -4,6 +4,7 @@ Version 0.6
 - r : run command for loading running programs
 - b : boot command for rebooting and autostarting programs
 - quoted arguments supported for r and b commands
+- better color handling. color can now optionally be set from bootsect.128
 
 Version 0.5
 ===========

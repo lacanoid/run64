@@ -15,8 +15,14 @@
         .addr $fe5e     ; soft reset vector: return to NMI handler immediately after cartridge check
         .byte $C3, $C2, $CD, $38, $30   ; 'CBM80' magic number for autostart cartridge
 
-SXREG   = $030D  ; Storage Area for .X Index Register
-INDEX1  = $22    ; (2) ???
+; config parameters
+bootctl:.byte 0        ; boot control
+bootbgc:.byte 1        ; background color
+bootfgc:.byte 0        ; foreground color
+bootexc:.byte 14       ; border color
+
+; SXREG   = $030D  ; Storage Area for .X Index Register
+; INDEX1  = $22    ; (2) ???
 
 hardrst: 
         STX $D016       ; modified version of RESET routine (normally at $FCEF-$FCFE)
@@ -58,8 +64,21 @@ copy:
 
 ; continue initializaton 
 init2:
-        jsr restorecrtb ; restore memory overwrittent by cartridge
         JSR CINT        ; video init
+
+; restore colors  
+        lda bootfgc
+        bmi cfg1
+        sta COLOR
+cfg1:   lda bootbgc
+        bmi cfg2
+        sta BGCOL0
+cfg2:   lda bootexc
+        bmi cfg3
+        sta EXTCOL
+cfg3:
+
+        jsr restorecrtb ; restore memory overwrittent by cartridge
         CLI
 
         JSR $E453       ; modified version of BASIC cold-start (normally at $E394-$E39F)
@@ -78,14 +97,14 @@ print:  LDX #$00        ; Print load/run commands to screen
 @done:
         jmp old
 
-kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
-@loop:  LDA keys, X
-        BEQ @done
-        STA KEYD, X
-        INC NDX
-        INX
-        BNE @loop
-@done:
+;kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
+;@loop:  LDA keys, X
+;        BEQ @done
+;        STA KEYD, X
+;        INC NDX
+;        INX
+;        BNE @loop
+;@done:
  
 ;        LDA #<bootmsg
 ;        LDY #>bootmsg
@@ -116,8 +135,6 @@ restorecrtb:
         rts
 
 
-
-
 DQUOTE = $22
 BLUE = $1F
 LBLUE = $9A
@@ -129,35 +146,5 @@ bootmsg:.byte NAME, 0
 
 cmds:
         .BYTE CR, 0
-.if HIDECMDS
-        .byte BLUE      ; make command text 'invisible' against default blue background
-.endif
-.repeat 2
-        .byte CR        ; leave space for READY prompt, since this actually gets printed first
-.endrepeat
-        .byte "SYS820:"
-;        .byte "SYS823:"
-;        .byte "D=PEEK(", .sprintf("%d", FA), "):"
-;        .byte "LOAD", DQUOTE, FILE, DQUOTE, ",D,", .string(LOADMODE)
-;        .byte "POKE2050,1:SYS42291:"
-;        .byte "POKE46,PEEK(35)-(PEEK(781)>253):"
-;        .byte "POKE45,PEEK(781)+2AND255:"
-;        .byte "POKE2,0:"
-        .byte "CLR"
-.repeat 3;
-        .byte CR        ; leave space for SEARCHING/LOADING/READY message sequence
-.endrepeat
-        .byte "RUN:", CR ; last line must be CR-terminated before printing READY prompt
-;        .byte "LIST:", CR ; last line must be CR-terminated before printing READY prompt
 
-        .byte HOME
-.repeat 5
-        .byte CR        ; move cursor back up to starting point
-.endrepeat
-
-.if HIDECMDS
-        .byte LBLUE     ; reset text colour so that status messages are visible
-.endif
-        .byte 0
-
-keys:   .byte CR, CR, CR, 0 ; keystrokes to inject into keyboard buffer
+; keys:   .byte CR, CR, CR, 0 ; keystrokes to inject into keyboard buffer

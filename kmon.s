@@ -9,6 +9,15 @@
 .import __TBUFFR_SIZE__, __TBUFFR_LOAD__, __TBUFFR_RUN__
 .import __CARTHDR_SIZE__, __CARTHDR_LOAD__, __CARTHDR_RUN__
 
+.macro msg addr 
+       leaxy addr 
+       jsr msgout
+.endmacro  
+
+.macro chrout c
+       lda #c 
+       jsr CHROUT
+.endmacro
 
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.

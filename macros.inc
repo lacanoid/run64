@@ -30,13 +30,3 @@
 .macro nop3
        .byte $2c
 .endmacro
-
-.macro msg addr 
-       leaxy addr 
-       jsr msgout
-.endmacro  
-
-.macro chrout c
-       lda #c 
-       jsr CHROUT
-.endmacro

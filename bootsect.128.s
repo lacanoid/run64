@@ -3,6 +3,7 @@
 
 .include "config.inc"
 .include "defs128.inc"
+.include "macros.inc"
 
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
 .import __VICGO64_SIZE__, __VICGO64_LOAD__, __VICGO64_RUN__
@@ -25,9 +26,9 @@ prg:    .asciiz ""      ; don't load a .PRG - we do that in stage2
 
 ; config parameters
 bootctl:.byte 0        ; boot control
-bootbgc:.byte 6        ; background color
-bootfgc:.byte 14       ; foreground color
-bootexc:.byte 14       ; border color
+bootbgc:.byte 0       ; background color
+bootfgc:.byte 1       ; foreground color
+bootexc:.byte 4       ; border color
 
 ; actual bootloader
 .segment "BOOT128"
@@ -44,13 +45,8 @@ cfg2:   lda bootexc
 cfg3:
 
 cmds128:
-        LDX #$00        ; Print load/run commands to screen
-@loop:  LDA cmds, X
-        BEQ @done
-        JSR CHROUT
-        INX
-        BNE @loop
-@done:
+        leaxy cmds
+        jsr print
         jsr colors
 
 kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
@@ -63,11 +59,23 @@ kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
 @done:
         rts
 
+; print xy = null terminated string
+print:
+        stxy T1
+        LDY #$00        ; Print load/run commands to screen
+@loop:  LDA (T1),Y
+        BEQ @done
+        JSR CHROUT
+        INY
+        BNE @loop
+@done:
+        RTS
+
 ; set some colors
 colors:
-        lda #14
-        sta EXTCOL
-        sta COLOR
+;        lda #14
+;        sta EXTCOL
+;        sta COLOR
 
         ldx #(40*5)
 @loop:
@@ -86,9 +94,11 @@ colors:
 .segment "RUN64"
 run64:
         jsr STOP
-        bne @run65
+        bne run65
         rts             ; stop was presseed, do nothing
-@run65:
+run65:
+        leaxy banner
+        jsr print
 
 ; copy c64 autostart to screen memory
         LDX  #< (__AUTOSTART64_SIZE__ + 1)
@@ -96,6 +106,12 @@ run64:
         STA VICAS64 - 1, X
         DEX
         BNE @loop2
+
+        ldx #4
+@loop21:lda bootctl-1,X
+        sta __CARTHDR_LOAD__ + 9 - 1,X
+        dex
+        bne @loop21
 
         LDX #< (__CARTHDR_SIZE__)
 @loop3: LDA __CARTHDR_LOAD__ - 1, X
@@ -137,9 +153,12 @@ CR = $0D
 UP = $91
 HOME = $13
 
+banner:
+        .byte 14,145,145,"GO 64 ",0
+
 cmds:
         .byte 27,"T"   ; fix the screen top
-        .byte 14       ; lowercase
+;        .byte 14       ; lowercase
         .byte CR,CR
         .byte "DLOAD", DQUOTE, FILE, DQUOTE
         .byte CR, CR, CR, CR, CR
