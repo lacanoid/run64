@@ -1143,6 +1143,12 @@ INSTALL_CARTHDR:
         STA __CARTHDR_RUN__ - 1, X
         DEX
         BNE @loop
+        LDA COLOR
+        STA SAVCOLOR+1
+        LDA BGCOL0
+        STA SAVBGCOL0+1
+        LDA EXTCOL
+        STA SAVEXTCOL+1
         RTS
 
 INSTALL_TBUFFR:
@@ -1154,6 +1160,7 @@ INSTALL_TBUFFR:
         RTS
 ; -----------------------------------------------------------------------------
 ; load and run a program
+
 CMDRUN:
         jsr INSTALL_TBUFFR
         jsr GETFNADR
@@ -1346,9 +1353,13 @@ hardrst:
         JSR RESTOR
         JSR CINT        ; video init
 
+SAVCOLOR:
         LDA #15
         STA COLOR
+SAVEXTCOL:
+        LDA #15
         STA EXTCOL
+SAVBGCOL0:
         lda #11
         STA BGCOL0
 

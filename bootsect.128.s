@@ -17,17 +17,17 @@ addr:   .addr $0C00     ; address to load chained blocks to
 bank:   .byte $00       ; bank to load chained blocks to
 nblks:  .byte $01       ; number of chained blocks to load
 
-msg:    .asciiz NAME  ; name for "BOOTING ..." message
+msg:    .asciiz NAME    ; name for "BOOTING ..." message
 
 prg:    .asciiz ""      ; don't load a .PRG - we do that in stage2
 
         jmp boot128
 
 ; config parameters
-bootctl:.byte 0         ; boot control
-bootbgc:.byte 255       ; background color
-bootfgc:.byte 255       ; foreground color
-bootexc:.byte 255       ; border color
+bootctl:.byte 0        ; boot control
+bootbgc:.byte 6        ; background color
+bootfgc:.byte 14       ; foreground color
+bootexc:.byte 14       ; border color
 
 ; actual bootloader
 .segment "BOOT128"
@@ -51,6 +51,7 @@ cmds128:
         INX
         BNE @loop
 @done:
+        jsr colors
 
 kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
 @loop:  LDA keys, X
@@ -62,26 +63,32 @@ kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
 @done:
         rts
 
+; set some colors
+colors:
+        lda #14
+        sta EXTCOL
+        sta COLOR
+
+        ldx #(40*5)
+@loop:
+        lda BGCOL0
+        sta COLORAM +40*15 - 1, X
+        sta COLORAM +40*20 - 1, X
+        lda COLOR
+        sta COLORAM, X
+        sta COLORAM +40*5  - 1, X
+        DEX
+        bne @loop
+        rts
+
 ; go to 64 mode, preserving program through c65 reset routine and running it
 ; this is called from $0C00, which is the user entry point
 .segment "RUN64"
 run64:
         jsr STOP
-        bne colors
+        bne @run65
         rts             ; stop was presseed, do nothing
-
-; set some colors
-colors:
-        lda #12
-        sta EXTCOL
-        sta COLOR
-
-        lda BGCOL0
-        ldx #(40*5)
-@loop:  sta COLORAM +40*15 - 1, X
-        sta COLORAM +40*20 - 1, X
-        DEX
-        bne @loop
+@run65:
 
 ; copy c64 autostart to screen memory
         LDX  #< (__AUTOSTART64_SIZE__ + 1)
@@ -103,7 +110,7 @@ colors:
         DEX
         BNE @loop4
 
-; adjust end-of load pointer for 64
+; adjust EAL (end-of load pointer) for 64 mode
         clc
         lda EAL
         sbc SAL
@@ -132,24 +139,17 @@ HOME = $13
 
 cmds:
         .byte 27,"T"   ; fix the screen top
+        .byte 14       ; lowercase
         .byte CR,CR
         .byte "DLOAD", DQUOTE, FILE, DQUOTE
-;        .byte "LOAD", DQUOTE, FILE, DQUOTE, ",8"
-.if LOADMODE
-;        .byte ",", .string(LOADMODE)
-.endif
         .byte CR, CR, CR, CR, CR
-;        .byte "SYS1024"
-;        .byte "IFNOTDSTHENSYS1024"
-;        .byte 151
+;        .byte 151     ; hide
         .byte "SYS3072"
-;        .byte 153
+;        .byte 153     ; show
         .byte HOME
         .byte 0
 
 keys:   .byte CR
         .byte CR
-;        .byte "SYS 3072:", CR
-;        .byte "SYS 1024:", CR
         .byte 0 ; keystrokes to inject into keyboard buffer
 
