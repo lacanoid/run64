@@ -446,10 +446,10 @@ CPY1PX: RTS
 
 ; -----------------------------------------------------------------------------
 ; new [N]
-NEW:    JSR GETPAR
+CMDNEW: JSR GETPAR
         LDX SP              ; load stack pointer from memory
         TXS                 ; save in SP register
-NEW2:   JSR COPY1P          ; copy provided address to PC
+        JSR COPY1P          ; copy provided address to PC
         LDA PCH             ; push PC high byte on stack
         STA TXTTAB+1
         LDA PCL             ; push PC low byte on stack
@@ -1223,7 +1223,7 @@ KEYTOP  =*
 
 ; vectors corresponding to commands above
 KADDR: .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1 
-        .WORD JSUB-1, DSPLYM-1, NEW-1, CMDRUN-1, EXIT-1, DSTAT-1, ALTM-1
+        .WORD JSUB-1, DSPLYM-1, CMDNEW-1, CMDRUN-1, EXIT-1, DSTAT-1, ALTM-1
 
 ; -----------------------------------------------------------------------------
 MODTAB: .BYTE $10,$0A,$08,02    ; modulo number systems

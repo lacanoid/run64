@@ -76,6 +76,7 @@ print:  LDX #$00        ; Print load/run commands to screen
         INX
         BNE @loop
 @done:
+        jmp old
 
 kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
 @loop:  LDA keys, X
@@ -85,10 +86,10 @@ kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
         INX
         BNE @loop
 @done:
-
-        LDA #<bootmsg
-        LDY #>bootmsg
-        JMP $A478       ; jump into BASIC
+ 
+;        LDA #<bootmsg
+;        LDY #>bootmsg
+;        JMP $A478       ; jump into BASIC
 
 ; restore basic program after reset, un-new
 ; these two must be called from basic as SYS820:SYS823:CLR or such
@@ -99,17 +100,11 @@ old:    lda #1
 old2:   
         ldxy EAL
         stxy VARTAB
-        rts
 
-;        clc
-;        lda SXREG
-;        adc #2
-;        sta VARTAB
-;        sta 2
-;        lda INDEX1+1
-;        adc #0
-;        sta VARTAB+1
 ;        rts
+        jsr RUNC
+        jsr STXTPT
+        jmp NEWSTT
 
 ; restore data overwritten by cartridge autostart header from VICCRTB
 restorecrtb:   
@@ -133,6 +128,7 @@ HOME = $13
 bootmsg:.byte NAME, 0
 
 cmds:
+        .BYTE CR, 0
 .if HIDECMDS
         .byte BLUE      ; make command text 'invisible' against default blue background
 .endif

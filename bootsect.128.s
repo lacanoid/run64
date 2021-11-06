@@ -17,7 +17,7 @@ addr:   .addr $0C00     ; address to load chained blocks to
 bank:   .byte $00       ; bank to load chained blocks to
 nblks:  .byte $01       ; number of chained blocks to load
 
-msg:    .asciiz NAME    ; name for "BOOTING ..." message
+msg:    .asciiz NAME  ; name for "BOOTING ..." message
 
 prg:    .asciiz ""      ; don't load a .PRG - we do that in stage2
 
@@ -141,7 +141,9 @@ cmds:
         .byte CR, CR, CR, CR, CR
 ;        .byte "SYS1024"
 ;        .byte "IFNOTDSTHENSYS1024"
-        .byte 151,"SYS3072",153
+;        .byte 151
+        .byte "SYS3072"
+;        .byte 153
         .byte HOME
         .byte 0
 
