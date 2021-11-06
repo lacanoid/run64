@@ -32,7 +32,10 @@ bootexc:.byte 4       ; border color
 
 ; actual bootloader
 .segment "BOOT128"
-boot128:  
+boot128:
+        jsr STOP
+        beq boot128done
+
         lda bootfgc
         bmi cfg1
         sta COLOR
@@ -51,12 +54,12 @@ cmds128:
 
 kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
 @loop:  LDA keys, X
-        BEQ @done
+        BEQ boot128done
         STA KEYD, X
         INC NDX
         INX
         BNE @loop
-@done:
+boot128done:
         rts
 
 ; print xy = null terminated string
