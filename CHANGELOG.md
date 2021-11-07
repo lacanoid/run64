@@ -5,6 +5,7 @@ Version 0.6
 - b : boot command for rebooting and autostarting programs
 - quoted arguments supported for r and b commands
 - better color handling. color can now optionally be set from bootsect.128
+- added new patch64 program which copies ROM to RAM and applies some patches
 
 Version 0.5
 ===========

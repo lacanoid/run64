@@ -32,17 +32,17 @@ check: run64.d64
 
 disks: run64.d64 run64.d71 run64.d81
 
-run64.d64: kmon autostart64.128 bootsect.128 Makefile
+run64.d64: kmon patch64 autostart64.128 bootsect.128 Makefile
 	$(C1541) -format "${VOLNAME}" d64 run64.d64 \
 		-write kmon
 	./install.sh run64.d64
 
-run64.d71: kmon autostart64.128 bootsect.128 Makefile
+run64.d71: kmon patch64 autostart64.128 bootsect.128 Makefile
 	$(C1541) -format "${VOLNAME}" d71 run64.d71 \
 		-write kmon
 	./install.sh run64.d71
 
-run64.d81: kmon autostart64.128 bootsect.128 Makefile
+run64.d81: kmon patch64 autostart64.128 bootsect.128 Makefile
 	$(C1541) -format "${VOLNAME}" d81 run64.d81 \
 		-write kmon
 	./install.sh run64.d81
@@ -55,6 +55,9 @@ autostart64.128: bootsect.128.o autostart64.128.o autostart64.o
 
 kmon: LDFLAGS += -t c64 -C kmon.cfg -u __EXEHDR__
 kmon: kmon.o
+
+patch64: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__ 
+patch64: patch64.o
 
 raster: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
 raster: raster.o

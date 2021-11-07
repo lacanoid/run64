@@ -25,7 +25,7 @@ resultRegister = $d7ff
 
 ; -----------------------------------------------------------------------------
 ; initial entry point
-SUPER: LDY #MSG4-MSGBAS    ; display "..SYS "
+SUPER:  LDY #MSG4-MSGBAS    ; display "..SYS "
         JSR SNDMSG
         LDA SUPAD           ; store entry point address in tmp0
         STA TMP0
@@ -1290,6 +1290,8 @@ TBSTART:
         beq TBSTART1
         jsr IERROR_SET
 TBSTART1:
+        LDA #0            ; disable kernel control messages
+        JSR SETMSG        ; and enable error messages
 
         lda #$0D
         jsr CHROUT
