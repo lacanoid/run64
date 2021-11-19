@@ -39,6 +39,7 @@ MAIN:
         LDA #%11100101
         STA $FDD5+1   ; 
 
+        ; set default colors and device number
         lda EXTCOL
         sta $ecd9     ; border color
         lda BGCOL0
@@ -48,6 +49,12 @@ MAIN:
         lda FA
         sta $e1d9+1   ; default device number for BASIC LOAD
 
+        ; patch ramtas
+        ldx #6
+@l2:    lda ramtas2,X
+        sta $fd79,X
+        dex
+        bpl @l2
 
         LDY #MSG1-MSGBAS    ; display
         JSR SNDMSG
@@ -56,6 +63,9 @@ MAIN:
 
 prompt:
         .byte "RUN64."
+
+ramtas2:
+        .byte $a5,$c2,$c9,$a0,$f0,$09,$ea
 
 ; -----------------------------------------------------------------------------
 ; copy pages
