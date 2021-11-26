@@ -4,6 +4,7 @@ DISKIMG=$1
 
 c1541 $DISKIMG -bwrite bootsect.128 1 0 -bwrite autostart64.128 1 1
 c1541 $DISKIMG -write patch64
+c1541 $DISKIMG -write patch128
 
 for i in prg/*
 do

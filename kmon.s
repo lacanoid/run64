@@ -1259,12 +1259,14 @@ PRGEND:
 ; display message from table
 loadflags:
         .word 0
+; run a monitor
 run_mon:
         lda TB_FNLEN
         leaxy TB_FN
         JSR SETNAM
         ldy #0
         nop3
+; run a different program, must call setnam
 run_prg:
         ldy #1
         sty loadflags
@@ -1284,6 +1286,7 @@ TBINIT1:ldy #0
         JSR SNDMSG2
         rts           ; error
 
+        ; start loaded program
 TBSTART:
 ;        stxy EAL
         lda loadflags

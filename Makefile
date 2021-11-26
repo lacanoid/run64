@@ -5,6 +5,7 @@ X128 := x128
 
 TIME := $(shell date +%y%m%d%H%M%S)
 VOLNAME := run64 ${TIME},sy
+PROGRAMS := kmon patch64 patch128
 
 ifdef CC65_HOME
 	AS := $(CC65_HOME)/bin/$(AS)
@@ -32,17 +33,17 @@ check: run64.d64
 
 disks: run64.d64 run64.d71 run64.d81
 
-run64.d64: kmon patch64 autostart64.128 bootsect.128 Makefile
+run64.d64: ${PROGRAMS} autostart64.128 bootsect.128 Makefile
 	$(C1541) -format "${VOLNAME}" d64 run64.d64 \
 		-write kmon
 	./install.sh run64.d64
 
-run64.d71: kmon patch64 autostart64.128 bootsect.128 Makefile
+run64.d71: ${PROGRAMS} autostart64.128 bootsect.128 Makefile
 	$(C1541) -format "${VOLNAME}" d71 run64.d71 \
 		-write kmon
 	./install.sh run64.d71
 
-run64.d81: kmon patch64 autostart64.128 bootsect.128 Makefile
+run64.d81: ${PROGRAMS} autostart64.128 bootsect.128 Makefile
 	$(C1541) -format "${VOLNAME}" d81 run64.d81 \
 		-write kmon
 	./install.sh run64.d81
@@ -58,6 +59,9 @@ kmon: kmon.o
 
 patch64: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__ 
 patch64: patch64.o
+
+patch128: LDFLAGS += -t c128  
+patch128: patch128.o
 
 raster: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
 raster: raster.o

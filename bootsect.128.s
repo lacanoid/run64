@@ -33,8 +33,10 @@ bootexc:.byte 4       ; border color
 ; actual bootloader
 .segment "BOOT128"
 boot128:
-        jsr STOP
+        jsr STOP            ; check for stop
         beq boot128done
+;        lda SHFLAG          ; check for shift
+;        bne boot128done
 
         lda bootfgc
         bmi cfg1
@@ -103,6 +105,8 @@ run65:
         leaxy banner
         jsr print
 
+; Screen memory at $400 survives transition to c64 mode. 
+; Below $400 is wiped on reset. Above $800 (up to $D000) is the loaded program.
 ; copy c64 autostart to screen memory
         LDX  #< (__AUTOSTART64_SIZE__ + 1)
 @loop2: LDA __AUTOSTART64_LOAD__ - 1, X

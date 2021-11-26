@@ -28,17 +28,20 @@ MAIN:
         and #$FD
         sta 1
 
-; patch 
-        ldx #5      ; change ready prompt to something else
+; patches
+        ; change default memory configuraton in R6510
+        LDA #%11100101
+        STA $FDD5+1   ; 
+
+        ; basic patches
+        ; change ready prompt to something else
+        ldx #5      
 @l1:    lda prompt,x
         sta $a378,x
         dex
         bpl @l1
 
-        ; change default memory configuraton in R6510
-        LDA #%11100101
-        STA $FDD5+1   ; 
-
+        ; kernal patches
         ; set default colors and device number
         lda EXTCOL
         sta $ecd9     ; border color
@@ -49,14 +52,14 @@ MAIN:
         lda FA
         sta $e1d9+1   ; default device number for BASIC LOAD
 
-        ; patch ramtas
+        ; patch ramtas to stop at $D000
         ldx #6
 @l2:    lda ramtas2,X
         sta $fd79,X
         dex
         bpl @l2
 
-        LDY #MSG1-MSGBAS    ; display
+        LDY #MSG1-MSGBAS    ; display message
         JSR SNDMSG
 
         rts

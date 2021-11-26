@@ -24,6 +24,8 @@ TEMP   = $B1
 
 BUF    = $0200  ; Line Editor Input Buffer
 ENDIN  = $0259  ; End of input buffer
+SHFLAG = $028C  ; Shift key status flag
+SFDX   = $CB    ; Current key pressed
 
 IERROR = $0300  ; Vector to the Print BASIC Error Message Routine
 IMAIN  = $0302  ; Vector to the Main BASIC Program Loop
