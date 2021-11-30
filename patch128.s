@@ -9,8 +9,8 @@
 .segment "LOWCODE"
 
 main:
-        LDY #MSG_0-MSGBAS 
-        JSR SNDMSG
+;        LDY #MSG_0-MSGBAS 
+;        JSR SNDMSG
         jsr load
         rts
 ;
@@ -48,19 +48,42 @@ load:
         ; bank 0
         sei
         lda #%00111110
-        sta $ff00
+        sta $ff00      ; bank 0, all ram, i/o
 
         ; change default memory configuraton in R6510
         LDA #%11100011
         STA $FDD5+1   ; 
 
-        ; copy last page of kernal
+        ; change clear screen character
+;        lda #1
+;        sta $ea08
+
+        ; copy last page of kernal (minus mmu)
         ldy #5
 @p1:
         lda data,y
         sta $ff00,y
         iny
         bne @p1
+
+        ldx #$ff
+        txs
+
+; go 64 mode...
+        lda #$E3
+        sta 1
+        lda #$2F
+        sta 0
+        ldx #8
+@g1:    lda g64c,X
+        sta 1,X
+        dex
+        bne @g1
+        stx $d030
+        jmp 2
+
+g64c:   lda #$f7
+        sta $d505
 
         jmp ($FFFC)   ; reboot
 

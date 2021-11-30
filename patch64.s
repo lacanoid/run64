@@ -16,12 +16,12 @@ MAIN:
 ; copy
         leaxy $A000 ; copy basic
         stxy T1     ; set address
-        ldx #32     ; number of pages top copy
+        ldx #32     ; number of pages to copy
         jsr copy
 
         leaxy $E000 ; copy kernal
         stxy T1     ; set address
-        ldx #32     ; number of pages top copy
+        ldx #32     ; number of pages to copy
         jsr copy
 
         lda 1       ; switch kernel and basic roms out
@@ -29,20 +29,20 @@ MAIN:
         sta 1
 
 ; patches
-        ; change default memory configuraton in R6510
+
+; kernal patches
+; change default memory configuraton in R6510 to use RAM
         LDA #%11100101
-        STA $FDD5+1   ; 
-
-        ; basic patches
-        ; change ready prompt to something else
-        ldx #5      
-@l1:    lda prompt,x
-        sta $a378,x
+        STA $fdd5+1   ; 
+; patch ramtas to stop at $A000
+        ldx #6
+@l2:    lda ramtas2,X
+        sta $fd79,X
         dex
-        bpl @l1
-
-        ; kernal patches
-        ; set default colors and device number
+        bpl @l2
+; set default colors and device number
+        lda #$16
+        sta $ecb9+24  ; lowercase
         lda EXTCOL
         sta $ecd9     ; border color
         lda BGCOL0
@@ -51,14 +51,20 @@ MAIN:
         sta $e534+1   ; foreground color
         lda FA
         sta $e1d9+1   ; default device number for BASIC LOAD
+; set last char of the startup message
+        lda #'$'
+        sta $e4a9
 
-        ; patch ramtas to stop at $D000
-        ldx #6
-@l2:    lda ramtas2,X
-        sta $fd79,X
+; basic patches
+; change basic ready prompt to something else
+        ldx #5      
+@l1:    lda prompt,x
+        sta $a378,x
         dex
-        bpl @l2
+        bpl @l1
 
+
+; finnish up
         LDY #MSG1-MSGBAS    ; display message
         JSR SNDMSG
 
@@ -68,7 +74,11 @@ prompt:
         .byte "RUN64."
 
 ramtas2:
-        .byte $a5,$c2,$c9,$a0,$f0,$09,$ea
+        lda $c2
+        cmp #$a0
+        .byte $f0,$09  ; BEQ 9
+        nop
+;        .byte $a5,$c2,$c9,$a0,$f0,$09,$ea
 
 ; -----------------------------------------------------------------------------
 ; copy pages
