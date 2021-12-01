@@ -27,8 +27,6 @@ resultRegister = $d7ff
 data:
         .org $c000
 main:
-        lda #1
-        sta COLOR
         ldx #0
 print:  lda msg, x
         beq done
@@ -43,7 +41,8 @@ exit:
         sta resultRegister
         rts
 
-msg:    .asciiz "RASTER DISPLAY LIST DEMO"
+msg:    .byte 14
+        .asciiz "TOP BORDER MEMORY MONITOR"
 
 ; --------------------------
 
@@ -76,9 +75,13 @@ raster_setup:
         and #$7f
         sta SCROLY
 
+        lda BGCOL0
+        sta raster_bgcol0
         ; setup some sprites
         lda #$FF
         sta SPRITEN
+        lda #$01
+        sta $3fff
         lda #20
         ldy #0
         ldx #0
@@ -198,169 +201,37 @@ raster_dummy:
         pla
         jmp raster_cont
 
-raster_buzz:
-        nop
-        ldx #9
-@rb0:   dex
-        bne @rb0
-
-        ldy #$f
-@rb2:   lda cmap,y
-        sta EXTCOL
-        ldx #8
-@rb1:   dex
-        bne @rb1
-        nop
-        nop
-        nop
-        bit 0
-        dey 
-        bpl @rb2
+raster_border_begin:
+        lda $d021
+        sta raster_bgcol0
+        lda $d020
+        sta $d021
         rts
 
-cmap:
-        .byte 0,1,0,1,0,1,0,2
-        .byte 0,1,0,1,0,1,0,3
-        .byte 0,1,0,1,0,1,0,4
-        .byte 0,1,0,1,0,1,0,5
-
-colors_flip:
-        lda cflag1
-        bne cflip
-cflop:
-        inc cflag1
-        leaxy cols2
-        stxy cfl1+1
-        jmp cf_do
-cflip:
-        dec cflag1
-        leaxy cols1
-        stxy cfl1+1
-
-cf_do:
-        ldx #0
-        ldy #0
-cfl1:   lda cols1,y
-        sta colsdl,x
-        txa
-        clc
-        adc #5
-        tax
-        iny
-        cpy #8
-        bne cfl1
-
-        lda cflag1
-
-
+raster_border_end:
+        lda raster_bgcol0
+        sta $d021
         rts
-cflag1:
-        .byte 0
-cols1:
-        .byte  1, 7, 3, 5, 4, 2, 6, 0
-cols2:
-        .byte 13,15,10,12,14, 8,11, 9
+
+raster_bgcol0:
+        .byte 6
 
 raster_list: 
         .word 1         ; wait for line
-        .word EXTCOL
-        .byte 14
-        .word BGCOL0
-        .byte 14
+
         .word 5         ; wait for line
         .word SCROLY
         .byte 27
 
-        .word 48        ; wait for line 
-        .word BGCOL0    ; set bgcolor to color 2
-        .byte 1
-        .word 57        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 7
-        .word 65        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 3
-        .word 73        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 5
-        .word 81        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 4
-        .word 89        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 2
-        .word 97        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 6
-        .word 105       ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 0
+        .word 49        ; wait for line
+        .word raster_border_end
 
-        .word 113        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 13
-        .word 121        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 15
-        .word 129        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 10
-        .word 137        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 12
-        .word 145        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 14
-        .word 153        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 8
-        .word 161        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 11
-        .word 169        ; wait for line
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 9
-
- 
-        .word 177        ; wait for line 
- 
-;         .word BGCOL0    ; set bgcolor to color 2
-colsdl:
-;         .byte 1
-;         .word 185       ; wait for line
-;         .word BGCOL0    ; set bgcolor to color 3
-;         .byte 7
-;         .word 193       ; wait for line
-;         .word BGCOL0    ; set bgcolor to color 3
-;         .byte 3
-;         .word 201       ; wait for line
-;         .word BGCOL0    ; set bgcolor to color 3
-;         .byte 5
-;         .word 209       ; wait for line
-;         .word BGCOL0    ; set bgcolor to color 3
-;         .byte 4
-;         .word 217       ; wait for line
-;         .word BGCOL0    ; set bgcolor to color 3
-;         .byte 2
-;         .word 225       ; wait for line
-;         .word BGCOL0    ; set bgcolor to color 3
-;         .byte 6
-;         .word 233       ; wait for line
-;         .word BGCOL0    ; set bgcolor to color 3
-;         .byte 0
-;         .word 241        ; wait for line
-
-
-        .word BGCOL0    ; set bgcolor to color 3
-        .byte 11
-        .word EXTCOL    ; set bgcolor to color 3
-        .byte 13
         .word 247       ; wait for line
         .word SCROLY
         .byte $13
-        .word 255       ; wait for line
-        .word raster_buzz
-;        .word colors_flip
+
+        .word 249
+        .word raster_border_begin
 
         .word 0 ; end
 mainend:

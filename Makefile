@@ -66,4 +66,7 @@ patch128: patch128.o
 raster: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
 raster: raster.o
 
+mtop: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
+mtop: mtop.o
+
 -include *.dep
