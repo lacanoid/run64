@@ -205,6 +205,9 @@ raster_dummy:
         jmp raster_cont
 
 raster_border_begin:
+        ldx #12
+@l1:    dex
+        bne @l1
         lda $d021
         sta raster_bgcol0
         lda $d020
@@ -212,6 +215,9 @@ raster_border_begin:
         rts
 
 raster_border_end:
+        ldx #9
+@l1:    dex
+        bne @l1
         lda raster_bgcol0
         sta $d021
         rts
@@ -257,14 +263,14 @@ raster_list:
         .word raster_sprtop
         .word raster_spr0
 
-        .word 49        ; wait for line
+        .word 48        ; wait for line
         .word raster_border_end
  
         .word 247       ; wait for line
         .word SCROLY
         .byte $13
 
-        .word 249
+;        .word 249
         .word raster_border_begin
         .word raster_sprbot
         .word raster_spr1
