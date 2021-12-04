@@ -75,14 +75,17 @@ raster_setup:
         and #$7f
         sta SCROLY
 
+        ; setup some sprites
         lda BGCOL0
         sta raster_bgcol0
-        ; setup some sprites
         lda #$FF
         sta SPRITEN
+        lda #$80
+        sta $d010
         lda #$01
         sta $3fff
-        lda #20
+
+        lda #64+24
         ldy #0
         ldx #0
 
@@ -92,7 +95,7 @@ raster_setup:
         adc #24
         pha
 
-        lda #20
+        lda #12
         sta VIC2,X      ; y position
         inx
         lda #1
@@ -216,22 +219,55 @@ raster_border_end:
 raster_bgcol0:
         .byte 6
 
+raster_sprbot:
+        lda #255
+        nop3
+raster_sprtop:
+        lda #22
+        ldx #0
+        ldy #1
+@l1:    sta VIC2,Y
+        iny
+        iny
+        inx
+        cpx #8
+        bne @l1
+        rts
+
+raster_spr1:
+        ldx #8
+        nop3
+raster_spr0:
+        ldx #0
+        ldy #0
+@l1:    txa
+        sta 2040,y 
+        inx
+        iny
+        cpy #8
+        bne @l1
+        rts
+
 raster_list: 
-        .word 1         ; wait for line
+;        .word 1         ; wait for line
 
         .word 5         ; wait for line
         .word SCROLY
         .byte 27
+        .word raster_sprtop
+        .word raster_spr0
 
         .word 49        ; wait for line
         .word raster_border_end
-
+ 
         .word 247       ; wait for line
         .word SCROLY
         .byte $13
 
         .word 249
         .word raster_border_begin
+        .word raster_sprbot
+        .word raster_spr1
 
         .word 0 ; end
 mainend:
