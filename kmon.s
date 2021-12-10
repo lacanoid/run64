@@ -1303,10 +1303,22 @@ TBSTART1:
 
         ldxy EAL
         stxy VARTAB
+
+        ; start a program
         jsr LINKPRG
         jsr RUNC
         jsr STXTPT
         jmp NEWSTT
+        rts
+
+argsproc:
+        ldx #2
+        ldy #$ff
+@l1:    inx
+        iny 
+        lda BUF,x
+        sta BUF,y
+        bne @l1
         rts
 
 IERROR_GO:
@@ -1357,7 +1369,7 @@ MSGBAS2  =*
 MSG2_0:.BYTE $0d,"..RUN",$0D+$80
 MSG2_1:.BYTE $0d,"?EIO",$20+$80
 TB_FNLEN: .byte 4
-TB_FN:    .byte "KMON            "
+TB_FN:    .byte "KMON       "
 
 .segment "CARTHDR"
         ; cartridge header
