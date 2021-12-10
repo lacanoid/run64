@@ -1177,6 +1177,12 @@ CMDRUN:
 CMDRUNGO:
         JSR SETNAM
 
+        ; set args shift
+        lda CHRPNT
+        clc 
+        add FNLEN
+        sta COUNT      
+
         ; call resident code in TBUFF which does not return on success
         jsr __TBUFFR_RUN__+3
         bcc CMDRUN1   ; no error
@@ -1311,16 +1317,6 @@ TBSTART1:
         jmp NEWSTT
         rts
 
-argsproc:
-        ldx #2
-        ldy #$ff
-@l1:    inx
-        iny 
-        lda BUF,x
-        sta BUF,y
-        bne @l1
-        rts
-
 IERROR_GO:
         jsr IERROR_CLR
 ;        LDY #MSG2_2-MSGBAS2    ; display "?" to indicate error and go to new line
@@ -1358,7 +1354,6 @@ IERROR_NEW:
 SNDMSG2: 
         LDA MSGBAS2,Y        ; Y contains offset in msg table
         PHP
-        AND #$7F            ; strip high bit before output
         JSR CHOUT
         INY
         PLP
@@ -1366,10 +1361,11 @@ SNDMSG2:
         RTS
 
 MSGBAS2  =*
-MSG2_0:.BYTE $0d,"..RUN",$0D+$80
-MSG2_1:.BYTE $0d,"?EIO",$20+$80
+MSG2_0:   .BYTE $0d,".RUN",$0D+$80
+MSG2_1:   .BYTE $0d,"?IO",$20+$80
 TB_FNLEN: .byte 4
-TB_FN:    .byte "KMON       "
+TB_FN:    .byte "KMON"
+          .res  12
 
 .segment "CARTHDR"
         ; cartridge header

@@ -104,14 +104,21 @@ copy:
 main:
         lda BUF      ; if run from shell or basic
         bpl main1    ; check if basic token
-        rts          ; we were run with "run"
-main1: 
-        ldx #79
-@l1:    lda BUF,X
-        sta VICSCN,X
-        dex
-        bpl @l1
+        rts          ; we were run from BASIC with "run"
+main1:  lda COUNT
+        sta CHRPNT
 
+        tax
+        ldy #0
+
+@l1:    lda BUF,X
+        beq main2
+        sta VICSCN,y
+        iny
+        inx
+        cpx #80
+        bne @l1
+main2:
         rts
         
 ; -----------------------------------------------------------------------------

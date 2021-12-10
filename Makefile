@@ -5,7 +5,7 @@ X128 := x128
 
 TIME := $(shell date +%y%m%d%H%M%S)
 VOLNAME := run64 ${TIME},sy
-PROGRAMS := kmon patch64 patch128
+PROGRAMS := kmon pip patch64 patch128
 
 ifdef CC65_HOME
 	AS := $(CC65_HOME)/bin/$(AS)
@@ -34,18 +34,15 @@ check: run64.d64
 disks: run64.d64 run64.d71 run64.d81
 
 run64.d64: ${PROGRAMS} autostart64.128 bootsect.128 Makefile
-	$(C1541) -format "${VOLNAME}" d64 run64.d64 \
-		-write kmon
+	$(C1541) -format "${VOLNAME}" d64 run64.d64
 	./install.sh run64.d64
 
 run64.d71: ${PROGRAMS} autostart64.128 bootsect.128 Makefile
-	$(C1541) -format "${VOLNAME}" d71 run64.d71 \
-		-write kmon
+	$(C1541) -format "${VOLNAME}" d71 run64.d71
 	./install.sh run64.d71
 
 run64.d81: ${PROGRAMS} autostart64.128 bootsect.128 Makefile
-	$(C1541) -format "${VOLNAME}" d81 run64.d81 \
-		-write kmon
+	$(C1541) -format "${VOLNAME}" d81 run64.d81
 	./install.sh run64.d81
 
 bootsect.128: LDFLAGS += -C linker.cfg
@@ -56,6 +53,9 @@ autostart64.128: bootsect.128.o autostart64.128.o autostart64.o
 
 kmon: LDFLAGS += -t c64 -C kmon.cfg -u __EXEHDR__
 kmon: kmon.o
+
+pip: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__ 
+pip: pip.o
 
 patch64: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__ 
 patch64: patch64.o
