@@ -1291,7 +1291,7 @@ TBSTART:
 ;        stxy EAL
         lda loadflags
         beq TBSTART1
-        jsr IERROR_SET
+        jsr IERROR_SET    ; set return to us instead of basic
 TBSTART1:
         LDA #0            ; disable kernel control messages
         JSR SETMSG        ; and enable error messages
@@ -1322,14 +1322,20 @@ IERROR_GO:
         jmp STRT          ; go to kmon main
 
 IERROR_SET:
-        ldxy IERROR
-        stxy IERROR_OLD
-        ldxy IERROR_NEW
-        stxy IERROR
+        ldx #3
+@l1:    lda IERROR,X
+        sta IERROR_OLD,X
+        lda IERROR_NEW,X
+        sta IERROR,X
+        dex
+        bpl @l1
         rts
 IERROR_CLR:
-        ldxy IERROR_OLD
-        stxy IERROR
+        ldx #3
+@l1:    lda IERROR_OLD,X
+        sta IERROR,X
+        dex
+        bpl @l1
         rts
 
 IERROR_OLD:

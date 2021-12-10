@@ -9,7 +9,7 @@
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.
 
-MAIN:
+start:
         LDY #MSG0-MSGBAS    ; display
         JSR SNDMSG
 
@@ -63,10 +63,12 @@ MAIN:
         dex
         bpl @l1
 
-
 ; finnish up
         LDY #MSG1-MSGBAS    ; display message
         JSR SNDMSG
+
+; do extra stuff specified on the command line
+        jsr main
 
         rts
 
@@ -79,6 +81,7 @@ ramtas2:
         .byte $f0,$09  ; BEQ 9
         nop
 ;        .byte $a5,$c2,$c9,$a0,$f0,$09,$ea
+
 
 ; -----------------------------------------------------------------------------
 ; copy pages
@@ -97,15 +100,39 @@ copy:
         RTS
 
 ; -----------------------------------------------------------------------------
-; display message from table
-SNDMSG: LDA MSGBAS,Y        ; Y contains offset in msg table
-        PHP
-        AND #$7F            ; strip high bit before output
-        JSR CHROUT
-        INY
-        PLP
-        BPL SNDMSG          ; loop until high bit is set
-        RTS
+; load extra patches specified on the command line
+main:
+        lda BUF      ; if run from shell or basic
+        bpl main1    ; check if basic token
+        rts          ; we were run with "run"
+main1: 
+        ldx #79
+@l1:    lda BUF,X
+        sta VICSCN,X
+        dex
+        bpl @l1
+
+        rts
+        
+; -----------------------------------------------------------------------------
+; print string A = len, XY = addr
+strout:
+        sta COUNT
+        stxy R2D2
+        lda #'"'
+        jsr CHROUT
+        ldy #0
+@lvl5:
+        lda (R2D2),y
+        jsr CHROUT
+        iny
+        cpy COUNT
+        bmi @lvl5
+        lda #'"'
+        jsr CHROUT
+        rts
+
+.include "utils.s"
 
 ; -----------------------------------------------------------------------------
 ; message table; last character has high bit set
@@ -113,4 +140,4 @@ MSGBAS  =*
 MSG0:   .BYTE 14
         .BYTE "PATCH64",' '+$80
 MSG1:   .BYTE 14
-        .BYTE "COPYING ROM TO RAM",' '+$80
+        .BYTE "COPYING ROM TO RAM",$0d+$80
