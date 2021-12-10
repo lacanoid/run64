@@ -25,10 +25,10 @@ prg:    .asciiz ""      ; don't load a .PRG - we do that in stage2
         jmp boot128
 
 ; config parameters
-bootctl:.byte 0        ; boot control
-bootbgc:.byte 0       ; background color
+bootctl:.byte 0       ; boot control
+bootbgc:.byte 2       ; background color
 bootfgc:.byte 1       ; foreground color
-bootexc:.byte 4       ; border color
+bootexc:.byte 10      ; border color
 
 ; actual bootloader
 .segment "BOOT128"
@@ -114,12 +114,14 @@ run65:
         DEX
         BNE @loop2
 
+; copy settings
         ldx #4
 @loop21:lda bootctl-1,X
         sta __CARTHDR_LOAD__ + 9 - 1,X
         dex
         bne @loop21
 
+; copy cartridge autostart
         LDX #< (__CARTHDR_SIZE__)
 @loop3: LDA __CARTHDR_LOAD__ - 1, X
         STA VICCRTB - 1, X
