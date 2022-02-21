@@ -9,6 +9,8 @@
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.
 
+        pipfh = 2
+
 start:
         LDY #MSG0-MSGBAS    ; display
         JSR SNDMSG
@@ -17,8 +19,20 @@ start:
 
         rts
 
+.include "utils.s"
+
 ; -----------------------------------------------------------------------------
-; load extra patches specified on the command line
+; message table; last character has high bit set
+MSGBAS  =*
+MSG0:   .BYTE 14
+        .BYTE "PIP 0.1",13+$80
+MSG1:   .BYTE 14
+        .BYTE "COPYING... ",$80
+MSG2:   .BYTE 14
+        .BYTE "ERROR ",$80
+
+; -----------------------------------------------------------------------------
+; main program
 main:
         lda BUF      ; if run from shell or basic
         bpl main1    ; check if basic token
@@ -29,6 +43,52 @@ main1:  lda COUNT
         tax
         ldy #0
 
+        JSR GOTCHR
+        beq main2
+
+        jsr GETFNADR
+        bne @l2
+        rts
+@l2:
+        jsr SETNAM
+
+        jsr print_name
+
+        lda #pipfh
+        ldx FA
+        ldy #pipfh
+        jsr SETLFS
+
+        jsr OPEN
+        bcs error
+
+        LDY #MSG2-MSGBAS    ; display
+        JSR SNDMSG
+
+        jsr READST
+        jsr WRTWO
+        jsr CRLF
+
+        ldx #pipfh
+        jsr CHKIN
+        
+@loop:
+        jsr GETIN
+        PHA
+        jsr STATUS
+        jsr WRTWO
+        pla
+        jsr CHROUT
+        jsr STOP
+        bne @loop
+
+@done:
+        jsr CLRCHN
+        lda #pipfh
+        jsr CLOSE
+
+        rts
+
 @l1:    lda BUF,X
         beq main2
         jsr CHROUT
@@ -37,13 +97,21 @@ main1:  lda COUNT
         bne @l1
 main2:
         rts
-        
-.include "utils.s"
+
+error:
+        LDY #MSG2-MSGBAS    ; display
+        JSR SNDMSG
+        rts
 
 ; -----------------------------------------------------------------------------
-; message table; last character has high bit set
-MSGBAS  =*
-MSG0:   .BYTE 14
-        .BYTE "PIP 0.1",' '+$80
-MSG1:   .BYTE 14
-        .BYTE "COPYING... ",$80
+; main program
+print_name:
+        ldy #0
+@p1:    lda (FNADR),y
+        jsr CHROUT
+        iny
+        cpy FNLEN
+        bne @p1
+        lda #' '
+        jsr CHROUT
+        rts

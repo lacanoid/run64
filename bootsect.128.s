@@ -163,7 +163,7 @@ UP = $91
 HOME = $13
 
 banner:
-        .byte 14,145,145,"GO 64 ",0
+        .byte 14,145,"GO 64  ",0
 
 cmds:
         .byte 27,"T"   ; fix the screen top

@@ -24,6 +24,7 @@ ASFLAGS = --create-dep $(@:.o=.dep)
 all: bootsect.128 autostart64.128 disks
 
 clean:
+	rm $(PROGRAMS)
 	rm -rf *.o run64.d64 run64.d71 run64.d81 bootsect.128 autostart64.128
 zap: clean
 	rm -rf *.dep
