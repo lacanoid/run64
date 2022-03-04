@@ -15,7 +15,7 @@ start:
         LDY #MSG0-MSGBAS    ; display
         JSR SNDMSG
 
-        jsr main
+        jmp main
 
         rts
 
@@ -61,32 +61,27 @@ main1:  lda COUNT
 
         jsr OPEN
         bcs error
-
-        LDY #MSG2-MSGBAS    ; display
+        
+        LDY #MSG1-MSGBAS    ; display
         JSR SNDMSG
-
-        jsr READST
-        jsr WRTWO
-        jsr CRLF
 
         ldx #pipfh
         jsr CHKIN
         
-@loop:
+@loop:  jsr READST
+        bne @eof
         jsr GETIN
-        PHA
-        jsr STATUS
-        jsr WRTWO
-        pla
         jsr CHROUT
         jsr STOP
         bne @loop
+        ; stop pressed
+@eof:
+        jsr error
 
 @done:
         jsr CLRCHN
         lda #pipfh
         jsr CLOSE
-
         rts
 
 @l1:    lda BUF,X
@@ -101,6 +96,9 @@ main2:
 error:
         LDY #MSG2-MSGBAS    ; display
         JSR SNDMSG
+        jsr READST
+        jsr WRTWO
+        jsr CRLF
         rts
 
 ; -----------------------------------------------------------------------------
