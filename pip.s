@@ -25,7 +25,7 @@ start:
 ; message table; last character has high bit set
 MSGBAS  =*
 MSG0:   .BYTE 14
-        .BYTE "PIP 0.1",13+$80
+        .BYTE "PIP 0.2",13+$80
 MSG1:   .BYTE 14
         .BYTE "COPYING... ",$80
 MSG2:   .BYTE 14
