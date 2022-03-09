@@ -1,11 +1,15 @@
+Version 0.7
+===========
+
 Version 0.6
 ===========
 - base conversions work now
-- r : run command for loading running programs
+- r : run command for loading and running programs
 - b : boot command for rebooting and autostarting programs
 - quoted arguments supported for r and b commands
 - better color handling. color can now optionally be set from bootsect.128
 - added new patch64 program which copies ROM to RAM and applies some patches
+- added new pip program which will copy and print files
 
 Version 0.5
 ===========

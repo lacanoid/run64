@@ -159,8 +159,8 @@ EXIT:
 ; -----------------------------------------------------------------------------
 ; variables
 
-SAVX:   .res 1             ; 1 byte temp storage, often to save X register
-SAVY:   .res 1             ; 1 byte temp storage, often to save Y register
+;SAVX:   .res 1             ; 1 byte temp storage, often to save X register
+;SAVY:   .res 1             ; 1 byte temp storage, often to save Y register
 DIGCNT: .res 1             ; digit count
 INDIG:  .res 1             ; numeric value of single digit
 NUMBIT: .res 1             ; numeric base of input
@@ -170,7 +170,7 @@ U0AAE   =*                  ; end of work buffer
 STAGE:  .res 30            ; staging buffer for filename, search, etc.
 ESTAGE  =*                  ; end of staging buffer
 STORE:  .res 2             ; 2-byte temp storage
-CHRPNT: .res 1             ; current position in input buffer
+;CHRPNT: .res 1             ; current position in input buffer
 
 PCH:    .res 1             ; program counter high byte
 PCL:    .res 1             ; program counter low byte
@@ -360,80 +360,6 @@ RDNIL:  CLC                 ; clear carry to indicate success
         PLA
         TAX
         LDA DIGCNT          ; return number of digits in A
-        RTS
-; -----------------------------------------------------------------------------
-; print address
-SHOWAD: LDA TMP2
-        LDX TMP2+1
-
-WRADDR: PHA                 ; save low byte
-        TXA                 ; put high byte in A
-        JSR WRTWO           ; output high byte
-        PLA                 ; restore low byte
-
-WRBYTE: JSR WRTWO           ; output byte in A
-
-SPACE:  LDA #$20            ; output space
-        BNE FLIP
-
-CHOUT:  CMP #$0D            ; output char with special handling of CR
-        BNE FLIP
-CRLF:   LDA #$0D            ; load CR in A
-        BIT $13             ; check default channel
-        BPL FLIP            ; if high bit is clear output CR only
-        JSR CHROUT          ; otherwise output CR+LF
-        LDA #$0A            ; output LF
-FLIP:   JMP CHROUT
-
-FRESH:  JSR CRLF            ; output CR
-        LDA #$20            ; load space in A
-        JSR CHROUT
-        JMP SNCLR
-
-; -----------------------------------------------------------------------------
-; output two hex digits for byte
-WRTWO:  STX SAVX            ; save X
-        JSR ASCTWO          ; get hex chars for byte in X (lower) and A (upper)
-        JSR CHROUT          ; output upper nybble
-        TXA                 ; transfer lower to A
-        LDX SAVX            ; restore X
-        JMP CHROUT          ; output lower nybble
-
-; -----------------------------------------------------------------------------
-; convert byte in A to hex digits
-ASCTWO: PHA                 ; save byte
-        JSR ASCII           ; do low nybble
-        TAX                 ; save in X
-        PLA                 ; restore byte
-        LSR A               ; shift upper nybble down
-        LSR A
-        LSR A
-        LSR A
-
-; convert low nybble in A to hex digit
-ASCII:  AND #$0F            ; clear upper nibble
-        CMP #$0A            ; if less than A, skip next step
-        BCC ASC1
-        ADC #6              ; skip ascii chars between 9 and A
-ASC1:   ADC #$30            ; add ascii char 0 to value
-        RTS
-
-; -----------------------------------------------------------------------------
-; get prev char from input buffer
-GOTCHR: DEC CHRPNT
-
-; get next char from input buffer
-GETCHR: STX SAVX
-        LDX CHRPNT          ; get pointer to next char
-        LDA BUF,X        ; load next char in A
-        BEQ NOCHAR          ; null, :, or ? signal end of buffer
-        CMP #':'        
-        BEQ NOCHAR
-        CMP #'?'
-NOCHAR: PHP
-        INC CHRPNT          ; next char
-        LDX SAVX
-        PLP                 ; Z flag will signal last character
         RTS
 
 ; -----------------------------------------------------------------------------
@@ -754,32 +680,10 @@ DREXIT: JSR UNTLK           ; command device to untalk
         JMP STRT            ; back to mainloop
 
 ; -----------------------------------------------------------------------------
-; print and clear routines
-CLINE:  JSR CRLF            ; send CR+LF
-        JMP SNCLR           ; clear line
-SNDCLR: JSR SNDMSG
-SNCLR:  LDY #$28            ; loop 40 times
-SNCLP:  LDA #$20            ; output space character
-        JSR CHROUT
-        LDA #$14            ; output delete character
-        JSR CHROUT
-        DEY
-        BNE SNCLP
-        RTS
-
-; -----------------------------------------------------------------------------
-; display message from table
-SNDMSG: LDA MSGBAS,Y        ; Y contains offset in msg table
-        PHP
-        AND #$7F            ; strip high bit before output
-        JSR CHOUT
-        INY
-        PLP
-        BPL SNDMSG          ; loop until high bit is set
-        RTS
-
+.include "utils.s"
 ; -----------------------------------------------------------------------------
 ; message table; last character has high bit set
+
 MSGBAS  =*
 MSG0:   .BYTE 14
         .BYTE "KMON 0.",'6'+$80
@@ -1106,44 +1010,6 @@ CMDBOOT1:
         jmp ($FFFC)
 CMDBOOTX:
         rts
-; -----------------------------------------------------------------------------
-GETFNADR:
-        lda #$20
-        sta GETFNTERM
-GETFNADR1:
-        JSR GETCHR
-        BEQ GETFNADR2   ; end of string
-        CMP #$20        ; skip leading spaces
-        BEQ GETFNADR1
-        CMP #'"'
-        BNE GETFNADR2   ; not a quoted string
-        sta GETFNTERM
-        JSR GETCHR      ; skip quote
-GETFNADR2:
-        dec CHRPNT
-        lda #<BUF
-        add CHRPNT
-        tax
-        lda #>BUF
-        adc #0
-        tay
-        stxy FNADR
-        inc CHRPNT
-
-        ldy #0              ; compute file name length
-@loop:  lda (FNADR),y
-        beq GETFNADRE
-        CMP GETFNTERM       ; compare with terminator
-        BEQ GETFNADRE
-        iny
-        bpl @loop
-GETFNADRE:
-        tya
-        ldxy FNADR
-        cmp #0
-        rts
-GETFNTERM:
-        .byte 0
 
 ; -----------------------------------------------------------------------------
 INSTALL_CARTHDR:
@@ -1175,12 +1041,9 @@ CMDRUN:
         jsr GETFNADR
         beq CMDRUNLOADED
 CMDRUNGO:
-        JSR SETNAM
+        JSR SETNAM2
 
-        ; set args shift
         lda CHRPNT
-        clc 
-        add FNLEN
         sta COUNT      
 
         ; call resident code in TBUFF which does not return on success
@@ -1193,6 +1056,48 @@ CMDRUNGO:
         sta BUF+1
         JMP STRT2
 CMDRUN1:
+        rts
+
+; -----------------------------------------------------------------------------
+; set filename and optional device number 
+
+SETNAM2:
+        jsr SETNAM
+        ldy #1
+        lda (FNADR),Y
+        cmp #':'
+        bne @sndone
+        DEY
+        lda (FNADR),y
+        jsr SETDEV
+        clc
+        lda FNADR
+        adc #2
+        sta FNADR
+        lda FNADR+1
+        adc #0
+        sta FNADR+1
+        dec FNLEN
+        dec FNLEN
+@sndone:
+        rts
+
+; -----------------------------------------------------------------------------
+; set device in .a
+SETDEV:
+        cmp #'0'
+        bcc @sde
+        cmp #64
+        bcs @sd2
+        sbc #'0'-1
+        bpl @sdx
+@sd2:
+        sbc #64-9
+        bpl @sdx
+@sde:
+        lda 0
+@sdx:
+        sta FA
         rts
 
 ; -----------------------------------------------------------------------------
@@ -1406,7 +1311,9 @@ SAVBGCOL0:
 
         lda #0
         sta MAGIC           ; disable cartridge autostart
-
+        ; set device
+        lda CH_FA
+        sta FA
         ; set filename
         lda CH_FNLEN
         sta TB_FNLEN
@@ -1421,5 +1328,6 @@ SAVBGCOL0:
         JMP __TBUFFR_RUN__
         JMP $A478       ; jump into BASIC
 
+CH_FA:   .byte 8        ; boot device number
 CH_FNLEN:.byte 2
 CH_FN:   .byte ":*" 

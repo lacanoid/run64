@@ -115,6 +115,11 @@ GETFNADR2:              ; get up to the terminator char
         bpl @loop
 GETFNADRE:
         tya
+        clc
+        adc CHRPNT
+        sta CHRPNT
+
+        tya
         ldxy FNADR
         cmp #0
         rts
