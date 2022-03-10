@@ -5,7 +5,7 @@ X128 := x128
 
 TIME := $(shell date +%y%m%d%H%M%S)
 VOLNAME := run64 ${TIME},sy
-PROGRAMS := kmon pip patch64 patch128
+PROGRAMS := kmon pip patch64 patch128 raster mtop
 
 ifdef CC65_HOME
 	AS := $(CC65_HOME)/bin/$(AS)
@@ -26,13 +26,17 @@ all: bootsect.128 autostart64.128 disks
 clean:
 	rm -f $(PROGRAMS)
 	rm -rf *.o run64.d64 run64.d71 run64.d81 bootsect.128 autostart64.128
+
 zap: clean
 	rm -rf *.dep
 
 check: run64.d64
 	$(X128) -debugcart -limitcycles 10000000 -sounddev dummy -silent -console -8 $+
 
-disks: run64.d64 run64.d71 run64.d81
+disks: fortune run64.d64 run64.d71 run64.d81
+
+fortune:
+	fortune > issue,s
 
 run64.d64: ${PROGRAMS} autostart64.128 bootsect.128 Makefile
 	$(C1541) -format "${VOLNAME}" d64 run64.d64

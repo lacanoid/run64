@@ -22,6 +22,8 @@ BSOUR1 = $A4
 CMP0   = $B0
 TEMP   = $B1
 
+QTSW   = $D4    ; Flag: Editor in Quote Mode? 0=No
+
 BUF    = $0200  ; Line Editor Input Buffer
 ENDIN  = $0259  ; End of input buffer
 SHFLAG = $028C  ; Shift key status flag
@@ -48,6 +50,7 @@ STXTPT  = $A68E ; reset text pointer
 LIST    = $A69C ; perform LIST
 RUN     = $A871 ; perform RUN
 NEWSTT  = $A7AE ;
+LINPRT  = $BDCD ; print XA as unsigned integer
 
 ; kernal magic api
 

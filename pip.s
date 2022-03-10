@@ -9,24 +9,30 @@
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.
 
-        pipfh = 2
+        pipfhi = 2
+        pipfho = 3
 
 start:
         jmp main
 
         rts
 
+; -----------------------------------------------------------------------------
+; variables
+SIZE:   .word 0
+FA1:    .byte 8
+FNADR1: .word 0
+FNLEN1: .byte 0   
+
 .include "utils.s"
 
 ; -----------------------------------------------------------------------------
 ; message table; last character has high bit set
 MSGBAS  =*
-MSG0:   .BYTE 14
-        .BYTE "PIP 0.2",13+$80
-MSG1:   .BYTE 14
-        .BYTE "COPYING... ",$80
-MSG2:   .BYTE 14
-        .BYTE "ERROR ",$80
+MSG0:   .BYTE "PIP 0.2",13+$80
+MSG1:   .BYTE "COPYING... ",$80
+MSG2:   .BYTE "ERROR ",$80
+MSG3:   .BYTE " BYTES.",13+$80
 
 ; -----------------------------------------------------------------------------
 ; main program
@@ -34,77 +40,180 @@ main:
         lda BUF      ; if run from shell or basic
         bpl main1    ; check if basic token
         jmp main2    ; we were run from BASIC with "run"
-main1:  lda COUNT
-        sta CHRPNT
+main1:  lda COUNT    ; we were run from shell
+        sta CHRPNT   ; restor command line pointer
 
         tax
         ldy #0
 
         JSR GOTCHR
-        beq main2    ; no arguments
+        bne args
+        jmp main2    ; no arguments
 
+args:
         jsr GETFNADR
         bne @l2
         rts
 @l2:
-        jsr SETNAM
+        jsr SETNAM2
 
+        ldy #0
+@l3:
+        lda (FNADR),Y
+        cmp #'='
+        beq prep_copy
+        iny
+        cmp FNLEN
+        bcc @l3
+        ; end of line, no =
 ;        jsr print_name
+        jmp open_files
 
-        lda #pipfh
+prep_copy:   ; separate source and destination name
+        lda #'='
+        jsr CHROUT
+
+        lda FNLEN
+        sty FNLEN1
+        sec
+        sbc FNLEN1
+        sta FNLEN
+        sec
+        lda FNADR
+        sta FNADR1
+        adc FNLEN
+        sta FNADR
+        lda FNADR+1
+        sta FNADR1+1
+        adc #0
+        sta FNADR
+
+ 
+open_files:
+        ; open input
+        lda #pipfhi
+        tay
         ldx FA
-        ldy #pipfh
         jsr SETLFS
-
         jsr OPEN
         bcs error
-        
+        ; input opened        
+        bcc redirect
+
+
+
 ;        LDY #MSG1-MSGBAS    ; display copying...
 ;        JSR SNDMSG
 ;        JSR CRLF
 
-        ldx #pipfh
+redirect:
+        ; set input
+        ldx #pipfhi
         jsr CHKIN
         
-@loop:
+copy_loop:
         jsr GETIN
         tax
         jsr READST
-        bne @eof
+        bne feof
+
+        lda #$FF
+        sta QTSW
+
         txa
         jsr CHROUT
+
+        inc SIZE
+        bne @l1
+        inc SIZE+1
+@l1:
+
         jsr STOP
-        bne @loop
+        bne copy_loop
         ; stop pressed
-@eof:
+feof:
         AND #$BF
-        beq @done
+        beq done
         jsr error
 
-@done:
+done:
         jsr CLRCHN
-        lda #pipfh
+        lda #pipfhi
         jsr CLOSE
-        rts
+        lda #pipfho
+        jsr CLOSE
+        jsr CRLF
 
-@l1:    lda BUF,X
-        beq main2
-        jsr CHROUT
-        inx
-        cpx #80
-        bne @l1
-main2:
-        LDY #MSG0-MSGBAS    ; display
+        ; print byte count
+        ldx SIZE
+        lda SIZE+1
+        jsr LINPRT
+        LDY #MSG3-MSGBAS    ; display
         JSR SNDMSG
 
         rts
 
+@l3:    lda BUF,X
+        beq main2
+        jsr CHROUT
+        inx
+        cpx #80
+        bne @l3
+main2:
+        LDY #MSG0-MSGBAS    ; display
+        JSR SNDMSG
+        ; interactive mode here,,,
+        rts
+
 error:
+        jsr print_name
         LDY #MSG2-MSGBAS    ; display
         JSR SNDMSG
         jsr READST
         jsr WRTWO
         jsr INSTAT
+        rts
+
+; -----------------------------------------------------------------------------
+; set filename and optional device number 
+
+SETNAM2:
+        jsr SETNAM
+        ldy #1
+        lda (FNADR),Y
+        cmp #':'
+        bne @sndone
+        DEY
+        lda (FNADR),y
+        jsr SETDEV
+        clc
+        lda FNADR
+        adc #2
+        sta FNADR
+        lda FNADR+1
+        adc #0
+        sta FNADR+1
+        dec FNLEN
+        dec FNLEN
+@sndone:
+        rts
+
+; -----------------------------------------------------------------------------
+; set device in .a
+SETDEV:
+        cmp #'0'
+        bcc @sde
+        cmp #64
+        bcs @sd2
+        sbc #'0'-1
+        bpl @sdx
+@sd2:
+        sbc #64-9
+        bpl @sdx
+@sde:
+        lda 0
+@sdx:
+        sta FA
         rts
 
 ; -----------------------------------------------------------------------------
@@ -132,12 +241,22 @@ DEXIT:  JSR UNTLK           ; command device to stop talking
 ; -----------------------------------------------------------------------------
 ; main program
 print_name:
+        pha
+        tya
+        pha
+        lda #'"'
+        jsr CHROUT
         ldy #0
 @p1:    lda (FNADR),y
         jsr CHROUT
         iny
         cpy FNLEN
         bne @p1
+        lda #'"'
+        jsr CHROUT
         lda #' '
         jsr CHROUT
+        pla
+        tay
+        pla
         rts

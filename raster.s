@@ -271,6 +271,10 @@ raster_list:
         .word SCROLY
         .byte 27
 
+        .word 32
+        .word EXTCOL
+        .byte 15
+
         .word 48        ; wait for line 
         .word BGCOL0    ; set bgcolor to color 2
         .byte 1

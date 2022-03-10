@@ -8,6 +8,8 @@ c1541 $DISKIMG -write pip
 c1541 $DISKIMG -write patch64
 c1541 $DISKIMG -write patch128
 c1541 $DISKIMG -write empty ================
+c1541 $DISKIMG -write startup,s
+c1541 $DISKIMG -write issue,s
 
 for i in prg/*
 do
