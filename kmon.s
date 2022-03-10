@@ -1170,11 +1170,15 @@ PRGEND:
 ; display message from table
 loadflags:
         .word 0
+loaddev:
+        .word 8
 ; run a monitor
 run_mon:
         lda TB_FNLEN
         leaxy TB_FN
         JSR SETNAM
+        lda loaddev
+        sta FA
         ldy #0
         nop3
 ; run a different program, must call setnam
