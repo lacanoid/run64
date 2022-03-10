@@ -58,37 +58,32 @@ args:
         jsr SETNAM2
 
         ldy #0
-@l3:
+@l31:
         lda (FNADR),Y
         cmp #'='
         beq prep_copy
         iny
         cmp FNLEN
-        bcc @l3
-        ; end of line, no =
-;        jsr print_name
+        bcs @l31
         jmp open_files
 
 prep_copy:   ; separate source and destination name
-        lda #'='
-        jsr CHROUT
-
         lda FNLEN
         sty FNLEN1
         sec
         sbc FNLEN1
         sta FNLEN
+        dec FNLEN
         sec
         lda FNADR
         sta FNADR1
-        adc FNLEN
+        adc FNLEN1
         sta FNADR
         lda FNADR+1
         sta FNADR1+1
         adc #0
-        sta FNADR
+        sta FNADR+1
 
- 
 open_files:
         ; open input
         lda #pipfhi
@@ -96,11 +91,25 @@ open_files:
         ldx FA
         jsr SETLFS
         jsr OPEN
-        bcs error
+        bcc @of1
+        jmp error
         ; input opened        
-        bcc redirect
+@of1:
+        ; open output
+        lda FNLEN1
+        beq redirect     ; no output
+        ldx FNADR1
+        ldy FNADR1+1
+        jsr SETNAM2
 
-
+        lda #pipfho
+        tay
+        ldx FA
+        jsr SETLFS
+        jsr OPEN
+        bcc redirect     ; succesful open
+        jmp error
+        ; output opened        
 
 ;        LDY #MSG1-MSGBAS    ; display copying...
 ;        JSR SNDMSG
@@ -110,7 +119,13 @@ redirect:
         ; set input
         ldx #pipfhi
         jsr CHKIN
-        
+        lda FNLEN1
+        beq copy_loop
+        ldx #pipfho
+        jsr CHKOUT
+
+
+        ldy #0
 copy_loop:
         jsr GETIN
         tax
@@ -122,6 +137,8 @@ copy_loop:
 
         txa
         jsr CHROUT
+        jsr READST
+        bne feof
 
         inc SIZE
         bne @l1
@@ -137,11 +154,7 @@ feof:
         jsr error
 
 done:
-        jsr CLRCHN
-        lda #pipfhi
-        jsr CLOSE
-        lda #pipfho
-        jsr CLOSE
+        jsr finish
         jsr CRLF
 
         ; print byte count
@@ -165,7 +178,16 @@ main2:
         ; interactive mode here,,,
         rts
 
+finish:
+        jsr CLRCHN
+        lda #pipfhi
+        jsr CLOSE
+        lda #pipfho
+        jsr CLOSE
+        rts
+
 error:
+        jsr finish
         jsr print_name
         LDY #MSG2-MSGBAS    ; display
         JSR SNDMSG
