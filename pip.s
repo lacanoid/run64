@@ -55,7 +55,7 @@ args:
         bne @l2
         rts
 @l2:
-        jsr SETNAM2
+        jsr SETNAMX
 
         ldy #0
 @l31:
@@ -100,7 +100,7 @@ open_files:
         beq redirect     ; no output
         ldx FNADR1
         ldy FNADR1+1
-        jsr SETNAM2
+        jsr SETNAMX
 
         lda #pipfho
         tay
@@ -199,15 +199,16 @@ error:
 ; -----------------------------------------------------------------------------
 ; set filename and optional device number 
 
-SETNAM2:
+SETNAMX:
         jsr SETNAM
         ldy #1
         lda (FNADR),Y
         cmp #':'
-        bne @sndone
+        bne @done
         DEY
         lda (FNADR),y
         jsr SETDEV
+        beq @done
         clc
         lda FNADR
         adc #2
@@ -217,7 +218,7 @@ SETNAM2:
         sta FNADR+1
         dec FNLEN
         dec FNLEN
-@sndone:
+@done:
         rts
 
 ; -----------------------------------------------------------------------------
@@ -234,6 +235,7 @@ SETDEV:
         bpl @sdx
 @sde:
         lda 0
+        rts
 @sdx:
         sta FA
         rts
