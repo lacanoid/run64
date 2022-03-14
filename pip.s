@@ -108,6 +108,10 @@ open_files:
         jsr SETLFS
         jsr OPEN
         bcc redirect     ; succesful open
+
+;        lda #'!'
+;        jsr CHROUT
+
         jmp error
         ; output opened        
 
