@@ -30,7 +30,7 @@ FNLEN2: .byte 0
 ; -----------------------------------------------------------------------------
 ; message table; last character has high bit set
 MSGBAS  =*
-MSG0:   .BYTE "PIP 0.2",13+$80
+MSG0:   .BYTE "PIP 0.3",13+$80
 MSG1:   .BYTE "COPYING ",$80
 MSG2:   .BYTE "ERROR ",$80
 MSG3:   .BYTE " BYTES.",13+$80
@@ -146,7 +146,6 @@ redirect:
 
         ldy #0
 copy_loop:
-
         jsr GETIN
         tax
         jsr READST

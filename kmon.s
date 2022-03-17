@@ -686,7 +686,7 @@ DREXIT: JSR UNTLK           ; command device to untalk
 
 MSGBAS  =*
 MSG0:   .BYTE 14
-        .BYTE "KMON 0.",'6'+$80
+        .BYTE "KMON 0.",'7'+$80
 MSG1:   .BYTE $0D               ; header for registers
         .BYTE "*ERR",'*'+$80
 MSG2:   .BYTE $0D               ; header for registers
