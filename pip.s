@@ -23,6 +23,7 @@ SIZE:   .word 0
 FA1:    .byte 8
 FNADR1: .word 0
 FNLEN1: .byte 0   
+FNLEN2: .byte 0
 
 .include "utils.s"
 
@@ -30,7 +31,7 @@ FNLEN1: .byte 0
 ; message table; last character has high bit set
 MSGBAS  =*
 MSG0:   .BYTE "PIP 0.2",13+$80
-MSG1:   .BYTE "COPYING... ",$80
+MSG1:   .BYTE "COPYING ",$80
 MSG2:   .BYTE "ERROR ",$80
 MSG3:   .BYTE " BYTES.",13+$80
 
@@ -67,7 +68,9 @@ args:
         bcs @l31
         jmp open_files
 
-prep_copy:   ; separate source and destination name
+; separate source and destination names
+; source becomes current file, destination goes to FNADR1 and FNLEN1
+prep_copy:   
         lda FNLEN
         sty FNLEN1
         sec
@@ -85,6 +88,9 @@ prep_copy:   ; separate source and destination name
         sta FNADR+1
 
 open_files:
+        lda FNLEN
+        sta FNLEN2
+        beq @of1
         ; open input
         lda #pipfhi
         tay
@@ -98,6 +104,13 @@ open_files:
         ; open output
         lda FNLEN1
         beq redirect     ; no output
+
+        LDY #MSG1-MSGBAS    ; display
+        JSR SNDMSG
+        jsr print_name
+        jsr CRLF
+
+        lda FNLEN1
         ldx FNADR1
         ldy FNADR1+1
         jsr SETNAMX
@@ -121,21 +134,26 @@ open_files:
 
 redirect:
         ; set input
+        lda FNLEN2
+        beq @rdro
         ldx #pipfhi
         jsr CHKIN
+@rdro:
         lda FNLEN1
         beq copy_loop
         ldx #pipfho
-        jsr CHKOUT
-
+;        jsr CHKOUT
 
         ldy #0
 copy_loop:
+
         jsr GETIN
         tax
         jsr READST
         bne feof
 
+        ; enable quote mode
+        ; most controls are displayed as reverse characters
         lda #$FF
         sta QTSW
 
@@ -152,6 +170,7 @@ copy_loop:
         jsr STOP
         bne copy_loop
         ; stop pressed
+
 feof:
         AND #$BF
         beq done
