@@ -48,6 +48,9 @@ GETIN     = $FFE4   ; get a character
 ; kernal variables
 STATUS    = $90        ; kernal i/o status word
 
+DFLTN     = $99    ; Default Input Device #
+DFLTO     = $9A    ; Default Output Device #
+
 T1        = $9E        ; Tape pass 1 error log index
 T2        = $9F        ; Tape pass 2 error log correction index
 

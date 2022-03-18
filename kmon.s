@@ -1041,7 +1041,7 @@ CMDRUN:
         jsr GETFNADR
         beq CMDRUNLOADED
 CMDRUNGO:
-        JSR SETNAM2
+        JSR SETNAMX
 
         lda CHRPNT
         sta COUNT      
@@ -1061,7 +1061,7 @@ CMDRUN1:
 ; -----------------------------------------------------------------------------
 ; set filename and optional device number 
 
-SETNAM2:
+SETNAMX:
         jsr SETNAM
         ldy #1
         lda (FNADR),Y

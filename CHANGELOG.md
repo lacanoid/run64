@@ -1,5 +1,6 @@
 Version 0.7
 ===========
+- new vdc64 program. doesn't compile yet.
 
 Version 0.6
 ===========
