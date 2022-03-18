@@ -1,18 +1,21 @@
-	.page
-	.subttl  ed5  escape handler  (05/06/85)
+;	.page
+;	.subttl  ed5  escape handler  (05/06/85)
 
 ;/////////////   E S C A P E     F U N C T I O N S   \\\\\\\\\\\\\\
 
 ;  escape sequence handler.   entry: character following <escape> in .a
 
-escchr	jmp (escvec)	;'escape' indirect
+escchr:
+	jmp (escvec)	;'escape' indirect
 
-escape	cmp #esc
-	bne 1$		;...branch if not double <escape>
+escape:
+	cmp #esc
+	bne @esc1	;...branch if not double <escape>
 	lsr datax	;...else cancel <escape> sequencer by fucking up lstchr
 	jmp toqm	;...and exit via 'toqm' to cancel all other modes too
 
-1$	and #$7f
+@esc1:
+	and #$7f
 	sec
 	sbc #'@'	;table begins at ascii '@' & ends at 'z'
 	cmp #27		;'z'-'@'+1
@@ -24,9 +27,11 @@ escape	cmp #esc
 	pha
 	lda escvct,x
 	pha
-escrts	rts
+escrts:
+	rts
 
-escvct	.word eeos-1	;@ erase to end of screen
+escvct:
+	.word eeos-1	;@ erase to end of screen
 	.word auton-1	;a auto insert
 	.word sethtb-1	;b set bottom
 	.word autoff-1	;c cancel auto insert
@@ -53,30 +58,31 @@ escvct	.word eeos-1	;@ erase to end of screen
 	.word swap-1	;x switch between 40/80 display modes
 	.word taball-1	;y set default tab stops
 	.word tabclr-1	;z clear all tab stops
-	.page
+;	.page
 ;*****************************
 ;
 ;  window modes
 ;
 ;*****************************
 
-sethtt
+sethtt:
 	clc		;set top of window
 	.byte $24
-sethtb
+sethtb:
 	sec		;set bottom of window
-	ldx pntr
-	lda tblx
-window	bcc sttop	;//////entry from editor jump table here!
+	ldx PNTR
+	lda TBLX
+window:	
+	bcc sttop	;//////entry from editor jump table here!
 
 
-stbot
+stbot:
 	sta scbot
 	stx scrt
 	jmp rewrap
 
 
-sreset			;reset screen to full window
+sreset:			;reset screen to full window
 	lda lines	;max # of rows
 	ldx columns	;max # of columns
 	jsr stbot
@@ -84,28 +90,28 @@ sreset			;reset screen to full window
 	tax		;fall thru to set top
 
 
-sttop
+sttop:
 	sta sctop	;set top of window
 	stx sclf
 
 
-rewrap
+rewrap:
 	lda #0		;make all lines non-continued
 	ldx #4
-1$
+@re1:
 	sta bitabl-1,x
 	dex
-	bne 1$
+	bne @re1
 	rts
 
-	.page
+;	.page
 ;*****************************
 ;
 ;  insert line
 ;
 ;*****************************
 
-iline
+iline:
 	jsr scrdwn	;insert a blank line
 	jsr stu10	;move to start of line
 	inx
@@ -113,10 +119,10 @@ iline
 	php
 	jsr putbit	;set continuation same as in previous line
 	plp
-	bcs 1$		;skip if was wrapped
+	bcs @il1	;skip if was wrapped
 	sec
-	ror lsxp	;set flag - new line
-1$
+	ror LSXP	;set flag - new line
+@il1:
 	rts
 
 
@@ -127,11 +133,11 @@ iline
 ;
 ;**************************
 
-dline
+dline:
 	jsr fistrt      ;find start of line
 	lda sctop       ;save current of window
 	pha
-	lda tblx	;make 1st display line top of window
+	lda TBLX	;make 1st display line top of window
 	sta sctop
 	lda scroll	;make sure logical scroll is off
 	pha
@@ -141,30 +147,30 @@ dline
 	pla
 	sta scroll
 	lda sctop       ;make old 1st line of this 1 current
-	sta tblx
+	sta TBLX
 	pla
 	sta sctop
 	sec
-	ror lsxp	;set flag - new line
+	ror LSXP	;set flag - new line
 	jmp stu10       ;make this line the current one
 
-	.page
+;	.page
 ;******************************
 ;
 ; erase to end of line
 ;
 ;******************************
 
-etol
+etol:
 	jsr savpos
-1$
+@etol1:
 	jsr clrprt      ;blank rest of line
-	inc tblx	;move to next line
+	inc TBLX	;move to next line
 	jsr stupt
 	ldy sclf
 	jsr getbit      ;check if next is wrapped line
-	bcs 1$		;yes - blank next line
-etout
+	bcs @etol1		;yes - blank next line
+etout:
 	jmp delout      ;exit and restore original position
 
 
@@ -175,16 +181,17 @@ etout
 ;
 ;*****************************
 
-etstol
+etstol:
 	jsr savpos
-1$
+@es1:
 	jsr blank	;do a blank
 	cpy sclf	;done a line?
-	bne 2$		;no
+	bne @es2		;no
 	jsr getbit      ;at top of line
 	bcc etout       ;yes - exit
-2$	jsr bakchr	;back up
-	bcc 1$		;always
+@es2:
+	jsr bakchr	;back up
+	bcc @es1	;always
 
 
 
@@ -194,31 +201,31 @@ etstol
 ;
 ;******************************
 
-eeos
+eeos:
 	jsr savpos
-1$
+@ee1:
 	jsr clrprt      ;blank rest of line
-	inc tblx	;move to next line
+	inc TBLX	;move to next line
 	jsr stupt
 	ldy sclf
 	jsr getbit      ;check if next is wrapped line
-	bcs 1$		;yes - blank next line
+	bcs @ee1		;yes - blank next line
 
-	lda tblx
+	lda TBLX
 	cmp scbot	;check if at end of screen
-	bcc 1$
-	beq 1$
+	bcc @ee1
+	beq @ee1
 
 	jmp delout      ;exit and restore original position
 
-	.page
+;	.page
 ;*****************************
 ;
 ; scroll up
 ;
 ;*****************************
 
-suup
+suup:
 	jsr savpos
 	txa
 	pha
@@ -235,30 +242,30 @@ suup
 ;
 ;*****************************
 
-sddn
+sddn:
 	jsr savpos
 	jsr getbit
-	bcs 1$
+	bcs @sd1
 	sec
-	ror lsxp	;set flag - left line
-1$
+	ror LSXP	;set flag - left line
+@sd1:
 	lda sctop
-	sta tblx	;scroll from screen top
+	sta TBLX	;scroll from screen top
 	jsr scrdwn
 	jsr clrbit      ;make first line non-continued
 	jmp delout
 
-	.page
+;	.page
 ;********************************
 ;
 ; scrolling enable/disable
 ;
 ;********************************
 
-scrsw0
+scrsw0:
 	lda #0  	;enable scrolling
 	.byte $2c
-scrsw1
+scrsw1:
 	lda #$80	;disable scrolling
 	sta scroll
 	rts
@@ -271,22 +278,22 @@ scrsw1
 ;
 ;*******************************
 
-autoff
+autoff:
 	lda #0
 	.byte $2c
-auton
+auton:
 	lda #$ff
 	sta insflg
 	rts
 
-	.page
+;	.page
 ;*******************************
 ;
 ;  cursor modes
 ;
 ;*******************************
 
-crsral
+crsral:
 	bit mode
 	bpl crsr_c
 	lda curmod	;8563 solid cursor
@@ -294,7 +301,7 @@ crsral
 	jmp crsr_a	;bra
 
 
-crsrul
+crsrul:
 	bit mode
 	bpl crsr_c
 	lda curmod	;8563 underline cursor
@@ -303,73 +310,72 @@ crsrul
 	bne crsr_a	;bra
 
 
-crsrnf
+crsrnf:
 	bit mode	;select non-blinking cursor
 	bpl crsr_d
 
 	lda curmod	;8563 hardware cursor
 	and #$1f
-crsr_a	sta curmod
+crsr_a:
+	sta curmod
 	jmp crsrdo
 
-crsr_d	lda blnon	;vic cursor
+crsr_d:
+	lda BLNON	;vic cursor
 	ora #$40
 	bne crsr_b	;bra
 
 
 
-crsrbl
+crsrbl:
 	bit mode	;select blinking cursor
-	bpl 1$
+	bpl @crs1
 
 	lda curmod	;8563 hardware cursor
 	and #$1f
 	ora #$60
 	bne crsr_a	;bra
 
-1$	lda blnon	;vic cursor
+@crs1:
+	lda BLNON	;vic cursor
 	and #$bf
-crsr_b	sta blnon
-crsr_c	rts
+crsr_b:
+	sta BLNON
+crsr_c:
+	rts
 
-	.page
+;	.page
 ;*******************************
 ;
 ;   bell (ctrl-g) on/off
 ;
 ;*******************************
 
-bellon
+bellon:
 	lda #0
 	.byte $2c
 
-bellof
+bellof:
 	lda #$80
 	sta beeper
 	rts
 
 
 
-
-
-
-
-dsprvs
+dsprvs:
 	ldx #24		;reverse 8563 display
 	jsr vdcin
 	ora #$40
 	bne dspxxx
 
-dspnml
+dspnml:
 	ldx #24		;normal 8563 display
 	jsr vdcin
 	and #$bf
-dspxxx	jmp vdcout
+dspxxx:
+	jmp vdcout
 
-
-
-
-fndeol
+fndeol:
 	jsr fndend	;move to last character in line
 	jmp movchr	;move past it & start a wrapped line if necessary
 

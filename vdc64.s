@@ -92,6 +92,7 @@ _spare:	.byte $ff,$ff,$ff
 ; GLOBAL ABSOLUTE SCREEN EDITOR DECLARATIONS
 
 cr    = 13
+esc   = 27
 space = 32
 quote = 34
 
@@ -104,7 +105,8 @@ scbot:  .byte 0
 sctop:  .byte 0
 sclf:   .byte 0
 scrt:   .byte 0
-columns:.byte 0     ; Maximum Number of Screen Columns
+lines:  .byte 0     ; maximum number of screen lines
+columns:.byte 0     ; maximum number of screen columns
 datax:  .byte 0     ; Current Character to Print
 tcolor: .byte 0     ; saved attribute to print ('insert' & 'delete')
 insflg: .byte 0     ; Auto-Insert Mode Flag
@@ -134,11 +136,14 @@ saver:  .byte 0     ; yet another temporary place to save a register
 tabmap: .res  10
 bitabl: .res  4
 
+init_status: .byte 0 ; flags reset vs. nmi status for initialization routines
+
 ctlvec: .word 0     ; editor: print 'contrl' indirect
 shfvec: .word 0     ; editor: print 'shiftd' indirect
 escvec: .word 0     ; editor: print 'escape' indirect
 keyvec: .word 0     ; editor: keyscan logic  indirect
 keychk: .word 0     ; editor: store key indirect
+decode: .res  12    ; vectors to keyboard matrix decode tables
 
 keysiz:	.byte 0		;programmable key variables
 keylen:	.byte 0         ;
@@ -164,9 +169,11 @@ clr_ea_hi: .byte 0      ; ????? 8563 block fill kludge
 .include "vdc_ed2.inc"
 .include "vdc_ed3.inc"
 .include "vdc_ed4.inc"
+.include "vdc_ed5.inc"
 .include "vdc_ed6.inc"
 .include "vdc_routines.inc"
 .include "vdc_ed7.inc"
+.include "vdc_patches.inc"
 
 mainend:
 
