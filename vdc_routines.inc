@@ -160,7 +160,7 @@ init80:
 @i1:	
 	ldx #14		;bank where vic character rom can be read
 	lda #sedsal	;vector into character rom (.y is the index)
-	jsr _fetch	;get a byte
+	jsr indfet	;get a byte
 	jsr vdcput
 	iny
 	cpy #8

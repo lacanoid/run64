@@ -165,6 +165,8 @@ ldtb1_sa:  .byte 0      ; high byte of sa of vic screen (use with vm1 to move sc
 clr_ea_lo: .byte 0      ; ????? 8563 block fill kludge
 clr_ea_hi: .byte 0      ; ????? 8563 block fill kludge
 
+mmureg = 1
+
 .include "vdc_ed1.inc"
 .include "vdc_ed2.inc"
 .include "vdc_ed3.inc"
@@ -174,6 +176,44 @@ clr_ea_hi: .byte 0      ; ????? 8563 block fill kludge
 .include "vdc_routines.inc"
 .include "vdc_ed7.inc"
 .include "vdc_patches.inc"
+
+; --- come c128 like memory management
+
+fetch:
+        lda mmureg
+        stx mmureg
+        tax
+        .byte $b1  ; lda (zp),y
+fetvec:
+        .byte $66
+        stx mmureg
+        rts
+
+; indirect fetch (.a),y from bank .x
+; I: .a = zp pointer, .x = bank, .y = index 
+; O: .a = data, .x = trash
+indfet:
+        sta fetvec
+        lda mmucfg,X
+        tax
+        jmp fetch
+
+; get mmu configuration
+; I: .x = bank
+; O: .a = mmu configuration
+getcfg:
+        lda mmucfg,x
+        rts
+
+mmucfg:
+        ; bank 0  - 12 = ram only
+        ; bank 13 - ram + I/O
+        ; bank 14 - rom + chargen
+        ; bank 15 - rom + I/O
+        .byte 0, 0, 0, 0
+        .byte 0, 0, 0, 0
+        .byte 0, 0, 0, 0
+        .byte 0, 5, 3, 7
 
 mainend:
 

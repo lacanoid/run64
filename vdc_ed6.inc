@@ -366,7 +366,7 @@ keyset:
 	sta fetvec	;setup address pointer
 	tay
 	ldx @ke2,y	;get bank
-	jsr _config	;convert to actual mmu configuration
+	jsr getcfg	;convert to actual mmu configuration
 	sta keybnk
 
 	ldx #pkynum	;(note: 'help' & <shft/run> strings too)

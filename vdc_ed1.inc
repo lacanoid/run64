@@ -114,7 +114,7 @@ cint:
 	ora #$02	;point vic to text nybble bank
 	sta r6510
 
-	jsr _clrch	;restore default input/output devices
+	jsr CLRCHN	;restore default input/output devices
 
 
 ;  initialize editor  GLOBAL  variables
