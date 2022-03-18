@@ -27,11 +27,14 @@ TBLX   = $D6    ; Current Cursor Physical Line Number
 PNT    = $D1    ; Pointer to the Address of the Current Screen Line
 DATA   = $D7    ; Temporary Storage Area for ASCII Value of Last Character Printed
 USER   = $F3    ; Pointer to the Address of the Current Screen Color RAM Location
+KEYTAB = $F5    ; Vector: Keyboard Decode Table
 CRSW   = $D0    ; Flag: Input from Keyboard or Screen
 PNTR   = $D3    ; Cursor Column on Current Line
 QTSW   = $D4    ; Flag: Editor in Quote Mode? 0=No
 INSRT  = $D8    ; Flag: Insert Mode (Any Number Greater Than 0 Is the Number of Inserts)
+LSTSHF = $028e  ; Last Pattern of SHIFT/CTRL/Logo Keypress
 
+LSTX   = $C5    ; Matrix Coordinate of Last Key Pressed, 64=None Pressed
 INDX   = $C8    ; Pointer: End of Logical Line for Input
 LSXP   = $C9    ; Cursor X Position at Start of Input
 LSTP   = $CA    ; Cursor Y Position at Start of Input

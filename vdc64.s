@@ -29,11 +29,11 @@ data:
         .org $c000
 main:
         ldx #0
-print:  lda msg, x
+@m1:    lda msg, x
         beq done
         jsr CHROUT
         inx
-        bne print
+        bne @m1
 done:
 ;        jsr raster_setup
 exit:
@@ -45,11 +45,10 @@ msg:    .asciiz "RASTER DISPLAY LIST DEMO"
 
 ; --------------------------
 
-sedsal  = $FB
-
 vicchr	= $d000	        ;vic character rom
 vicreg  = $d000         ;vic registers
 viccol	= $d800		;vic color nybbles
+vicscn  = VICSCN
 
 sidreg	= $d400		;sid registers
 
@@ -59,6 +58,13 @@ vdcdat	= $d601 	;8563 data    register
 vdcscn	= $0000		;8563 80-column screen	(2KB)
 vdccol	= $0800		;8563 attribute area	(2KB)
 vdcchr	= $2000		;8563 character ram	(4KB: 256 chrs, 8x16)
+
+cia1    = $dc00
+colm    = cia1
+rows    = cia1+1
+
+cia2    = $dd00
+d2pra   = cia2
 
 ; further definitions
 blnsw   = $cc
@@ -89,6 +95,10 @@ cr    = 13
 space = 32
 quote = 34
 
+sedsal  = $FB
+sedeal  = $FD
+lstchr  = DATA
+
 swapbeg:
 scbot:  .byte 0
 sctop:  .byte 0
@@ -98,7 +108,9 @@ columns:.byte 0     ; Maximum Number of Screen Columns
 datax:  .byte 0     ; Current Character to Print
 tcolor: .byte 0     ; saved attribute to print ('insert' & 'delete')
 insflg: .byte 0     ; Auto-Insert Mode Flag
+locks:  .byte 0     ; disables  <c=><shift>,   <ctrl>-S
 scroll: .byte 0     ; disables  screen scroll, line linker
+beeper: .byte 0     ; disables  <ctrl>-G
 swapend:
 
 mode:   .byte 0     ; 40/80 Column Mode Flag
@@ -113,12 +125,20 @@ vm2:    .byte 0     ; VIC Bit-Map Base Pointer
 vm3:    .byte 0     ; VDC Text Screen Base
 vm4:    .byte 0     ; VDC Attribute Base
 lintmp: .byte 0     ; temporary pointer to last line for LOOP4
+sav80a: .byte 0     ; temporary for 80-col routines
+sav80b: .byte 0     ; temporary for 80-col routines
 curcol: .byte 0     ; vdc cursor color before blink
 split:  .byte 0     ; vic split screen raster value
 bitmsk: .byte 0     ; temporary for TAB & line wrap routines
 saver:  .byte 0     ; yet another temporary place to save a register
 tabmap: .res  10
 bitabl: .res  4
+
+ctlvec: .word 0     ; editor: print 'contrl' indirect
+shfvec: .word 0     ; editor: print 'shiftd' indirect
+escvec: .word 0     ; editor: print 'escape' indirect
+keyvec: .word 0     ; editor: keyscan logic  indirect
+keychk: .word 0     ; editor: store key indirect
 
 keysiz:	.byte 0		;programmable key variables
 keylen:	.byte 0         ;
@@ -136,9 +156,14 @@ pkydef:	.res 256-pkynum	;programmable function key strings
 swapout:.res 32
 swapmap:.res 32
 
-lstchr = DATA
+ldtb1_sa:  .byte 0      ; high byte of sa of vic screen (use with vm1 to move screen)
+clr_ea_lo: .byte 0      ; ????? 8563 block fill kludge
+clr_ea_hi: .byte 0      ; ????? 8563 block fill kludge
 
 .include "vdc_ed1.inc"
+.include "vdc_ed2.inc"
+.include "vdc_ed3.inc"
+.include "vdc_ed4.inc"
 .include "vdc_ed6.inc"
 .include "vdc_routines.inc"
 .include "vdc_ed7.inc"

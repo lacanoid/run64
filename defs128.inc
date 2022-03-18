@@ -1,33 +1,36 @@
 .include "defs.inc"
 
-KEYD   = $034A  ; start of keyboard buffer for C64 screen editor
-NDX    = $D0    ; keyboard buffer count for C64 screen editor
-COLOR  = $F1    ; current foreground color
-XMAX   = $0A20  ; Keyboard Queue Maximum Size
+KEYD    = $034A  ; start of keyboard buffer for C64 screen editor
+NDX     = $D0    ; keyboard buffer count for C64 screen editor
+COLOR   = $F1    ; current foreground color
+XMAX    = $0A20  ; Keyboard Queue Maximum Size
 
-TXTTAB = $2D    ; (2) Pointer to the Start of BASIC Program Text
-VARTAB = $2F    ; 
-ARYTAB = $31
-STREND = $33
-FRETOP = $35
-MEMSIZ = $39
+TXTTAB  = $2D    ; (2) Pointer to the Start of BASIC Program Text
+VARTAB  = $2F    ; 
+ARYTAB  = $31
+STREND  = $33
+FRETOP  = $35
+MEMSIZ  = $39
 
-VERCK  = $0C
-COUNT  = $0D
+VERCK   = $0C
+COUNT   = $0D
 
-BUF    = $0200  ; Line Editor Input Buffer
-ENDIN  = $02A2  ; End of input buffer
-GDCOL  = $0A2A  ; Color of Character under Cursor
-RPTFLG = $0A22  ; Flag: Which Keys Will Repeat?
-KOUNT  = $0A23  ; Counter for Timing the Delay Between Key Repeats
-DELAY  = $0A24  ; Counter for Timing the Delay Until the First Key Repeat Begins
-SHFLAG = $D3    ; Shift key status flag
-SFDX   = $D4    ; Current key pressed
-CRSW   = $D6    ; <CR> Input Flag	
-MODE   = $D7    ; 40/80 Column Mode Flag
-RVS    = $F3    ; Reverse Mode Flag
+KEYTAB  = $CC    ; Keyscan Table Pointer
 
-BLNCT  = $0A28   ; VIC Cursor Blink Counter
+BUF     = $0200  ; Line Editor Input Buffer
+ENDIN   = $02A2  ; End of input buffer
+GDCOL   = $0A2A  ; Color of Character under Cursor
+RPTFLG  = $0A22  ; Flag: Which Keys Will Repeat?
+KOUNT   = $0A23  ; Counter for Timing the Delay Between Key Repeats
+DELAY   = $0A24  ; Counter for Timing the Delay Until the First Key Repeat Begins
+LSTSHF  = $0A25  ; Last Pattern of SHIFT/CTRL/Logo Keypress
+BLNCT   = $0A28   ; VIC Cursor Blink Counter
+SHFLAG  = $D3    ; Shift key status flag
+SFDX    = $D4    ; Current key pressed
+LSTX    = $D5    ; Keyscan Last Key Index
+CRSW    = $D6    ; <CR> Input Flag	
+MODE    = $D7    ; 40/80 Column Mode Flag
+RVS     = $F3    ; Reverse Mode Flag
 
 LSXP    = $E8    ; Current Input Column Start
 LSTP    = $E9    ; Current Input Line Start
