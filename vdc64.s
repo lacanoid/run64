@@ -6,6 +6,8 @@
 
 .forceimport __EXEHDR__
 
+org = $8000
+
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.
 resultRegister = $d7ff
@@ -14,7 +16,7 @@ resultRegister = $d7ff
         inx
         ldy #0
 @l1:    lda data,Y
-@l2:    sta $c000,y
+@l2:    sta org,y
         iny
         bne @l1
         inc @l1+2
@@ -22,26 +24,13 @@ resultRegister = $d7ff
         dex 
         bpl @l1
 
-        jmp $c000
+        jmp org
 
 ; --------------------------
 data:
-        .org $c000
+        .org org
 main:
-        ldx #0
-@m1:    lda msg, x
-        beq done
-        jsr CHROUT
-        inx
-        bne @m1
-done:
-;        jsr raster_setup
-exit:
-        lda #0
-        sta resultRegister
-        rts
-
-msg:    .asciiz "RASTER DISPLAY LIST DEMO"
+        jmp configure
 
 ; --------------------------
 
@@ -72,20 +61,20 @@ blnsw   = $cc
 ;////////////////   E D I T O R     J U M P     T A B L E   \\\\\\\\\\\\\\\\\
 	jmp cint	;initialize editor & screen
 	jmp disply	;display character in .a, color in .x
-;	jmp lp2		;get a key from irq buffer into .a
-;	jmp loop5	;get a chr from screen line into .a
+	jmp lp2		;get a key from irq buffer into .a
+	jmp loop5	;get a chr from screen line into .a
 	jmp print	;print character in .a
-;	jmp scrorg	;get size of current window (rows,cols) in .x, .y
-;	jmp scnkey	;scan keyboard subroutine
-;	jmp repeat	;repeat key logic & 'ckit2' to store decoded key
+	jmp scrorg	;get size of current window (rows,cols) in .x, .y
+	jmp scnkey	;scan keyboard subroutine
+	jmp repeat	;repeat key logic & 'ckit2' to store decoded key
 	jmp plot	;read or set (.c) cursor position in .x, .y
-;	jmp cursor	;move 8563 cursor subroutine
-;	jmp escape	;execute escape function using chr in .a
-;	jmp keyset	;redefine a programmable function key
-;	jmp irq		;irq entry
-;	jmp init80	;initialize 80-column character set
-;	jmp swapper	;swap editor local variables (40/80 mode change)
-;	jmp window	;set top left or bottom right (.c) of window
+	jmp cursor	;move 8563 cursor subroutine
+	jmp escape	;execute escape function using chr in .a
+	jmp keyset	;redefine a programmable function key
+	jmp irq		;irq entry
+	jmp init80	;initialize 80-column character set
+	jmp swapper	;swap editor local variables (40/80 mode change)
+	jmp window	;set top left or bottom right (.c) of window
 
 _spare:	.byte $ff,$ff,$ff
 
@@ -98,18 +87,36 @@ quote = 34
 
 sedsal  = $FB
 sedeal  = $FD
-lstchr  = DATA
 
 swapbeg:
+pnt:    .word 0     ; = PNT
+user:   .word 0     ; = USER
+
 scbot:  .byte 0
 sctop:  .byte 0
 sclf:   .byte 0
 scrt:   .byte 0
+
+lsxp:   .byte 0     ; = LSXP
+lstp:   .byte 0     ; = LSTP
+indx:   .byte 0     ; = INDX
+
+tblx:   .byte 0     ; = TBLX
+pntr:   .byte 0     ; = PNTR
+
 lines:  .byte 0     ; maximum number of screen lines
 columns:.byte 0     ; maximum number of screen columns
+
 datax:  .byte 0     ; Current Character to Print
+lstchr: .byte 0     ; previous character printed  (for <esc> test)
+color:  .byte 0     ; = COLOR     ; current foreground color
 tcolor: .byte 0     ; saved attribute to print ('insert' & 'delete')
+
+rvs:    .byte 0     ; = RVS
+qtsw:   .byte 0     ; = QTSW
+insrt:  .byte 0     ; = INSRT
 insflg: .byte 0     ; Auto-Insert Mode Flag
+
 locks:  .byte 0     ; disables  <c=><shift>,   <ctrl>-S
 scroll: .byte 0     ; disables  screen scroll, line linker
 beeper: .byte 0     ; disables  <ctrl>-G
@@ -165,7 +172,8 @@ ldtb1_sa:  .byte 0      ; high byte of sa of vic screen (use with vm1 to move sc
 clr_ea_lo: .byte 0      ; ????? 8563 block fill kludge
 clr_ea_hi: .byte 0      ; ????? 8563 block fill kludge
 
-mmureg = 1
+r6510  = 1
+mmureg = r6510
 
 .include "vdc_ed1.inc"
 .include "vdc_ed2.inc"
@@ -214,6 +222,72 @@ mmucfg:
         .byte 0, 0, 0, 0
         .byte 0, 0, 0, 0
         .byte 0, 5, 3, 7
+
+; -- hook into system
+
+configure:
+        ldx #0
+@m1:    lda msg, x
+        beq @m2
+        jsr CHROUT
+        inx
+        bne @m1
+
+@m2:
+        jsr cint
+        lda #7
+        jsr print
+
+        lda #<new_basin
+	sta IBASIN
+	lda #>new_basin
+	sta IBASIN + 1
+
+        lda #<new_bsout
+	sta IBSOUT
+	lda #>new_bsout
+	sta IBSOUT + 1
+
+exit:
+        lda #0
+        sta resultRegister
+
+;        jmp ($a000)
+
+        rts
+
+msg:    .asciiz "C128 EDITOR"
+
+new_bsout:
+	sta DATA
+	pha
+	lda DFLTO
+	cmp #3
+	bne @nbo1
+	txa
+	pha
+	tya
+	pha
+	lda DATA
+	jsr print
+	pla
+	tay
+	pla
+	tax
+	pla
+	clc
+	cli ; XXX user may have wanted interrupts off!
+	rts
+@nbo1:	jmp $F1D5 ; original non-screen BSOUT
+        
+new_basin:
+	lda DFLTN
+        bne @nbi1
+        ; input from dev0
+        jmp loop5
+
+@nbi1:  ; input from dev != 0
+	jmp $F157 ; original non-screen BASIN
 
 mainend:
 

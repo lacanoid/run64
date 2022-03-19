@@ -109,11 +109,13 @@ cint:
 	lda #$03
 	ora d2pra	;set vic bank
 	sta d2pra
+
+.ifdef target_c128
 	lda #$fb
 	and r6510	;turn on character rom
 	ora #$02	;point vic to text nybble bank
 	sta r6510
-
+.endif
 	jsr CLRCHN	;restore default input/output devices
 
 
@@ -150,9 +152,10 @@ cint:
 
 	jsr taball	;set default tab stops
 	sta RPTFLG	;enable key repeats (all keys, .a=$80)
+.ifdef target_c128
 	ora mmumcr
 	sta mmumcr	;enable 40/80 key sense
-
+.endif
 	lda #$60
 	sta curmod	;reset vdc cursor mode
 
@@ -208,9 +211,11 @@ cint:
 	jsr sreset	;clear 40-col wrap table
 	jsr clsr	;clear 40-col text screen
 
+.ifdef target_c128
 	bit mmumcr	;test 40/80 key & stay in that mode
 	bmi @cint10	;...branch if 40 (vic) mode (current mode)
 	jsr swapper	;swap in 80-col mode
+.endif
 @cint10:
 	rts
 
@@ -334,8 +339,8 @@ irq:
 	tax
 	bne doit	;always
 ;	.page
-;  set up for a text frame
 
+;  set up for a text frame
 text:
 	lda #$ff	;make next irq occur at 'base' of this or next frame
 	sta vicreg+18
@@ -373,7 +378,9 @@ doit:
 	pla
 	sta vicreg+24	;set vm
 	pla
+.ifdef target_c128
 	sta r6510	;set charrom + vic nybble bank
+.endif
 	sty vicreg+17	;set bit map mode
 	stx vicreg+22	;set muticolor mode
 

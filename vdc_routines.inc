@@ -4,8 +4,8 @@
 swap:
 	sta lstchr	;<escape> entry: must update 'lstchr' BEFORE swap!
 
-
 swapper:
+	jsr swapzpout
 	ldx #swapend-swapbeg
 @s1:	
 	ldy swapout,x
@@ -15,6 +15,7 @@ swapper:
 	sta swapbeg,x
 	dex
 	bpl @s1
+	jsr swapzpin
 
 	ldx #13
 @s2:	
@@ -29,7 +30,68 @@ swapper:
 	lda mode	;toggle 40/80 device mode flag
 	eor #$80
 	sta mode
-swrts:	rts
+swrts:	
+	rts
+
+;	.page \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+swapzpin:  
+	ldy #0
+@e2:
+	lda swapzptab,y
+	beq @e1			; last
+	tax
+	iny
+	lda swapzptab,y
+	sty savy
+	tay
+	lda swapbeg,Y
+	sta 0,X
+	ldy savy
+	iny
+	bne @e2
+@e1:
+	lda color
+	sta COLOR
+	rts
+
+swapzpout:
+	ldy #0
+@eo2:
+	lda swapzptab,y
+	beq @eo1			; last
+	tax
+	iny
+	lda swapzptab,y
+	sty savy
+	tay
+	lda 0,X
+	sta swapbeg,Y
+	ldy savy
+	iny
+	bne @eo2
+@eo1:
+	lda COLOR
+	sta color
+	rts
+
+savy:	.byte 0
+
+swapzptab:
+        .byte PNT,pnt-swapbeg
+        .byte PNT+1,pnt-swapbeg+1
+        .byte USER,user-swapbeg
+        .byte USER+1,user-swapbeg+1
+        .byte LSXP,lsxp-swapbeg
+        .byte LSTP,lstp-swapbeg
+        .byte INDX,indx-swapbeg
+        .byte TBLX,tblx-swapbeg
+        .byte PNTR,pntr-swapbeg
+;        .byte COLOR,color-swapbeg
+        .byte RVS,rvs-swapbeg
+        .byte QTSW,qtsw-swapbeg
+        .byte INSRT,insrt-swapbeg
+        .byte 0
 
 ;	.page \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 cursor:	bit mode	;move the 8563 cursor

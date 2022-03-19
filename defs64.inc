@@ -63,6 +63,9 @@ CINV   = $0314  ; Vector to IRQ Interrupt Routine
 CBINV  = $0316  ; Vector: BRK Instruction Interrupt
 NMINV  = $0318  ; Vector: Non-Maskable Interrupt 
 
+IBASIN = $0324  ;
+IBSOUT = $0326  ; 
+
 ; basic magic api
 
 LINKPRG = $A533 ; link basic program

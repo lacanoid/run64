@@ -5,6 +5,7 @@
 
 print:			;print character in .a on the screen & rts to 'loop2'
 	sta datax	;save a copy of character to print
+	sta DATA
 	pha		;save all registers
 	txa
 	pha

@@ -8,14 +8,15 @@ c1541 $DISKIMG -write pip
 c1541 $DISKIMG -write patch64
 c1541 $DISKIMG -write vdc64
 c1541 $DISKIMG -write patch128
+c1541 $DISKIMG -write smon
 c1541 $DISKIMG -write empty '================'
 c1541 $DISKIMG -write startup,s
 c1541 $DISKIMG -write issue,s
 c1541 $DISKIMG -write empty '=--------------='
 
-for i in prg/*
-do
- c1541 $DISKIMG -write "$i" # >/dev/null
-done
+#for i in prg/*
+#do
+# c1541 $DISKIMG -write "$i" # >/dev/null
+#done
 
 

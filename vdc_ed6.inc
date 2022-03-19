@@ -222,22 +222,16 @@ displc:
 	ldx COLOR	;use current fgnd COLOR
 	.byte $2c
 
-
-
 displt:
 	ldx tcolor	;use saved COLOR
-
-
 
 disply:
 	tay		;save character to diplay
 	lda #2
 	sta BLNCT	;force a cursor blink
-
 	jsr scolor	;setup COLOR pointers
-	tya		;restore character
+	tya			;restore character
 	ldy PNTR	;get cursor position
-
 
 displ:
 	bit mode
