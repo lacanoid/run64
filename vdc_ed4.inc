@@ -5,7 +5,7 @@
 
 print:			;print character in .a on the screen & rts to 'loop2'
 	sta datax	;save a copy of character to print
-	sta DATA
+;	sta DATA
 	pha		;save all registers
 	txa
 	pha
@@ -428,9 +428,10 @@ tab:
 	bcs @tab2	;yes
 	jsr tabget	;find next tabstop
 	beq @tab1	;branch if not there yet
-	.byte $2c
+	bne @tab3
 @tab2:
 	ldy scrt	;put cursor at right margin
+@tab3:
 	sty PNTR
 	rts
 

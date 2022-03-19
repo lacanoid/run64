@@ -165,7 +165,8 @@ cint:
 ;	.page
 ;  initialize editor  LOCAL  variables
 
-	ldx #localabs-localzp
+	ldx #localabs-localzp-1
+	dex
 @cint1:
 	lda localzp,x
 	sta swapbeg,x	;init 40-column vic  mode locals
@@ -173,6 +174,7 @@ cint:
 	sta swapout,x	;init 80-column 8563 mode locals
 	dex
 	bpl @cint1
+	jsr swapzpin
 
 	ldx #vectse-vectss-1
 @cint3:

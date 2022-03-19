@@ -1,6 +1,6 @@
 Version 0.7
 ===========
-- new vdc64 program. doesn't compile yet.
+- new vdc64 program to use VDC chip in C128 in C64 mode 
 
 Version 0.6
 ===========

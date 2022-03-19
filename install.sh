@@ -14,9 +14,9 @@ c1541 $DISKIMG -write startup,s
 c1541 $DISKIMG -write issue,s
 c1541 $DISKIMG -write empty '=--------------='
 
-#for i in prg/*
-#do
-# c1541 $DISKIMG -write "$i" # >/dev/null
-#done
+for i in prg/*
+do
+ c1541 $DISKIMG -write "$i" # >/dev/null
+done
 
 

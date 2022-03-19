@@ -256,7 +256,7 @@ exit:
 
         rts
 
-msg:    .asciiz "C128 EDITOR"
+msg:    .asciiz "C128 EDITOR "
 
 new_bsout:
 	sta DATA
@@ -283,7 +283,13 @@ new_bsout:
 new_basin:
 	lda DFLTN
         bne @nbi1
-        ; input from dev0
+        ; input from dev = 0
+
+        lda PNTR
+        sta LSTP
+        lda TBLX
+        sta LSXP
+        
         jmp loop5
 
 @nbi1:  ; input from dev != 0

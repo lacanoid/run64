@@ -214,13 +214,11 @@ blank:
 	and #$8f	; (strip off rvs, underline & flash attributes)
 	tax
 	lda #space
-	.byte $2c
-
-
+	bne disply  ; always
 
 displc:
 	ldx COLOR	;use current fgnd COLOR
-	.byte $2c
+	jmp disply
 
 displt:
 	ldx tcolor	;use saved COLOR
