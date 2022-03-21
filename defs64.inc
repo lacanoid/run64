@@ -24,7 +24,7 @@ CMP0   = $B0
 TEMP   = $B1
 
 TBLX   = $D6    ; Current Cursor Physical Line Number
-PNT    = $D1    ; Pointer to the Address of the Current Screen Line
+PNT    = $D1    ; Pointer to the Address of the Current Screen Line RAM Location
 DATA   = $D7    ; Temporary Storage Area for ASCII Value of Last Character Printed
 USER   = $F3    ; Pointer to the Address of the Current Screen Color RAM Location
 KEYTAB = $F5    ; Vector: Keyboard Decode Table

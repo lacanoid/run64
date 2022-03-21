@@ -220,7 +220,6 @@ error:
 
 ; -----------------------------------------------------------------------------
 ; set filename and optional device number 
-
 SETNAMX:
         jsr SETNAM
         ldy #1

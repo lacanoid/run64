@@ -3,6 +3,7 @@
 
 ;/////////////////   K E Y B O A R D     S C A N   \\\\\\\\\\\\\\\\\\\
 
+.if feature_scnkey=1
 scnkey:			;scan the keyboard
 	lda r6510	;first check is for 'caps lock' key
 	and #$40
@@ -233,7 +234,11 @@ ckit2:			;key is in .x
 	txa		;decoded key
 	ldx SHFLAG	;status of special keys
 	jmp (keychk)	;.a=character, .y=keycode, .x=shift status
-
+.else
+scnkey:
+repeat:
+	rts
+.endif
 
 keyput:
 	ldx #9		;check for function keys, <shift><run>, or <help>
@@ -259,6 +264,7 @@ scnrts:
 ;	.page
 
 dopfky:
+.if feature_pfkey=1
 	jmp dopfky_patch	;-05 FIX (FAB)
 
 ;	lda pkybuf,x    ;find length of function key string
@@ -274,7 +280,10 @@ dopfky:
 
 @do2:
 	sta keyidx
+.endif
 	rts
+
+
 
 
 funtab:
@@ -319,5 +328,6 @@ blink:			;////////// vic cursor blinker \\\\\\\\\\\\\
 	sta BLNON	;toggle cursor
 @bl2:
 	rts
+
 
 ;.end

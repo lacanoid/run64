@@ -6,6 +6,10 @@
 
 .forceimport __EXEHDR__
 
+feature_scnkey=0   ; keyboard scan routine
+feature_pfkey=1    ; programmable function keys
+feature_irq=0      ; raster interrupt service routine
+
 org = $8000
 
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
@@ -152,6 +156,13 @@ keyvec: .word 0     ; editor: keyscan logic  indirect
 keychk: .word 0     ; editor: store key indirect
 decode: .res  12    ; vectors to keyboard matrix decode tables
 
+ldtb1_sa:  .byte 0      ; high byte of sa of vic screen (use with vm1 to move screen)
+clr_ea_lo: .byte 0      ; ????? 8563 block fill kludge
+clr_ea_hi: .byte 0      ; ????? 8563 block fill kludge
+
+swapout:.res 32
+swapmap:.res 32
+
 keysiz:	.byte 0		;programmable key variables
 keylen:	.byte 0         ;
 keynum:	.byte 0		;
@@ -161,16 +172,12 @@ keybnk:	.byte 0		;
 sedt2:
 keytmp:	.byte 0		;
 
+.if feature_pfkey=1
 pkynum	= 10		;number of definable keys  (f1-f8, <shft>run, help)
 pkybuf:	.res pkynum	;programmable function key lengths table
 pkydef:	.res 256-pkynum	;programmable function key strings
+.endif
 
-swapout:.res 32
-swapmap:.res 32
-
-ldtb1_sa:  .byte 0      ; high byte of sa of vic screen (use with vm1 to move screen)
-clr_ea_lo: .byte 0      ; ????? 8563 block fill kludge
-clr_ea_hi: .byte 0      ; ????? 8563 block fill kludge
 
 r6510  = 1
 mmureg = r6510
@@ -183,7 +190,6 @@ mmureg = r6510
 .include "vdc_ed6.inc"
 .include "vdc_routines.inc"
 .include "vdc_ed7.inc"
-.include "vdc_patches.inc"
 
 ; --- come c128 like memory management
 
@@ -234,6 +240,10 @@ configure:
         bne @m1
 
 @m2:
+        ldx #<mode
+        lda #>mode
+        jsr LINPRT
+
         jsr cint
         lda #7
         jsr print
@@ -289,7 +299,7 @@ new_basin:
         sta LSTP
         lda TBLX
         sta LSXP
-        
+
         jmp loop5
 
 @nbi1:  ; input from dev != 0

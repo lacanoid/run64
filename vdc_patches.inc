@@ -6,6 +6,7 @@
 
 ;.editor_patch_begin
 
+.if feature_pfkey=1
 dopfky_patch:
 ;  fixes the problem of function keys overwriting previous function key
 ;  string still in buffer.  Also exits via 'scnrts', as it should have.
@@ -28,7 +29,7 @@ dopfky_patch:
 	sta keyidx	;set pointer to active function key string
 @dfk3:
 	jmp scnrts	;restore scan to last column & rts
-
+.endif
 
 ;.editor_patch_end
 
