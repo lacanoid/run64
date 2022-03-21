@@ -1,0 +1,4 @@
+5th.o:	5th.s defs64.inc defs.inc utils.s
+
+5th.s defs64.inc defs.inc utils.s:
+

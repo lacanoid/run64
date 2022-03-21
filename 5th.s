@@ -1,36 +1,120 @@
-cursor = $FB
-
 .include "defs64.inc"
-
-    jmp main
-
+cursor = $FB
 input = BUF
+TMP = $FD
+.macro PUSH arg
+    ldx SP
+    lda #<arg
+    sta STACK,x
+    inx
+    lda #>arg
+    sta STACK,x
+    inx
+    stx SP 
+.endmacro
+
+.macro chrout char
+    pha
+    lda #char
+    jsr CHROUT
+    pla
+.endmacro
+
+jmp main
 
 _dbottom:
 
-blue:
-    .word red
-    .asciiz "BLUE"
-    LDA #14
-    STA COLOR
-    jsr banner
-    RTS
+.macro entry name
+    .word next
+    .asciiz name
+.endmacro
 
-red:
-    .word brown
-    .asciiz "RED"
-    LDA #2
-    STA COLOR
-    jsr banner
-    RTS
+.proc INK
+    entry "INK"
+    PUSH $286
+    rts
+    next:
+.endproc
 
-brown:
-    .word 0 
-    .asciiz "BROWN"
-    LDA #10
-    STA COLOR
-    jsr banner
-    RTS
+.proc POKE
+    entry "POKE"
+    ldx SP
+    lda STACK-4,x
+    sta TMP
+    lda STACK-3,x
+    sta TMP+1
+    lda STACK-2,x
+    ldy #0
+    sta (TMP),y
+    dex
+    dex
+    dex
+    dex
+    stx SP
+    rts
+    next:
+.endproc
+
+.proc PEEK
+    entry "PEEK"
+    ldx SP
+    lda STACK-2,x
+    sta TMP
+    lda STACK-1,x
+    sta TMP+1
+    lda #0
+    tay
+    sta STACK-1,x
+    lda (TMP),y
+    sta STACK-2,x
+    rts
+    next:
+.endproc
+
+.proc ADD 
+    entry "+"
+
+    ldx SP
+    lda STACK-2,x
+    clc 
+    adc STACK-4,x
+    sta STACK-4,x
+    lda STACK-3,x
+    adc STACK-1,x
+    sta STACK-3
+    dex
+    dex
+    stx SP 
+    rts
+    next:
+.endproc
+
+.proc DEPTH
+    entry "DEPTH"
+    lda SP
+    clc 
+    ror
+    jsr WRTWO
+    rts
+    next:
+.endproc
+
+.proc PRINT
+    entry "."
+
+    lda #'$'
+    jsr CHROUT
+    ldx SP
+    dex
+    lda STACK,x
+    jsr WRTWO
+    dex
+    lda STACK,x
+    jsr WRTWO
+    stx SP
+    rts
+    next=0
+.endproc
 
 interpret:
     lda #0
@@ -65,6 +149,96 @@ next_word:
     lda dbottom+1
     sta cursor+1
 
+    lda input,x
+    cmp #'$'
+    bne find_entry
+        jsr match_hex 
+        rts
+    find_entry:
+        jsr match_entry
+        rts 
+
+match_hex:
+    lda #0
+    sta hex_result
+    sta hex_result+1
+
+    hex_digit:
+
+        inx
+
+        lda input,x
+        and #$7f
+        
+        lda input,x
+        and #$7f
+        
+        cmp #33
+        bcc hex_done
+
+        sec 
+        sbc #$30
+        bmi hex_error
+        cmp #10
+        bcc hex_found
+
+        sec
+        sbc #7
+        cmp #9
+        bcc hex_error
+        cmp #15
+        bcs hex_error
+
+    hex_found:
+        ASL hex_result
+        ROL hex_result+1
+        ASL hex_result
+        ROL hex_result+1
+        ASL hex_result
+        ROL hex_result+1
+        ASL hex_result
+        ROL hex_result+1
+        BCS hex_error
+        
+        ORA hex_result
+        STA hex_result
+        BCC hex_digit
+
+    hex_error:
+        lda #'$'
+        jsr CHROUT
+        lda #'?'
+        jsr CHROUT
+        lda input,x
+        jsr CHROUT
+        inc eof
+        rts 
+
+    hex_done:
+        stx offset
+
+        ldx SP
+        lda hex_result
+        sta STACK,x
+        inx 
+        lda hex_result+1
+        sta STACK,x
+        inx 
+        stx SP 
+
+        lda #'$'
+        jsr CHROUT
+        lda hex_result+1
+        jsr WRTWO
+        lda hex_result
+        jsr WRTWO
+        jsr CRLF
+
+        rts 
+
+
+
+
     match_entry:
         ldy #2
         ldx offset
@@ -80,6 +254,7 @@ next_word:
 
         error:
             ; ERROR PANIC
+            inc eof
             rts
 
     next_entry: 
@@ -98,6 +273,7 @@ next_word:
             lda #'?'
             jsr CHROUT
             ; report not found
+            inc eof
             rts
 
     end_entry:
@@ -115,9 +291,6 @@ next_word:
         bcc @f1
         inc cursor+1
     @f1:
-        lda #'!'
-        jsr CHROUT
-;        jsr debug
         jmp (cursor)
         rts
 
@@ -160,6 +333,9 @@ banner:
     JSR SNDMSG    
     rts
 
+
+
+
 .include "utils.s"
 ; -----------------------------------------------------------------------------
 ; message table; last character has high bit set
@@ -177,3 +353,8 @@ dbottom:
 
 eof:
     .byte 0
+
+hex_result: .word 0
+
+SP: .byte 0
+STACK: .res 256
