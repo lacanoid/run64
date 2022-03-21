@@ -33,7 +33,7 @@ zap: clean
 check: run64.d64
 	$(X128) -debugcart -limitcycles 10000000 -sounddev dummy -silent -console -8 $+
 
-disks: fortune run64.d64 run64.d71 run64.d81
+disks: fortune run64.d71 run64.d81
 
 fortune:
 	fortune > issue,s

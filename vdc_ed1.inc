@@ -87,12 +87,14 @@ vectss:
 	.word contrl	;print <ctrl> indirect
 	.word shiftd	;print <shft> indirect
 	.word escape	;print <esc>  indirect
+.if feature_scnkey=1
 	.word keylog	;keyscan logic indirect
 	.word keyput	;key buffer indirect
+.endif
 vectse:
 
 
-
+.if feature_scnkey=1
 keycod:
 	.word mode1	;decode matrix for normal keys
 	.word mode2	;decode matrix for shifted keys (right keycap legends)
@@ -101,6 +103,7 @@ keycod:
 	.word mode1	;decode matrix for alt keys	(none- default to norm)
 	.word mode5	;decode matrix for caps lock
 keyend:
+.endif
 
 ;	.page
 ;//////   S C R E E N   &   E D I T O R   I N I T I A L I Z A T I O N   \\\\\\
@@ -186,19 +189,23 @@ cint:
 	bit init_status	;skip if nmi or user call
 	bvs @cint6
 
+.if feature_scnkey=1
 	ldx #keyend-keycod-1
 @cint4:
 	lda keycod,x
 	sta decode,x	;initialize keyboard matrix lookup tables
 	dex
 	bpl @cint4
+.endif
 
+.if feature_pfkey=1
 	ldx #pkyend-pkytbl-1
 @cint5:
 	lda pkytbl,x	;initialize programmable key definitions
 	sta pkybuf,x
 	dex
 	bpl @cint5
+.endif
 
 	lda #$40	;flag installation
 	ora init_status
@@ -286,6 +293,7 @@ scolor:
 ;	.page \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 ;/////////////////   E D I T O R   I R Q   R O U T I N E S   \\\\\\\\\\\\\\\\\\
 
+.if feature_irq=1
 irq:
 	sec
 	lda vicreg+25	;is this a vic raster irq?
@@ -405,11 +413,16 @@ irqrts:
 	sec		;tell kernal this was the 60hz irq
 @ir20:
 	rts
+.else
+irq:
+	rts
+.endif
 
 ;	.page \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 ;///////////////   E D I T O R   I N P U T   R O U T I N E S   \\\\\\\\\\\\\\\\
 
 lp2: ;fetch a character from irq key buffer
+.if feature_pfkey=1
 	ldx kyndx	;check for function key strings first
 	beq @lp1  	;...branch if none
 	ldy keyidx     	;get index to current character in key string
@@ -419,7 +432,7 @@ lp2: ;fetch a character from irq key buffer
 	cli
 	clc		;always a good return from keyboard
 	rts
-
+.endif
 @lp1:
 	ldy KEYD	;get a key from irq buffer (.x=0 from 'lp2')
 @lp2:

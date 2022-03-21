@@ -339,6 +339,7 @@ plot:
 	rts
 
 ;	.page
+.if feature_pfkey=1
 ;*************************************************************************
 ;
 ;	KEYSET - redefine a programmable function key
@@ -446,5 +447,35 @@ findky:
 	bcc @fi1
 @fi2:
 	rts
+
+dopfky_patch:
+;  fixes the problem of function keys overwriting previous function key
+;  string still in buffer.  Also exits via 'scnrts', as it should have.
+
+	lda kyndx	;function key buffer in use?
+	bne @dfk3		;...branch if active- ignore this scan
+
+	lda pkybuf,x    ;set length of new function key string
+	sta kyndx
+	lda #0    	;index to start of string
+
+	clc
+@dfk1:
+	dex		;pointer to string = sum(len(string(0-X)))
+	bmi @dfk2
+	adc pkybuf,x
+	bcc @dfk1		;...always
+
+@dfk2:
+	sta keyidx	;set pointer to active function key string
+@dfk3:
+	jmp scnrts	;restore scan to last column & rts
+
+.else  ; no function keys
+
+keyset:
+	rts
+
+.endif
 
 ;.end

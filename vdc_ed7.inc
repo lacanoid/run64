@@ -50,6 +50,7 @@ runtb:	.byte $44,$cc,$22,$2a,cr,"RUN",cr	;dL"* <cr> run <cr>
 helptb:	.byte "HELP",cr
 pkyend:
 
+.if feature_scnkey=1
 
 mode1:						;normal keys
 
@@ -126,3 +127,4 @@ mode5:						;caps lock mode
 	.byte $08,$30,$2e,$91,$11,$9d,$1d,$ff  ;alt (0) (.) /up /dn /lf /rt scl
 	.byte $ff
 
+.endif

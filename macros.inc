@@ -23,6 +23,13 @@
        sta arg1
 .endmacro
          
+.macro mov16 arg1,arg2
+       lda arg2
+       sta arg1
+       lda arg2+1
+       sta arg1+1
+.endmacro
+
 .macro nop2
        .byte $24
 .endmacro

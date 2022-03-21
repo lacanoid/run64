@@ -66,7 +66,9 @@ FNADR     = $BB        ; (2) Pointer: Current Filename
 ; -----------------------------------------------------------------------------
 ; temporary pointers
 TMP0      = $C1        ; used to return input, often holds end address
+TMP1      = $C2        ;
 TMP2      = $C3        ; usually holds start address
+TMP3      = $C4        ;
 ; -----------------------------------------------------------------------------
 
 VICSCN    = $0400     ; default screen memory
