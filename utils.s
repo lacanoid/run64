@@ -98,12 +98,14 @@ GETFNADR1:
 GETFNADR2:              ; get up to the terminator char
         dec CHRPNT
         lda #<BUF
-        add CHRPNT
+        clc
+        adc CHRPNT
         tax
         lda #>BUF
         adc #0
         tay
-        stxy FNADR
+        stx FNADR
+        sty FNADR+1
         inc CHRPNT
 
         ldy #0              ; compute file name length
@@ -120,7 +122,8 @@ GETFNADRE:
         sta CHRPNT
 
         tya
-        ldxy FNADR
+        ldx FNADR
+        ldy FNADR+1
         cmp #0
         rts
 GETFNTERM:

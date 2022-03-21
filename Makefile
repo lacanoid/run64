@@ -77,4 +77,7 @@ raster: raster.o
 mtop: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
 mtop: mtop.o
 
+5th: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
+5th: 5th.o
+
 -include *.dep
