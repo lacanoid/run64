@@ -1,46 +1,61 @@
+
 .proc DROP
     entry "DROP"
-    ldx SP
-    dex
-    dex 
-    stx SP
+    SP_DEC
     rts
     next:
 .endproc
 
+.proc SWAP
+    entry "SWAP"
+    SP_LOAD
+    COPY 1,0
+    COPY 2,1
+    COPY 0,2
+    rts
+    next:
+.endproc
+
+.proc OVER
+    entry "OVER"
+    SP_LOAD
+    COPY 2,0
+    SP_INC
+    rts
+    next:
+.endproc
 
 .proc DUP
     entry "DUP"
-    ldx SP
-    lda STACK-2,x
-    sta STACK,x
-    inx 
-    lda STACK-2,x
-    sta STACK,x
-    inx 
-    stx SP
+    SP_LOAD
+    COPY 1,0
+    SP_INC
     rts
     next:
 .endproc
 
-.proc _SP
-    entry "SP"
-    lda SP
-    jsr WRTWO
+.proc CLEAR
+    entry "CLEAR"
+    lda #0
+    sta SP
     rts
     next:
 .endproc
 
-.proc _STACK
-    entry ".S"
-    lda #'('
-    jsr CHROUT
-    lda SP
-    lsr
-    jsr WRTWO 
-    lda #')'
-    jsr CHROUT
 
+
+.proc _COUNT
+    entry "COUNT"
+    SP_LOAD
+    PUSH_BYTE_FROM SP
+    rts
+    next:
+.endproc
+
+.proc PRINT_STACK
+    entry "??"
+    PrintChr '#'
+    
     ldx SP 
     loop:
         cpx #1
@@ -64,35 +79,26 @@
 
 .proc HEX
     entry ".$"
-
-    lda #'$'
-    jsr CHROUT
-    ldx SP
-    dex
-    lda STACK,x
-    jsr WRTWO
-    dex
-    lda STACK,x
-    jsr WRTWO
-    stx SP
+    SP_LOAD
+    jsr print_hex 
+    jsr DROP
     rts
     next:
 .endproc
 
 .proc DEC
     entry "."
-    ldx SP 
+    SP_LOAD 
     jsr print_dec
-    dex
-    dex
-    stx SP
+    jsr DROP
+    PrintChr ' '
     rts
     next:     
 .endproc 
 
 .proc LOOK
     entry "?"
-    ldx SP 
+    SP_LOAD
     jsr print_dec
     rts
     next=0     

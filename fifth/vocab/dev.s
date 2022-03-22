@@ -1,7 +1,7 @@
 
 .proc VLIST
     entry "VLIST"
-    jsr reset_cursor
+    jsr vocab__reset_cursor
     
     print_entry:
         ldy #5
@@ -14,7 +14,7 @@
             bne print_char
         chars_done:
         jsr CRLF
-        jsr advance_cursor
+        jsr vocab__advance_cursor
         bne print_entry
     
     rts
@@ -24,6 +24,7 @@
 .proc WHITE
     entry "WHITE"
     jsr INK
+    SP_LOAD
     PUSH $1
     jsr POKE
     rts
@@ -32,6 +33,7 @@
 
 .proc INK
     entry "INK"
+    SP_LOAD
     PUSH $286
     rts
     next:
@@ -39,35 +41,28 @@
 
 .proc POKE
     entry "POKE"
-    ldx SP
-    lda STACK-4,x
-    sta TMP
-    lda STACK-3,x
-    sta TMP+1 
-    lda STACK-2,x
+    SP_LOAD
+    COPY_TO 2,TMP
+    GET_LO 1
+    
     ldy #0
     sta (TMP),y
-    dex
-    dex
-    dex
-    dex
-    stx SP
+
+    SP_DEC
+    SP_DEC
+    ;PUSH_FROM TMP
+    ;PUSH_A
     rts
     next:
 .endproc
 
 .proc PEEK
     entry "PEEK"
-    ldx SP
-    lda STACK-2,x
-    sta TMP
-    lda STACK-1,x
-    sta TMP+1
-    lda #0
-    tay
-    sta STACK-1,x
+    SP_LOAD
+    COPY_TO 1,TMP
+    ldy #0
     lda (TMP),y
-    sta STACK-2,x
+    INSERT_A 1
     rts
     next:
 .endproc

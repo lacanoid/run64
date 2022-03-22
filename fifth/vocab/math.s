@@ -48,7 +48,6 @@
     multiplier	= STACK-4
     multiplicand	= STACK-2 
     product		= STACK 
-    
     ldx SP
     mult16:
         lda	#$00
