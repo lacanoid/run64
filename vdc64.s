@@ -15,6 +15,11 @@ org = $C000
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.
 resultRegister = $d7ff
+        ; autodetect vdc version and exit if not found
+        jsr detect
+        lda vdc_config
+        beq perror
+        ; copy editor code into place
         ldx #>(mainend-main)
         inx
         ldy #0
@@ -26,10 +31,7 @@ resultRegister = $d7ff
         inc @l2+2
         dex 
         bpl @l1
-
-        jsr detect
-        lda vdc_config
-        beq perror
+        ; initialize
         jsr org
         jsr banner
         rts
@@ -45,7 +47,7 @@ detect: ; detect VDC
         bne @d1
         ; no vdc
         rts
-@d2:
+@d2:    ; vdc detected
         lda vdcdat
         sta vdc_config
         rts
