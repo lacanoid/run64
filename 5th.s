@@ -277,12 +277,7 @@ _dbottom:
         lda #' '
         jsr CHROUT
         
-        lda #'$'
-        jsr CHROUT
-        lda STACK-1,x
-        jsr WRTWO
-        lda STACK-2,x
-        jsr WRTWO
+        jsr print_dec
         dex
         dex
         clc 
@@ -314,49 +309,28 @@ _dbottom:
 
 .proc DEC
     entry "."
-    
-    X0=STACK-2
-    X1=STACK-1
     ldx SP 
-    ; Print a 16 bit unsigned binary integer in base 10
-    ; Leading zeros are omitted
+    jsr print_dec
+    dex
+    dex
+    stx SP
+    rts
+    next:     
+.endproc 
 
-    PRINT_UINT16:
-      LDA      #0                  ; terminator for digits on stack
-    PRINT_UINT16_1:
-      PHA                         ; push terminator or digit onto stack
-      LDA     #0                  ; accumulator for division
-      CLV                         ; V flag will be set if any quotient bit is 1
-      LDY     #16                 ; number of input bits to process
-    PRINT_UINT16_2:
-      CMP     #5                  ; is accumulator >= 5 ?
-      BCC     PRINT_UINT16_3
-      SBC     #$85                ; if so, subtract 5, toggle bit 7 and set V flag (unwanted bit 7 will be shifted out imminently)
-      SEC                         ; set C (=next quotient bit)
-    PRINT_UINT16_3:
-      ROL     X0,x                  ; shift quotient bit into X while shifting out next dividend bit into A
-      ROL     X1,x
-      ROL                         ; shift dividend into A
-      DEY
-      BNE     PRINT_UINT16_2     ; loop until all original dividend bits processed
-      ORA     #$30                ; A contains remainder from division by 10 - convert to ASCII digit
-      BVS     PRINT_UINT16_1     ; if quotient was not zero, loop back to push digit on stack then divide by 10 again
-  PRINT_UINT16_4:
-      PHA
-      JSR CHROUT
-      PLA
-      PLA                         ; retrieve next digit from stack (or zero terminator)
-      BNE     PRINT_UINT16_4     ; if not terminator, print digit
-      dex
-      dex
-      stx SP
-      RTS  
+.proc LOOK
+    entry "?"
+    ldx SP 
+    jsr print_dec
+    rts
     next=0     
 .endproc 
 
 .proc print_dec ; expects SP in x
-    X0=STACK-2
-    X1=STACK-1
+    lda STACK-2,x
+    sta X0 
+    lda STACK-1,x
+    sta X1  
 
     ; Print a 16 bit unsigned binary integer in base 10
     ; Leading zeros are omitted
@@ -374,8 +348,8 @@ _dbottom:
       SBC     #$85                ; if so, subtract 5, toggle bit 7 and set V flag (unwanted bit 7 will be shifted out imminently)
       SEC                         ; set C (=next quotient bit)
     PRINT_UINT16_3:
-      ROL     X0,x                  ; shift quotient bit into X while shifting out next dividend bit into A
-      ROL     X1,x
+      ROL     X0                  ; shift quotient bit into X while shifting out next dividend bit into A
+      ROL     X1
       ROL                         ; shift dividend into A
       DEY
       BNE     PRINT_UINT16_2     ; loop until all original dividend bits processed
@@ -387,11 +361,9 @@ _dbottom:
       PLA
       PLA                         ; retrieve next digit from stack (or zero terminator)
       BNE     PRINT_UINT16_4     ; if not terminator, print digit
-      dex
-      dex
-      stx SP
-      RTS  
-    next=0     
+      RTS
+    X0: .byte 0
+    X1: .byte 0
 .endproc 
 
 .proc interpret
