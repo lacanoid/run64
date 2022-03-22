@@ -160,8 +160,8 @@ esc   = 27
 space = 32
 quote = 34
 
-sedsal  = $FB
-sedeal  = $FD
+sedsal  = $D9
+sedeal  = $DB
 
 swapbeg:
 pnt:    .word 0     ; = PNT

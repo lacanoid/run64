@@ -5,7 +5,7 @@ X128 := x128
 
 TIME := $(shell date +%y%m%d%H%M%S)
 VOLNAME := run64 ${TIME},sy
-PROGRAMS := kmon pip patch64 patch128 vdc64 5th raster mtop
+PROGRAMS := kmon pip patch64 patch128 vdc64 raster mtop
 
 ifdef CC65_HOME
 	AS := $(CC65_HOME)/bin/$(AS)
