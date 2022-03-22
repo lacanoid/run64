@@ -25,6 +25,7 @@ localabs:
 
 ;	.page
 
+.if feature_pfkey=1
 pkytbl:				;pre-programmed function key definitions
 	.byte pky2-pky1
 	.byte pky3-pky2
@@ -49,6 +50,7 @@ pky8:	.byte "MONITOR",cr
 runtb:	.byte $44,$cc,$22,$2a,cr,"RUN",cr	;dL"* <cr> run <cr>
 helptb:	.byte "HELP",cr
 pkyend:
+.endif
 
 .if feature_scnkey=1
 

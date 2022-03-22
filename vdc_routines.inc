@@ -6,7 +6,8 @@ swap:
 
 swapper:
 	jsr swapzpout
-	ldx #swapend-swapbeg
+swapper1:
+	ldx #swapend-swapbeg-1
 @s1:	
 	ldy swapout,x
 	lda swapbeg,x	;swap local editor variables
