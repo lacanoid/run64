@@ -7,7 +7,7 @@ coltab:
 
 coladj:
 	.byte $00,$0f,$08,$07,$0b,$04,$02,$0d		;convert rgbi to c64 colors
-	.byte $0a,$0c,$09,$06,$01,$05,$03,$0e
+	.byte $0a,$0c,$09,$01,$06,$05,$03,$0e
 
 bits:
 	.byte $80,$40,$20,$10,$08,$04,$02,$01

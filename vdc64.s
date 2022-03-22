@@ -99,7 +99,7 @@ exit:
         rts
 
 msg:    .byte 7
-        .asciiz "C128 EDITOR "
+        .asciiz "VDC64 0.7 "
 
 ; --------------------------
 data:
@@ -304,7 +304,21 @@ mmucfg:
 ; -- hook into system
 
 configure:
+        lda COLOR
+        pha
         jsr cint
+        pla
+        and #$0F
+        tay 
+        lda coladj,y
+        sta COLOR
+
+        ldx #$1a
+        lda BGCOL0
+        and #$0F
+        tay 
+        lda coladj,y
+        jsr vdcout
 
         lda #<new_basin
 	sta IBASIN

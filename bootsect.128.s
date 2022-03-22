@@ -26,9 +26,9 @@ prg:    .asciiz ""      ; don't load a .PRG - we do that in stage2
 
 ; config parameters
 bootctl:.byte 0       ; boot control
-bootbgc:.byte 0       ; background color
+bootbgc:.byte 11      ; background color
 bootfgc:.byte 1       ; foreground color
-bootexc:.byte 0       ; border color
+bootexc:.byte 11      ; border color
 
 ; actual bootloader
 .segment "BOOT128"
