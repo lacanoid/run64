@@ -18,9 +18,13 @@
        ldy #>arg
 .endmacro
 
-.macro mov arg1,arg2
+.macro mov8 arg1,arg2
        lda arg2
        sta arg1
+.endmacro
+         
+.macro mov arg1,arg2
+       mov8 arg1,arg2
 .endmacro
          
 .macro mov16 arg1,arg2
