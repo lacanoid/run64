@@ -211,7 +211,7 @@ cint:
 	ora init_status
 	sta init_status
 @cint6:
-	jsr swapper	;swap in 80-col vars
+	jsr swapper1	;swap in 80-col vars
 	jsr taball	;initialize 80-col tab stops
 	jsr sreset	;clear 80-col wrap table
 	jsr clsr	;clear 80-col text screen
@@ -223,8 +223,8 @@ cint:
 .ifdef target_c128
 	bit mmumcr	;test 40/80 key & stay in that mode
 	bmi @cint10	;...branch if 40 (vic) mode (current mode)
-	jsr swapper	;swap in 80-col mode
 .endif
+	jsr swapper	;swap in 80-col mode
 @cint10:
 	rts
 
@@ -422,9 +422,9 @@ irq:
 ;///////////////   E D I T O R   I N P U T   R O U T I N E S   \\\\\\\\\\\\\\\\
 
 lp2: ;fetch a character from irq key buffer
-.if feature_pfkey=1
 	ldx kyndx	;check for function key strings first
 	beq @lp1  	;...branch if none
+.if feature_pfkey=1
 	ldy keyidx     	;get index to current character in key string
 	lda pkydef,y	;get the character
 	dec kyndx	;one less character in string

@@ -624,7 +624,7 @@ DIRECT: LDA TMP0            ; load device address
         LDA #$F0            ; secondary address 0 (only low nybble used)
         JSR SECOND
         LDX CHRPNT          ; get index of next character
-DIR2:   LDA BUF,X        ; get next character from buffer
+DIR2:   LDA BUF,X           ; get next character from buffer
         BEQ DIR3            ; break if it's null
         JSR CIOUT           ; send character to device
         INX                 ; increment characer index
@@ -637,7 +637,7 @@ DIR3:   JSR UNLSN           ; command device to unlisten
         LDA #$60            ; secondary address 0 (only low nybble used)
         JSR TKSA
         LDY #3              ; read 3 16-bit values from device
-DIRLIN: STY STORE           ;   ignore the first 2; 3rd is file size
+DIRLIN: STY STORE           ; ignore the first 2; 3rd is file size
 DLINK:  JSR ACPTR           ; read low byte from device
         STA TMP0            ; store it
         LDA STATUS           ; check status

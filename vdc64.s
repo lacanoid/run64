@@ -7,15 +7,14 @@
 .forceimport __EXEHDR__
 
 feature_scnkey=0   ; keyboard scan routine
-feature_pfkey=1    ; programmable function keys
+feature_pfkey=0    ; programmable function keys
 feature_irq=0      ; raster interrupt service routine
 
-org = $8000
+org = $C000
 
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.
 resultRegister = $d7ff
-
         ldx #>(mainend-main)
         inx
         ldy #0
@@ -28,7 +27,79 @@ resultRegister = $d7ff
         dex 
         bpl @l1
 
-        jmp org
+        jsr detect
+        lda vdc_config
+        beq perror
+        jsr org
+        jsr banner
+        rts
+
+detect: ; detect VDC
+        ldy #0
+        ldx #$1c
+        stx vdcadr
+@d1:
+        bit vdcadr
+        bmi @d2
+        dey
+        bne @d1
+        ; no vdc
+        rts
+@d2:
+        lda vdcdat
+        sta vdc_config
+        rts
+
+perror:
+        ldx #0
+@pe1:   lda emsg, x
+        beq @pe2
+        jsr CHROUT
+        inx
+        bne @pe1
+@pe2:
+        rts
+
+emsg:   .asciiz "NO VDC. TRY C128."
+
+banner: ; print banner and info
+        ldx #0
+@m1:    lda msg, x
+        beq @m2
+        jsr CHROUT
+        inx
+        bne @m1
+@m2:
+        ldx vdc_config
+;        beq @m_16k
+;@m_64k:
+;        ldx #64
+;        nop3
+;@m_16k:
+;        ldx #16
+        lda #0
+        jsr LINPRT
+
+;        lda #'K'
+;        jsr CHROUT
+        lda #' '
+        jsr CHROUT
+
+@m3:
+        ldx #<mode
+        lda #>mode
+        jsr LINPRT
+
+exit:
+        lda #0
+        sta resultRegister
+
+;        jmp ($a000)
+
+        rts
+
+msg:    .byte 7
+        .asciiz "VDC64 0.7 "
 
 ; --------------------------
 data:
@@ -63,7 +134,7 @@ d2pra   = cia2
 blnsw   = $cc
 
 ;////////////////   E D I T O R     J U M P     T A B L E   \\\\\\\\\\\\\\\\\
-	jmp cint	;initialize editor & screen
+;	jmp cint	;initialize editor & screen
 	jmp disply	;display character in .a, color in .x
 	jmp lp2		;get a key from irq buffer into .a
 	jmp loop5	;get a chr from screen line into .a
@@ -148,13 +219,13 @@ tabmap: .res  10
 bitabl: .res  4
 
 init_status: .byte 0 ; flags reset vs. nmi status for initialization routines
+vdc_config:  .byte 0 ; vdc memory & version (autodetected)
 
 ctlvec: .word 0     ; editor: print 'contrl' indirect
 shfvec: .word 0     ; editor: print 'shiftd' indirect
 escvec: .word 0     ; editor: print 'escape' indirect
 keyvec: .word 0     ; editor: keyscan logic  indirect
 keychk: .word 0     ; editor: store key indirect
-decode: .res  12    ; vectors to keyboard matrix decode tables
 
 ldtb1_sa:  .byte 0      ; high byte of sa of vic screen (use with vm1 to move screen)
 clr_ea_lo: .byte 0      ; ????? 8563 block fill kludge
@@ -173,6 +244,7 @@ sedt2:
 keytmp:	.byte 0		;
 
 .if feature_pfkey=1
+decode: .res  12    ; vectors to keyboard matrix decode tables
 pkynum	= 10		;number of definable keys  (f1-f8, <shft>run, help)
 pkybuf:	.res pkynum	;programmable function key lengths table
 pkydef:	.res 256-pkynum	;programmable function key strings
@@ -232,21 +304,21 @@ mmucfg:
 ; -- hook into system
 
 configure:
-        ldx #0
-@m1:    lda msg, x
-        beq @m2
-        jsr CHROUT
-        inx
-        bne @m1
-
-@m2:
-        ldx #<mode
-        lda #>mode
-        jsr LINPRT
-
+        lda COLOR
+        pha
         jsr cint
-        lda #7
-        jsr print
+        pla
+        and #$0F
+        tay 
+        lda coladj,y
+        sta COLOR
+
+        ldx #$1a
+        lda BGCOL0
+        and #$0F
+        tay 
+        lda coladj,y
+        jsr vdcout
 
         lda #<new_basin
 	sta IBASIN
@@ -258,15 +330,7 @@ configure:
 	lda #>new_bsout
 	sta IBSOUT + 1
 
-exit:
-        lda #0
-        sta resultRegister
-
-;        jmp ($a000)
-
         rts
-
-msg:    .asciiz "C128 EDITOR "
 
 new_bsout:
 	sta DATA
