@@ -479,7 +479,19 @@ tabrts:
 beep:
 	bit beeper	;generate 'bell' tone for <ctrl>-G
 	bmi tabrts	;...branch if disabled
-	lda #$15
+
+.if 0
+	ldy #0
+@beep1:
+	lda beeppar,Y
+	tax
+	iny
+	lda beeppar,Y
+	sta sidreg,x
+	iny
+	cpy #beeppar1-beeppar
+	bne @beep1
+.else
 	sta sidreg+24	;set volume control
 	ldy #$09
 	ldx #$00
@@ -491,9 +503,16 @@ beep:
 	sta sidreg+4	;set waveform & ungate
 	lda #$21
 	sta sidreg+4	;gate it
+.endif
 	rts
 
-
+beeppar:
+	.byte 24,15			; volume
+	.byte 5,$09,6,$00	; envelope
+	.byte 2,$30     	; frequency
+	.byte 4,$20     	; set waveform & ungate
+	.byte 4,$21			; gate it
+beeppar1:
 
 lfeed:
 	lda PNTR	;move to next logical line but retain current column pointer
