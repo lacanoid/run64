@@ -1,4 +1,4 @@
-.include "defs64.inc"
+.include "../defs64.inc"
 cursor = $FB
 input = BUF
 TMP = $FD
@@ -33,298 +33,7 @@ _dbottom:
     exec:
 .endmacro
 
-.proc VLIST
-    entry "VLIST"
-    jsr reset_cursor
-    
-    print_entry:
-        ldy #5
-        print_char:
-            lda (cursor),y
-            jsr CHROUT
-            cmp #33
-            bcc chars_done
-            iny 
-            bne print_char
-        chars_done:
-        jsr CRLF
-        jsr advance_cursor
-        bne print_entry
-    
-    rts
-    next:
-.endproc
-
-.proc WHITE
-    entry "WHITE"
-    jsr INK
-    PUSH $1
-    jsr POKE
-    rts
-    next:
-.endproc
-
-.proc INK
-    entry "INK"
-    PUSH $286
-    rts
-    next:
-.endproc
-
-.proc POKE
-    entry "POKE"
-    ldx SP
-    lda STACK-4,x
-    sta TMP
-    lda STACK-3,x
-    sta TMP+1
-    lda STACK-2,x
-    ldy #0
-    sta (TMP),y
-    dex
-    dex
-    dex
-    dex
-    stx SP
-    rts
-    next:
-.endproc
-
-.proc PEEK
-    entry "PEEK"
-    ldx SP
-    lda STACK-2,x
-    sta TMP
-    lda STACK-1,x
-    sta TMP+1
-    lda #0
-    tay
-    sta STACK-1,x
-    lda (TMP),y
-    sta STACK-2,x
-    rts
-    next:
-.endproc
-
-.proc DIV
-    entry "/"
-    divisor = STACK-2     ;$59 used for hi-byte
-    dividend = STACK-4	  ;$fc used for hi-byte
-    remainder = STACK 	  ;$fe used for hi-byte
-    temp = STACK+2
-    result = dividend ;save memory by reusing divident to store the result
-
-    ldx SP
-
-    divide:
-    	lda #0	        ;preset remainder to 0
-        sta remainder,x
-        sta remainder+1,x
-        ldy #16	        ;repeat for each bit: ...
-
-    divloop:
-        asl dividend,x	;dividend lb & hb*2, msb -> Carry
-        rol dividend+1,x	
-        rol remainder,x	;remainder lb & hb * 2 + msb from carry
-        rol remainder+1,x
-        lda remainder,x
-        sec
-        sbc divisor,x	;substract divisor to see if it fits in
-        sta temp,x       ;lb result -> temp, for we may need it later
-        lda remainder+1,x
-        sbc divisor+1,x
-        bcc skip	;if carry=0 then divisor didn't fit in yet
-
-        sta remainder+1,x	;else save substraction result as new remainder,
-        lda temp,x
-        sta remainder,x	
-        inc result,x	;and INCrement result cause divisor fit in 1 times
-
-    skip:
-        dey
-        bne divloop	
-        dex
-        dex
-        stx SP 
-        rts
-    next:
-.endproc
-.proc MUL
-    entry "*"
-
-    multiplier	= STACK-4
-    multiplicand	= STACK-2 
-    product		= STACK 
-    
-    ldx SP
-    mult16:
-        lda	#$00
-        sta	product+2,x	; clear upper bits of product
-        sta	product+3,x 
-        ldy	#$10		; set binary count to 16 
-    shift_r:
-        lsr	multiplier+1,x	; divide multiplier by 2 
-        ror	multiplier,x
-        bcc	rotate_r 
-        lda	product+2,x	; get upper half of product and add multiplicand
-        clc
-        adc	multiplicand,x
-        sta	product+2,x
-        lda	product+3,x 
-        adc	multiplicand+1,x
-    rotate_r:
-    	ror			; rotate partial product 
-        sta	product+3,x 
-        ror	product+2,x
-        ror	product+1,x
-        ror	product,x
-        dey
-        bne	shift_r
-        lda product,x
-        sta multiplier,x
-        lda product+1,x
-        sta multiplier+1,x
-        dex
-        dex
-        stx SP
-
-        rts
-    next:
-.endproc
-.proc ADD 
-    entry "+"
-
-    ldx SP
-    clc 
-    lda STACK-4,x
-    adc STACK-2,x
-    sta STACK-4,x
-    lda STACK-3,x
-    adc STACK-1,x
-    sta STACK-3
-    dex
-    dex
-    stx SP 
-    rts
-    next:
-.endproc
-.proc SUB 
-    entry "-"
-
-    ldx SP
-    sec 
-    lda STACK-4,x
-    sbc STACK-2,x
-    sta STACK-4,x
-    lda STACK-3,x
-    sbc STACK-1,x
-    sta STACK-3
-    dex
-    dex
-    stx SP 
-    rts
-    next:
-.endproc
-
-.proc DROP
-    entry "DROP"
-    ldx SP
-    dex
-    dex 
-    stx SP
-    rts
-    next:
-.endproc
-
-
-.proc DUP
-    entry "DUP"
-    ldx SP
-    lda STACK-2,x
-    sta STACK,x
-    inx 
-    lda STACK-2,x
-    sta STACK,x
-    inx 
-    stx SP
-    rts
-    next:
-.endproc
-
-.proc _SP
-    entry "SP"
-    lda SP
-    jsr WRTWO
-    rts
-    next:
-.endproc
-
-.proc _STACK
-    entry ".S"
-    lda #'('
-    jsr CHROUT
-    lda SP
-    lsr
-    jsr WRTWO 
-    lda #')'
-    jsr CHROUT
-
-    ldx SP 
-    loop:
-        cpx #1
-        bcc done 
-
-        lda #' '
-        jsr CHROUT
-        
-        jsr print_dec
-        dex
-        dex
-        clc 
-        bcc loop
-
-    done:
-        jsr CRLF
-        rts
-    next:
-.endproc
-
-
-.proc HEX
-    entry ".$"
-
-    lda #'$'
-    jsr CHROUT
-    ldx SP
-    dex
-    lda STACK,x
-    jsr WRTWO
-    dex
-    lda STACK,x
-    jsr WRTWO
-    stx SP
-    rts
-    next:
-.endproc
-
-.proc DEC
-    entry "."
-    ldx SP 
-    jsr print_dec
-    dex
-    dex
-    stx SP
-    rts
-    next:     
-.endproc 
-
-.proc LOOK
-    entry "?"
-    ldx SP 
-    jsr print_dec
-    rts
-    next=0     
-.endproc 
+.include "vocab/index.s"
 
 .proc print_dec ; expects SP in x
     lda STACK-2,x
@@ -639,7 +348,8 @@ main:
     jsr CRLF
     jsr interpret
     jsr CRLF
-    jmp main
+    lda f_quit
+    beq main
     rts
 
 debug:
@@ -676,7 +386,7 @@ banner:
 
 
 
-.include "utils.s"
+.include "../utils.s"
 ; -----------------------------------------------------------------------------
 ; message table; last character has high bit set
 MSGBAS  =*
@@ -692,6 +402,9 @@ dbottom:
     .word _dbottom
 
 eof:
+    .byte 0
+
+f_quit:
     .byte 0
 
 hex_result: .word 0

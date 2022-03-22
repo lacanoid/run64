@@ -1,4 +1,4 @@
-5th.o:	5th.s defs64.inc defs.inc utils.s
+5th.o:	5th.s 5th_inc/inc/defs64.s 5th_inc/inc/./defs.s 5th_inc/entries.s 5th_inc/math.s 5th_inc/utils.s
 
-5th.s defs64.inc defs.inc utils.s:
+5th.s 5th_inc/inc/defs64.s 5th_inc/inc/./defs.s 5th_inc/entries.s 5th_inc/math.s 5th_inc/utils.s:
 

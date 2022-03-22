@@ -1,0 +1,4 @@
+5th.o:	5th.s ../defs64.inc .././defs.inc vocab/index.s vocab/dev.s vocab/math.s vocab/stack.s ../utils.s
+
+5th.s ../defs64.inc .././defs.inc vocab/index.s vocab/dev.s vocab/math.s vocab/stack.s ../utils.s:
+

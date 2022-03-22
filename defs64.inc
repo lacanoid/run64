@@ -1,4 +1,4 @@
-.include "defs.inc"
+.include "./defs.inc"
 
 KEYD   = $0277  ; start of keyboard buffer for C64 screen editor
 NDX    = $C6    ; keyboard buffer count for C64 screen editor

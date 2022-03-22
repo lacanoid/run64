@@ -91,7 +91,7 @@ GETFNADR1:
         BEQ GETFNADR2   ; end of string
         CMP #$20        ; skip leading spaces
         BEQ GETFNADR1
-        CMP #'"'
+        CMP #'"'        ;"
         BNE GETFNADR2   ; not a quoted string
         sta GETFNTERM
         JSR GETCHR      ; skip quote
