@@ -38,8 +38,34 @@
 .proc print_hex
   PrintChr '$'
   GetHi 1
-  jsr WRTWO
+  jsr print_hex_digits
   GetLo 1
-  jsr WRTWO
+  jsr print_hex_digits
   rts 
+.endproc
+
+.proc print_hex_digit
+  sec
+  IfGe #11, big
+    adc #'0'
+    jsr CHROUT
+    rts
+  big:
+    adc #'A'
+    jsr CHROUT
+    rts
+.endproc
+
+.proc print_hex_digits
+  pha
+  lsr 
+  lsr 
+  lsr 
+  lsr
+  jsr print_hex_digit
+
+  pla
+  and $0f
+  jsr print_hex_digit 
+  rts
 .endproc

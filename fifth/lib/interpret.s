@@ -10,9 +10,10 @@
     IfTrue f_error,catch
     jmp loop
   break:
-    ColorSet 1
+    ColorPush 1
     PrintChr 'O'
     PrintChr 'K'
+    ColorPop
     NewLine
     rts
   catch:
@@ -21,7 +22,7 @@
 .endproc
 
 .proc print_error
-  ColorSet 1
+  ColorPush 1
   PrintChr '?'
   ldx offset
   loop:
@@ -32,6 +33,7 @@
     jmp loop
   done:
     NewLine
+    ColorPop
     rts 
 .endproc
 

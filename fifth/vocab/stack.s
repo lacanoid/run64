@@ -37,7 +37,7 @@
 .proc CLEAR
     Entry "CLEAR"
     lda #0
-    sta SP
+    sta f_SP
     rts
     next:
 .endproc
@@ -47,7 +47,7 @@
 .proc _COUNT
     Entry "COUNT"
     SpLoad
-    PushByteFrom SP
+    PushByteFrom f_SP
     rts
     next:
 .endproc
@@ -56,7 +56,7 @@
     Entry "??"
     PrintChr '#'
     
-    ldx SP 
+    ldx f_SP 
     loop:
         cpx #1
         bcc done 
@@ -72,7 +72,7 @@
         bcc loop
 
     done:
-        jsr CRLF
+        NewLine
         rts
     next:
 .endproc

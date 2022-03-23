@@ -21,10 +21,29 @@ TMP = $FD
     sta COLOR
 .endmacro
 
-.macro PrintMsg arg1
-  ldy #arg1-MSGBAS
-  jsr SNDMSG
+
+.macro PrintString2 str
+  .local string
+  .local loop
+  .local done
+  ldx 0
+  loop:
+    lda string,x
+    beq done
+    jsr CHROUT
+    inx
+  bne loop  
+  jmp done
+  string: 
+    .asciiz str
+  done:
 .endmacro
+
+.macro PrintString c
+  lda #'>'
+  jsr CHROUT
+.endmacro
+
 
 .macro PrintChr c
   lda #c
@@ -32,19 +51,19 @@ TMP = $FD
 .endmacro
 
 .macro NewLine
-  jsr CRLF
+  PrintChr 13
 .endmacro
 
-.macro ClearScreen
+.macro ClearScreen 
   PrintChr 147
 .endmacro
 
+
 jmp main
 
-_dbottom:
+;.include "../kmon.inc"
 
 
-.include "vocab/index.s"
 .include "lib/interpret.s"
 .include "lib/parse.s"
 .include "lib/print.s"
@@ -54,7 +73,7 @@ _dbottom:
   Mov8 tmp_color, COLOR
   ColorSet 1
   ClearScreen
-  PrintMsg MSG0
+  PrintString "5TH 0.1"
   NewLine
 
   loop:
@@ -86,18 +105,11 @@ _dbottom:
   rts
 
   ierror:
-    PrintMsg MSG1   
+    PrintString "??"
     rts
 .endproc 
 
-.include "../utils.s"
-; -----------------------------------------------------------------------------
-; message table; last character has high bit set
-MSGBAS  =*
-MSG0:   .BYTE "*** 5TH 0.1 ***",13+$80
-MSG1:   .BYTE "INPUT ERROR ",13+$80
-MSG2:   .BYTE "****",13+$80
-
+;.include "../utils.s"
 
 offset:
     .byte 0
@@ -116,5 +128,8 @@ f_quit:
 
 hex_result: .word 0
 
-SP: .byte 0
+f_SP: .byte 0
 STACK: .res 256
+
+_dbottom:
+.include "vocab/index.s"

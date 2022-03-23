@@ -7,7 +7,7 @@
     temp = STACK+2
     result = dividend ;save memory by reusing divident to store the result
 
-    ldx SP
+    ldx f_SP
 
     divide:
     	lda #0	        ;preset remainder to 0
@@ -38,7 +38,7 @@
         bne divloop	
         dex
         dex
-        stx SP 
+        stx f_SP 
         rts
     next:
 .endproc
@@ -48,7 +48,7 @@
     multiplier	= STACK-4
     multiplicand	= STACK-2 
     product		= STACK 
-    ldx SP
+    ldx f_SP
     mult16:
         lda	#$00
         sta	product+2,x	; clear upper bits of product
@@ -78,7 +78,7 @@
         sta multiplier+1,x
         dex
         dex
-        stx SP
+        stx f_SP
 
         rts
     next:
@@ -86,7 +86,7 @@
 .proc ADD 
     Entry "+"
 
-    ldx SP
+    ldx f_SP
     clc 
     lda STACK-4,x
     adc STACK-2,x
@@ -96,14 +96,14 @@
     sta STACK-3
     dex
     dex
-    stx SP 
+    stx f_SP 
     rts
     next:
 .endproc
 .proc SUB 
     Entry "-"
 
-    ldx SP
+    ldx f_SP
     sec 
     lda STACK-4,x
     sbc STACK-2,x
@@ -113,7 +113,7 @@
     sta STACK-3
     dex
     dex
-    stx SP 
+    stx f_SP 
     rts
     next:
 .endproc

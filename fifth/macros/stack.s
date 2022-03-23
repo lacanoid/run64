@@ -1,18 +1,18 @@
 
 .macro SpLoad
-  ldx SP
+  ldx f_SP
 .endmacro
 
 .macro SpInc
   inx
   inx
-  stx SP
+  stx f_SP
 .endmacro
 
 .macro SpDec
   dex
   dex
-  stx SP
+  stx f_SP
 .endmacro
 
 .macro GetLo d

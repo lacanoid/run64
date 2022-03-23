@@ -13,7 +13,7 @@
             iny 
             bne print_char
         chars_done:
-        jsr CRLF
+        NewLine
         jsr vocab__advance_cursor
         bne print_entry
     
@@ -69,6 +69,26 @@
 .proc QUIT
     Entry "QUIT"
     inc f_quit
+    rts 
+    next:
+.endproc
+
+.proc LS
+    Entry "LS"
+    Mov8 TMP0,FA
+    Mov8 STATUS,0
+    jsr DIRECT
+    Mov8 TMP0,FA
+    jsr INSTAT
+    rts 
+    next:
+.endproc
+
+.proc _DSTAT
+    Entry "DSTAT"
+    Mov8 STATUS,0
+    Mov8 TMP0,FA
+    jsr CHGDEV
     rts 
     next:
 .endproc
