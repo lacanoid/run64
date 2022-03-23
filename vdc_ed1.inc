@@ -311,10 +311,8 @@ bgcolor40:
 	and #$0f
 	ldx COLOR
 	sta COLOR
-	stx BGCOL0
-	txa
-	eor #$08
 	sta EXTCOL
+	stx BGCOL0
 bgcolrts:
 	rts
 
