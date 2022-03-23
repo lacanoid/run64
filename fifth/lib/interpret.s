@@ -23,15 +23,8 @@
 .proc print_error
   ColorPush 1
   PrintChr '?'
-  ldx parse::offset
-  loop:
-    lda input,x
-    IfLt #33, done
-    jsr CHROUT
-    inx
-    jmp loop
-  done:
-    NewLine
-    ColorPop
-    rts 
+  jsr parse::print_next_word
+  NewLine
+  ColorPop
+  rts 
 .endproc

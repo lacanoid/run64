@@ -23,10 +23,11 @@
             iny 
             bne print_char
         chars_done:
-        NewLine
+        PrintChr ' '
         jsr vocab::advance_cursor
         bne print_entry
-    
+    NewLine
     rts
+
     next=0
 .endproc

@@ -71,9 +71,13 @@ jmp main
 
   loop:
     ColorSet 1
+
     jsr getinput
+
     bMov COLOR, tmp_color
+
     jsr interpret
+    
     bMov tmp_color, COLOR
     
     ColorSet 14

@@ -54,7 +54,23 @@
       rts 
   .endproc
 
+  .proc print_next_word
+    jsr reset_pointer
+    ldx #0
+    loop:
+      lda (pointer,x)
+      IfLt #33, done
+      jsr CHROUT
+      jsr advance_pointer
+      jmp loop
+    done:
+      NewLine
+      rts 
+  .endproc
+
+
   .proc next_word
+      jsr reset_pointer
       lda (pointer,x)
       IfNe #'$', not_hex
     hex:
