@@ -1,32 +1,10 @@
 
-.proc VLIST
-    Entry "VLIST"
-    jsr vocab__reset_cursor
-    
-    print_entry:
-        ldy #5
-        print_char:
-            lda (cursor),y
-            jsr CHROUT
-            cmp #33
-            bcc chars_done
-            iny 
-            bne print_char
-        chars_done:
-        NewLine
-        jsr vocab__advance_cursor
-        bne print_entry
-    
-    rts
-    next:
-.endproc
-
 .proc WHITE
     Entry "WHITE"
-    jsr INK
+    Exec INK
     SpLoad
     Push $1
-    jsr POKE
+    Exec POKE
     rts
     next:
 .endproc
@@ -62,13 +40,6 @@
     ldy #0
     lda (TMP),y
     InsertA 1
-    rts 
-    next:
-.endproc
-
-.proc QUIT
-    Entry "QUIT"
-    inc f_quit
     rts 
     next:
 .endproc

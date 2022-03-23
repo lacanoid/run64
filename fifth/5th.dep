@@ -1,4 +1,4 @@
-5th.o:	5th.s ../defs64.inc .././defs.inc macros/index.s macros/helpers.s macros/stack.s lib/interpret.s lib/parse.s lib/print.s lib/vocab.s vocab/index.s vocab/dev.s vocab/math.s vocab/stack.s
+5th.o:	5th.s 5th.inc ../defs64.inc .././defs.inc macros/index.s macros/helpers.s macros/stack.s lib/vocab.s lib/parse.s lib/interpret.s lib/print.s lib/dos.s vocab/5mon.s vocab/index.s vocab/dev.s vocab/math.s vocab/stack.s
 
-5th.s ../defs64.inc .././defs.inc macros/index.s macros/helpers.s macros/stack.s lib/interpret.s lib/parse.s lib/print.s lib/vocab.s vocab/index.s vocab/dev.s vocab/math.s vocab/stack.s:
+5th.s 5th.inc ../defs64.inc .././defs.inc macros/index.s macros/helpers.s macros/stack.s lib/vocab.s lib/parse.s lib/interpret.s lib/print.s lib/dos.s vocab/5mon.s vocab/index.s vocab/dev.s vocab/math.s vocab/stack.s:
 

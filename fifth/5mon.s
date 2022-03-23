@@ -1,5 +1,6 @@
 .include "5th.inc"
-.include "../kmon.inc"
-.include "vocab/index.s"
+.include "lib/dos.s"
+VOCAB_START:
 .include "vocab/5mon.s"
+.include "vocab/index.s"
 

@@ -82,7 +82,7 @@
 .proc HEX
     Entry ".$"
     SpLoad
-    jsr print_hex 
+    PrintHex
     SpDec
     rts
     next:
@@ -101,7 +101,7 @@
 .proc LOOK
     Entry "?"
     SpLoad
-    jsr print_dec
+    PrintDec
     rts
-    next=0     
+    next:  
 .endproc 

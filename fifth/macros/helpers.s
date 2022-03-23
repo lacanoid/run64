@@ -1,22 +1,43 @@
+.macro sub arg1
+  sec
+  sbc arg1
+.endmacro
 
-.macro Set8 arg1, arg2
+.macro add arg1
+  clc
+  adc arg1
+.endmacro
+
+
+.macro bClear arg1
+  lda #0
+  sta arg1
+.endmacro
+
+.macro iClear arg1
+  lda #0
+  sta arg1
+  sta arg1+1
+.endmacro
+
+.macro bSet arg1, arg2
   lda #arg2
   sta arg1
 .endmacro
 
-.macro Set16 arg1, arg2
+.macro iSet arg1, arg2
   lda #<arg2
   sta arg1
   lda #>arg2
   sta arg1+1
 .endmacro
 
-.macro Mov8 arg1, arg2
+.macro bMov arg1, arg2
   lda arg2
   sta arg1
 .endmacro
 
-.macro Mov16 arg1, arg2
+.macro iMov arg1, arg2
   lda arg2
   sta arg1
   lda arg2+1
@@ -88,3 +109,31 @@
   .endif
 .endmacro
 
+.macro IfNeg arg1,arg2
+  .ifnblank arg2
+    lda arg1
+    bmi arg2
+  .else
+    bmi arg1
+  .endif
+.endmacro
+
+
+.macro bShiftLeft arg1
+  asl arg1 
+.endmacro
+
+.macro iShiftLeft arg1
+  asl arg1
+  rol arg1+1
+.endmacro
+
+.macro iAdd arg1, arg2
+  clc
+  lda arg1
+  adc arg2
+  sta arg1
+  lda arg1+1
+  adc arg2+1
+  sta arg1+1
+.endmacro

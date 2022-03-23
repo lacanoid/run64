@@ -25,16 +25,14 @@ TMP = $FD
 .macro PrintString str
   .local foo
   .proc foo
-    PrintChr '>'
-    
-    ldx 0
+    ldx #0
     loop:
       lda string,x
       beq done
       jsr CHROUT
       inx
     bne loop  
-    jmp done
+    beq done
     string: 
       .asciiz str
     done:
@@ -59,13 +57,13 @@ TMP = $FD
 
 jmp main
 
-.include "lib/interpret.s"
-.include "lib/parse.s"
-.include "lib/print.s"
 .include "lib/vocab.s"
+.include "lib/parse.s"
+.include "lib/interpret.s"
+.include "lib/print.s"
 
 .proc main
-  Mov8 tmp_color, COLOR
+  bMov tmp_color, COLOR
   ColorSet 1
   ClearScreen
   PrintString "5TH 0.1"
@@ -74,9 +72,9 @@ jmp main
   loop:
     ColorSet 1
     jsr getinput
-    Mov8 COLOR, tmp_color
+    bMov COLOR, tmp_color
     jsr interpret
-    Mov8 tmp_color, COLOR
+    bMov tmp_color, COLOR
     
     ColorSet 14
     jsr PRINT_STACK
@@ -87,6 +85,7 @@ jmp main
 .endproc 
 
 .proc getinput 
+  ldx #0
   loop:
     jsr CHRIN
     sta BUF,X
@@ -106,17 +105,9 @@ jmp main
 
 ;.include "../utils.s"
 
-offset:
-    .byte 0
-
 dbottom:
-    .word _dbottom
+    .word VOCAB_START
 
-f_eof:
-    .byte 0
-
-f_error:
-    .byte 0
 
 f_quit:
     .byte 0
@@ -125,5 +116,3 @@ hex_result: .word 0
 
 f_SP: .byte 0
 STACK: .res 256
-
-_dbottom:

@@ -87,7 +87,23 @@
   SpInc 
 .endmacro
 
+.macro PopA
+  GetLo 1
+  SpDec
+.endmacro
+
+.macro PopTo arg
+  CopyTo 1, arg
+  SpDec 
+.endmacro
+
+
 .macro PrintDec
-  jsr print_dec
+  CopyTo 1, print::arg
+  jsr print::print_dec
+.endmacro
+
+.macro PrintHex
+  jsr print::print_hex
 .endmacro
 
