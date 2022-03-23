@@ -1,6 +1,7 @@
 
 .proc DROP
     Entry "DROP"
+    SpLoad
     SpDec
     rts 
     next:
@@ -82,7 +83,7 @@
     Entry ".$"
     SpLoad
     jsr print_hex 
-    jsr DROP
+    SpDec
     rts
     next:
 .endproc
