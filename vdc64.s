@@ -10,11 +10,17 @@ feature_scnkey=0   ; keyboard scan routine
 feature_pfkey=0    ; programmable function keys
 feature_irq=0      ; raster interrupt service routine
 
-org = $C000
+feature_irq_tapemotor=0      ; raster tape motor stuff
+
+org = $8000
+
+UDTIM     = $FFEA
+SCNKEY    = $FF9F
 
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.
 resultRegister = $d7ff
+
         ; autodetect vdc version and exit if not found
         jsr detect
         lda vdc_config
@@ -22,6 +28,10 @@ resultRegister = $d7ff
         ; copy editor code into place
         ldx #>(mainend-main)
         inx
+        lda #0
+        jsr LINPRT 
+
+        ldx #>(mainend-main)
         ldy #0
 @l1:    lda data,Y
 @l2:    sta org,y
@@ -65,6 +75,8 @@ perror:
 emsg:   .asciiz "NO VDC. TRY C128."
 
 banner: ; print banner and info
+        lda COLOR
+        sta T1
         ldx #0
 @m1:    lda msg, x
         beq @m2
@@ -92,6 +104,9 @@ banner: ; print banner and info
         lda #>mode
         jsr LINPRT
 
+        lda T1
+        sta COLOR
+
 exit:
         lda #0
         sta resultRegister
@@ -101,7 +116,8 @@ exit:
         rts
 
 msg:    .byte 7
-        .asciiz "VDC64 0.6 "
+        .byte $12,$1c,$20,$96,$20,$9e,$20,$99,$20,$9a,$20,$9c,$20,$92,$05
+        .asciiz " VDC64 0.6 "
 
 ; --------------------------
 data:
@@ -132,6 +148,7 @@ rows    = cia1+1
 cia2    = $dd00
 d2pra   = cia2
 
+EDITOR:
 ;////////////////   E D I T O R     J U M P     T A B L E   \\\\\\\\\\\\\\\\\
 ;	jmp cint	;initialize editor & screen
 	jmp disply	;display character in .a, color in .x
@@ -329,7 +346,90 @@ configure:
 	lda #>new_bsout
 	sta IBSOUT + 1
 
+.if feature_irq=1
+        sei
+
+        lda #<new_irq
+        sta CINV
+        lda #>new_irq
+        sta CINV+1
+
+        jmp @cf2
+
+        lda #$7f        ; disable CIA interrupts
+        sta $dc0d
+        sta $dd0d
+        lda $dc0d
+        lda $dd0d
+
+
+        lda IRQMASK     ; enable VIC raster interrupt
+        ora #1
+        sta IRQMASK
+        lda #150         ; set initial raster line
+        sta RASTER
+        lda SCROLY
+        and #$7f        ; raster hight bit
+        sta SCROLY
+
+@cf2:
+        cli
         rts
+
+new_irq:
+        jmp $EA31       ; default handler in ROM
+
+        lda mmureg
+        pha
+        CLD
+        ; editor handles split screen and calls SCNKEY and BLINK
+        jsr EDITOR+$24   
+        bcc @nirq9              ; split screen interrupt
+        jsr UDTIM               ; update clock
+        lda cia2+$0d            ; clear CIA2
+        lda init_status         ; check for animations
+        lsr
+        bcc @nirq9
+        jsr animate
+@nirq9:
+; c64   $EA61      same in c64 rom + SCNKEY
+; c128  $FF33
+        pla
+        jsr tapemotor
+        sta mmureg
+; c64   $EA81
+        pla
+        tay
+        pla
+        tax
+        pla
+        rti
+
+CAS1 = $C0
+tapemotor:  ; handle tape motor
+.if feature_irq_tapemotor=1
+        pha
+        and #$10
+        beq @tm3 
+        ldy #0
+        sty CAS1
+        pla
+        pha
+        ora #$20
+        bne @tm9
+@tm3:
+        lda CAS1
+        bne @tm9
+        pla
+        and #%011111
+@tm9:
+.endif
+        rts
+
+animate:        ; run basic sprite animations
+.endif             ; feature_irq
+        rts
+
 
 new_bsout:
 	sta DATA

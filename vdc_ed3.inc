@@ -236,6 +236,8 @@ ckit2:			;key is in .x
 	jmp (keychk)	;.a=character, .y=keycode, .x=shift status
 .else
 scnkey:
+	jmp SCNKEY
+
 repeat:
 	rts
 .endif
