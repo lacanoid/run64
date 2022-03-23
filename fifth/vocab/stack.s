@@ -1,43 +1,44 @@
 
 .proc DROP
-    entry "DROP"
-    SP_DEC
-    rts
+    Entry "DROP"
+    SpLoad
+    SpDec
+    rts 
     next:
 .endproc
 
 .proc SWAP
-    entry "SWAP"
-    SP_LOAD
-    COPY 1,0
-    COPY 2,1
-    COPY 0,2
-    rts
+    Entry "SWAP"
+    SpLoad
+    Copy 1,0
+    Copy 2,1
+    Copy 0,2
+    rts 
     next:
 .endproc
 
 .proc OVER
-    entry "OVER"
-    SP_LOAD
-    COPY 2,0
-    SP_INC
-    rts
+    Entry "OVER"
+    SpLoad
+    Copy 2,0
+    SpInc
+    rts 
     next:
 .endproc
 
 .proc DUP
-    entry "DUP"
-    SP_LOAD
-    COPY 1,0
-    SP_INC
-    rts
+    Entry "DUP"
+    SpLoad
+    Copy 1,0
+    SpInc
+    rts 
     next:
 .endproc
 
 .proc CLEAR
-    entry "CLEAR"
+    Entry "CLEAR"
     lda #0
-    sta SP
+    sta f_SP
     rts
     next:
 .endproc
@@ -45,18 +46,18 @@
 
 
 .proc _COUNT
-    entry "COUNT"
-    SP_LOAD
-    PUSH_BYTE_FROM SP
+    Entry "COUNT"
+    SpLoad
+    PushByteFrom f_SP
     rts
     next:
 .endproc
 
 .proc PRINT_STACK
-    entry "??"
+    Entry "??"
     PrintChr '#'
     
-    ldx SP 
+    ldx f_SP 
     loop:
         cpx #1
         bcc done 
@@ -64,41 +65,42 @@
         lda #' '
         jsr CHROUT
         
-        jsr print_dec
+        PrintDec
+        
         dex
         dex
         clc 
         bcc loop
 
     done:
-        jsr CRLF
+        NewLine
         rts
     next:
 .endproc
 
 
 .proc HEX
-    entry ".$"
-    SP_LOAD
+    Entry ".$"
+    SpLoad
     jsr print_hex 
-    jsr DROP
+    SpDec
     rts
     next:
 .endproc
 
 .proc DEC
-    entry "."
-    SP_LOAD 
-    jsr print_dec
-    jsr DROP
+    Entry "."
+    SpLoad
+    PrintDec
+    SpDec
     PrintChr ' '
     rts
     next:     
 .endproc 
 
 .proc LOOK
-    entry "?"
-    SP_LOAD
+    Entry "?"
+    SpLoad
     jsr print_dec
     rts
     next=0     
