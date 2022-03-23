@@ -23,6 +23,15 @@
   lda STACK-d*2+1,x
 .endmacro
 
+.macro SetLo d
+  sta STACK-d*2,x
+.endmacro
+
+.macro SetHi d
+  sta STACK-d*2+1,x
+.endmacro
+
+
 .macro Insert d, arg
   lda #<arg
   sta STACK-d*2,x

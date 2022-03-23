@@ -36,6 +36,7 @@
 
   .proc print_hex
     PrintChr '$'
+    SpLoad
     GetHi 1
     jsr print_hex_digits
     GetLo 1
@@ -44,19 +45,19 @@
   .endproc
 
   .proc print_hex_digit
-    sec
     IfGe #11, big
-      adc #'0'
+      add #'0'
       jsr CHROUT
       rts
     big:
-      adc #'A'
+      add #'A'-10
       jsr CHROUT
       rts
   .endproc
 
   .proc print_hex_digits
     pha
+    sec
     lsr 
     lsr 
     lsr 
@@ -64,7 +65,7 @@
     jsr print_hex_digit
 
     pla
-    and $0f
+    and #$0f
     jsr print_hex_digit 
     rts
   .endproc
