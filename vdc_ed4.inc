@@ -86,7 +86,7 @@ ctltbe:			;dispatch table for <ctrl> characters
 
 	.word undron-1	; b ($02) set underline mode (8563)
 	.word beep-1	; g ($07) bell
-	.word tab-1	; i ($09) tab
+	.word tab-1	    ; i ($09) tab
 	.word lfeed-1	; j ($0a) line feed
 	.word lock-1	; k ($0b) lock out <C=><shift>
 	.word unlock-1	; l ($0c) unlock   <C=><shift>

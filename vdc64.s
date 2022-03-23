@@ -8,9 +8,12 @@
 
 feature_scnkey=0   ; keyboard scan routine
 feature_pfkey=0    ; programmable function keys
-feature_irq=0      ; raster interrupt service routine
+feature_irq=1      ; raster interrupt service routine
 
 feature_irq_tapemotor=0      ; raster tape motor stuff
+feature_bgcolor=1            ; background color setter RVS+CLR
+
+vdc_colors=1       ; use new vdc colors
 
 org = $8000
 
@@ -117,7 +120,7 @@ exit:
 
 msg:    .byte 7
         .byte $12,$1c,$20,$96,$20,$9e,$20,$99,$20,$9a,$20,$9c,$20,$92,$05
-        .asciiz " VDC64 0.6 "
+        .asciiz " VDC64 0.3 "
 
 ; --------------------------
 data:
@@ -319,11 +322,8 @@ mmucfg:
 
 ; -- hook into system
 
-configure:
+vdcsetcolors:
         lda COLOR
-        pha
-        jsr cint
-        pla
         and #$0F
         tay 
         lda coladj,y
@@ -335,6 +335,17 @@ configure:
         tay 
         lda coladj,y
         jsr vdcout
+
+        rts
+
+configure:
+        lda COLOR
+        pha
+                jsr cint
+        pla
+        sta COLOR
+
+        jsr vdcsetcolors
 
         lda #<new_basin
 	sta IBASIN
@@ -377,6 +388,7 @@ configure:
         rts
 
 new_irq:
+;        jsr EDITOR+$24   
         jmp $EA31       ; default handler in ROM
 
         lda mmureg

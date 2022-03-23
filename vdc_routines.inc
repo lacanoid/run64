@@ -209,8 +209,12 @@ getusr:			;setup 8563 update registers (18,19) with  USER + .Y
 	inx
 	jmp vdcout	;8563 attribute memory address lo & rts
 
+
 ;	.page \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 init80:
+	jmp init80_1
+
+init80_1:
 	lda #<vicchr	;set up pointers to vic character rom
 	ldy #>vicchr
 	sta sedsal

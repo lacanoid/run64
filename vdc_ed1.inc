@@ -234,6 +234,9 @@ cint:
 
 ;	.page \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 clsr:			;clear the current screen window
+.if feature_bgcolor=1
+	jsr bgcolor
+.endif
 	jsr home	;start at top of window
 @cl1:
 	jsr scrset	;point to a line
@@ -294,6 +297,38 @@ scolor:
 @sc2:
 	sta USER+1
 	rts
+
+.if feature_bgcolor=1
+bgcolor:
+	lda RVS
+	beq bgcolrts
+	jsr RVSoff
+	lda mode
+	bmi bgcolor80
+	; flip screen colors: set bacground to cursor color, cursor to background
+bgcolor40:
+	lda BGCOL0
+	and #$0f
+	ldx COLOR
+	sta COLOR
+	stx BGCOL0
+	txa
+	eor #$08
+	sta EXTCOL
+bgcolrts:
+	rts
+
+bgcolor80:
+	ldy COLOR
+	ldx #$1a    ; vdc background color
+	jsr vdcin
+	and #$0f
+	sta COLOR;
+	tya 		; prev COLOR
+	jsr vdcout
+	rts
+.endif
+
 ;	.page \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 ;/////////////////   E D I T O R   I R Q   R O U T I N E S   \\\\\\\\\\\\\\\\\\
 
@@ -356,6 +391,8 @@ irq:
 
 ;  set up for a text frame
 text:
+
+
 	lda #$ff	;make next irq occur at 'base' of this or next frame
 	sta vicreg+18
 

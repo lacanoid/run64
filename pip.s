@@ -200,8 +200,8 @@ main2:
         JSR SNDMSG
         ; interactive mode here,,,
 
-        jsr DIRECT
-        rts
+;        jsr DOS_DIRECT
+;        rts
 
         rts
 
@@ -220,7 +220,7 @@ error:
         JSR SNDMSG
         jsr READST
         jsr WRTWO
-        jsr INSTAT
+        jsr DOS_INSTAT
         rts
 
 ; -----------------------------------------------------------------------------

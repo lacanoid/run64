@@ -6,8 +6,13 @@ coltab:
 	.byte $81,$95,$96,$97,$98,$99,$9a,$9b
 
 coladj:
+.if vdc_colors=1  ; new colors
 	.byte $00,$0f,$08,$07,$0b,$04,$02,$0d		;convert rgbi to c64 colors
 	.byte $0a,$0c,$09,$01,$06,$05,$03,$0e
+.else  ; c128 colors
+	.byte $00,$0f,$08,$07,$0b,$04,$02,$0d		;convert rgbi to c64 colors
+	.byte $0a,$0c,$09,$06,$01,$05,$03,$0e
+.endif
 
 bits:
 	.byte $80,$40,$20,$10,$08,$04,$02,$01
