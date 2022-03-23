@@ -1,6 +1,6 @@
 
 .proc VLIST
-    entry "VLIST"
+    Entry "VLIST"
     jsr vocab__reset_cursor
     
     print_entry:
@@ -22,54 +22,53 @@
 .endproc
 
 .proc WHITE
-    entry "WHITE"
+    Entry "WHITE"
     jsr INK
-    SP_LOAD
-    PUSH $1
+    SpLoad
+    Push $1
     jsr POKE
     rts
     next:
 .endproc
 
 .proc INK
-    entry "INK"
-    SP_LOAD
-    PUSH $286
-    rts
-    next:
+  Entry "INK"
+  SpLoad
+  Push $286
+  rts 
+  next:
 .endproc
 
 .proc POKE
-    entry "POKE"
-    SP_LOAD
-    COPY_TO 2,TMP
-    GET_LO 1
-    
-    ldy #0
-    sta (TMP),y
+  Entry "POKE"
+  SpLoad
+  CopyTo 2,TMP
+  GetLo 1
+  
+  ldy #0
+  sta (TMP),y
 
-    SP_DEC
-    SP_DEC
-    ;PUSH_FROM TMP
-    ;PUSH_A
-    rts
-    next:
+  SpDec
+  SpDec
+  
+  rts 
+  next:
 .endproc
 
 .proc PEEK
-    entry "PEEK"
-    SP_LOAD
-    COPY_TO 1,TMP
+    Entry "PEEK"
+    SpLoad
+    CopyTo 1,TMP
     ldy #0
     lda (TMP),y
-    INSERT_A 1
-    rts
+    InsertA 1
+    rts 
     next:
 .endproc
 
 .proc QUIT
-    entry "QUIT"
+    Entry "QUIT"
     inc f_quit
-    rts
+    rts 
     next:
 .endproc

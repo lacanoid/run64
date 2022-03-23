@@ -1,4 +1,4 @@
-.macro entry name
+.macro Entry name
     .local exec
     clc 
     bcc exec 

@@ -1,8 +1,9 @@
 .proc vocab__reset_cursor
-    lda dbottom
-    sta cursor
-    lda dbottom+1
-    sta cursor+1
+  Mov16 cursor,dbottom
+  lda dbottom
+  sta cursor
+  lda dbottom+1
+  sta cursor+1
     rts 
 .endproc ; vocab__reset_cursor
 

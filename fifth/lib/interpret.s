@@ -1,47 +1,82 @@
 
 .proc interpret
-    lda #0
-    sta eof
-    loop:
+  Set8 offset, 0
+  Set8 f_eof, 0
+  Set8 f_error, 0
+  loop:
+    jsr skip_space
+    IfTrue f_eof,break
     jsr next_word
-    lda eof
-    beq loop
+    IfTrue f_error,catch
+    jmp loop
+  break:
+    ColorSet 1
+    PrintChr 'O'
+    PrintChr 'K'
+    NewLine
+    rts
+  catch:
+    jsr print_error
     rts
 .endproc
 
-.proc next_word
-
-    ldx offset
-    skip_space:
-        lda input,x
-        bne @ss1
-    @ss2:
-        inc eof
-        rts
-    @ss1:
-        cmp #13
-        beq @ss2
-        cmp #33
-        bcs skipped_space
-        inx
-        jmp skip_space
-    skipped_space:
-        stx offset
-
-
+.proc print_error
+  ColorSet 1
+  PrintChr '?'
+  ldx offset
+  loop:
     lda input,x
-    cmp #'$'
-        bne not_hex
-        jsr parse_hex 
-        rts
-    not_hex:
-    cmp #'0'
-        bcc not_dec
-    cmp #'9'
-        bcs not_dec
-        jsr parse_dec
-        rts
-    not_dec:
-        jsr parse_entry
-        rts 
+    IfLt #33, done
+    jsr CHROUT
+    inx
+    jmp loop
+  done:
+    NewLine
+    rts 
+.endproc
+
+.proc skip_space 
+  ldx offset
+  loop:
+    lda input,x
+    IfEq #0, stop
+    IfEq #13, stop
+    IfGe #33, done
+    inx
+    jmp loop
+  done:
+    stx offset
+    rts 
+  stop:
+    stx offset
+    inc f_eof
+    rts 
+.endproc
+
+.proc next_word
+    lda input,x
+    IfNe #'$', not_hex
+  hex:
+    jsr parse_hex 
+    IfTrue f_error, not_found
+    SpLoad
+    PushFrom cursor
+    rts 
+  not_hex:
+    IfLt #'0', not_dec
+    IfGe #'9'+1, not_dec
+  decimal:
+    jsr parse_dec
+    IfTrue f_error, not_found
+    SpLoad
+    PushFrom cursor 
+    rts 
+  not_dec:
+  entry:
+    jsr parse_entry
+    IfTrue f_error, not_found
+    jmp (cursor)
+    rts 
+  not_found:
+    rts 
 .endproc

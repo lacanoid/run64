@@ -1,6 +1,6 @@
 
 .proc DIV
-    entry "/"
+    Entry "/"
     divisor = STACK-2     ;$59 used for hi-byte
     dividend = STACK-4	  ;$fc used for hi-byte
     remainder = STACK 	  ;$fe used for hi-byte
@@ -43,7 +43,7 @@
     next:
 .endproc
 .proc MUL
-    entry "*"
+    Entry "*"
 
     multiplier	= STACK-4
     multiplicand	= STACK-2 
@@ -84,7 +84,7 @@
     next:
 .endproc
 .proc ADD 
-    entry "+"
+    Entry "+"
 
     ldx SP
     clc 
@@ -101,7 +101,7 @@
     next:
 .endproc
 .proc SUB 
-    entry "-"
+    Entry "-"
 
     ldx SP
     sec 

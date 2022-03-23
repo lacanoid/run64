@@ -2,10 +2,8 @@
 cursor = $FB
 input = BUF
 TMP = $FD
-.include "macros/stack.s"
-jmp main
 
-_dbottom:
+.include "macros/index.s"
 
 .macro ColorSet c
     lda #c
@@ -41,11 +39,9 @@ _dbottom:
   PrintChr 147
 .endmacro
 
-.macro Mov8 to, from
-  lda from
-  sta to  
-.endmacro
+jmp main
 
+_dbottom:
 
 
 .include "vocab/index.s"
@@ -67,11 +63,7 @@ _dbottom:
     Mov8 COLOR, tmp_color
     jsr interpret
     Mov8 tmp_color, COLOR
-
-    ColorSet 1
-    PrintChr 'O'
-    PrintChr 'K'
-    NewLine
+    
     ColorSet 14
     jsr PRINT_STACK
     lda f_quit
@@ -80,17 +72,7 @@ _dbottom:
     tmp_color: .byte 14
 .endproc 
 
-debug:
-    lda cursor+1
-    jsr WRTWO
-    lda cursor
-    jsr WRTWO
-    rts
-
-.proc getinput
-  ldx #0
-  stx offset
-  
+.proc getinput 
   loop:
     jsr CHRIN
     sta BUF,X
@@ -123,7 +105,10 @@ offset:
 dbottom:
     .word _dbottom
 
-eof:
+f_eof:
+    .byte 0
+
+f_error:
     .byte 0
 
 f_quit:

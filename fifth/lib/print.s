@@ -3,10 +3,7 @@
     ; Leading zeros are omitted
     ; expects a pointer to stack element in x
 
-    lda STACK-2,x
-    sta X0 
-    lda STACK-1,x
-    sta X1  
+    CopyTo 1, result
 
     PRINT_UINT16:
       LDA      #0                  ; terminator for digits on stack
@@ -21,8 +18,8 @@
       SBC     #$85                ; if so, subtract 5, toggle bit 7 and set V flag (unwanted bit 7 will be shifted out imminently)
       SEC                         ; set C (=next quotient bit)
     PRINT_UINT16_3:
-      ROL     X0                  ; shift quotient bit into X while shifting out next dividend bit into A
-      ROL     X1
+      ROL     result              ; shift quotient bit into X while shifting out next dividend bit into A
+      ROL     result+1
       ROL                         ; shift dividend into A
       DEY
       BNE     PRINT_UINT16_2     ; loop until all original dividend bits processed
@@ -35,17 +32,14 @@
       PLA                         ; retrieve next digit from stack (or zero terminator)
       BNE     PRINT_UINT16_4     ; if not terminator, print digit
       RTS
-    X0: .byte 0
-    X1: .byte 0
+    result: .word 0
 .endproc
 
 .proc print_hex
-    lda #'$'
-    jsr CHROUT
-    ldx SP
-    lda STACK-1,x
-    jsr WRTWO
-    lda STACK-2,x
-    jsr WRTWO
-    rts
+  PrintChr '$'
+  GetHi 1
+  jsr WRTWO
+  GetLo 1
+  jsr WRTWO
+  rts 
 .endproc
