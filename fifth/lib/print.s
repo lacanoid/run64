@@ -36,10 +36,9 @@
 
   .proc print_hex
     PrintChr '$'
-    SpLoad
-    GetHi 1
+    lda arg+1
     jsr print_hex_digits
-    GetLo 1
+    lda arg
     jsr print_hex_digits
     rts 
   .endproc

@@ -113,6 +113,7 @@
 .endmacro
 
 .macro PrintHex
+  CopyTo 1, print::arg
   jsr print::print_hex
 .endmacro
 
