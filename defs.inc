@@ -72,8 +72,3 @@ TMP3      = $C4        ;
 ; -----------------------------------------------------------------------------
 
 VICSCN    = $0400     ; default screen memory
-
-VICGO64 = VICSCN + 40*22
-VICAS64 = VICSCN + 40*15
-VICCRTB = VICSCN + 40*20
-

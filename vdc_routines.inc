@@ -76,26 +76,27 @@ swapzpout:
 	sta color
 	rts
 
-savy:	.byte 0
+	savy:	.byte 0
 
-swapzptab:
-        .byte PNT,pnt-swapbeg
-        .byte PNT+1,pnt-swapbeg+1
-        .byte USER,user-swapbeg
-        .byte USER+1,user-swapbeg+1
-        .byte LSXP,lsxp-swapbeg
-        .byte LSTP,lstp-swapbeg
-        .byte INDX,indx-swapbeg
-        .byte TBLX,tblx-swapbeg
-        .byte PNTR,pntr-swapbeg
-;        .byte COLOR,color-swapbeg
-        .byte RVS,rvs-swapbeg
-        .byte QTSW,qtsw-swapbeg
-        .byte INSRT,insrt-swapbeg
-        .byte 0
+	swapzptab:
+			.byte PNT,pnt-swapbeg
+			.byte PNT+1,pnt-swapbeg+1
+			.byte USER,user-swapbeg
+			.byte USER+1,user-swapbeg+1
+			.byte LSXP,lsxp-swapbeg
+			.byte LSTP,lstp-swapbeg
+			.byte INDX,indx-swapbeg
+			.byte TBLX,tblx-swapbeg
+			.byte PNTR,pntr-swapbeg
+	;        .byte COLOR,color-swapbeg
+			.byte RVS,rvs-swapbeg
+			.byte QTSW,qtsw-swapbeg
+			.byte INSRT,insrt-swapbeg
+			.byte 0
 
 ;	.page \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-cursor:	bit mode	;move the 8563 cursor
+cursor:	
+	bit mode	;move the 8563 cursor
 	bpl swrts	;...branch if 80-col swapped out & rts
 	ldx #14		;update the 8563 hardware cursor position
 	clc
@@ -125,15 +126,18 @@ crsron:
 	ora saver	;merge existing specials with current COLOR
 	jsr vdcput	;make cursor blink in current COLOR
 
-crsrdo:	ldx #10		;//////entry from 'escape' functions here
+crsrdo:	
+	ldx #10		;//////entry from 'escape' functions here
 	lda curmod	;8563 cursor mode
 	jmp vdcout	;enable 80-column hardware cursor & rts
 
-crsr40:	lda #0
-	sta blnsw	;enable 40-column software cursor
+crsr40:	
+	lda #0
+	sta BLNSW	;enable 40-column software cursor
 	rts
 
-crsrof:	bit mode	;disable the cursor on current screen
+crsrof:	
+	bit mode	;disable the cursor on current screen
 	bpl @c1		;...branch if 40-column screen active
 	jsr getusr	;'USER' & .y already point to cursor position
 	lda curcol
@@ -143,7 +147,7 @@ crsrof:	bit mode	;disable the cursor on current screen
 	jmp vdcout	;disable 80-column hardware cursor & rts
 
 @c1:
-	sta blnsw	;disable 40-column software cursor (.a>0)
+	sta BLNSW	;disable 40-column software cursor (.a>0)
 	lda BLNON
 	bpl @c2		;...branch if cursor not visible at this time
 	and #$40

@@ -5,6 +5,7 @@
 .include "config.inc"
 .include "defs64.inc"
 .include "macros.inc"
+.include "boot.inc"
 
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
 .import __CARTHDR_LOAD__, __CARTHDR_RUN__, __CARTHDR_SIZE__

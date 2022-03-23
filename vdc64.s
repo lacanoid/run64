@@ -101,7 +101,7 @@ exit:
         rts
 
 msg:    .byte 7
-        .asciiz "VDC64 0.7 "
+        .asciiz "VDC64 0.6 "
 
 ; --------------------------
 data:
@@ -131,9 +131,6 @@ rows    = cia1+1
 
 cia2    = $dd00
 d2pra   = cia2
-
-; further definitions
-blnsw   = $cc
 
 ;////////////////   E D I T O R     J U M P     T A B L E   \\\\\\\\\\\\\\\\\
 ;	jmp cint	;initialize editor & screen

@@ -4,6 +4,7 @@
 .include "config.inc"
 .include "defs128.inc"
 .include "macros.inc"
+.INCLUDE "boot.inc"
 
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
 .import __VICGO64_SIZE__, __VICGO64_LOAD__, __VICGO64_RUN__

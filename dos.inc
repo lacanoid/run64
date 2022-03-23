@@ -5,8 +5,7 @@ INSTAT:
         lda #0
         sta STATUS
         JSR UNLSN           ; command device to unlisten
-INSTAT1:JSR CRLF            ; new line
-        LDA FA              ; load device address
+INSTAT1:LDA FA              ; load device address
         JSR TALK            ; command device to talk
         LDA #$6F            ; secondary address 15 (only low nybble used)
         JSR TKSA
