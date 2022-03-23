@@ -41,6 +41,7 @@ main:
         lda BUF      ; if run from shell or basic
         bpl main1    ; check if basic token
         jmp main2    ; we were run from BASIC with "run"
+
 main1:  lda COUNT    ; we were run from shell
         sta CHRPNT   ; restor command line pointer
 
@@ -198,6 +199,10 @@ main2:
         LDY #MSG0-MSGBAS    ; display
         JSR SNDMSG
         ; interactive mode here,,,
+
+        jsr DIRECT
+        rts
+
         rts
 
 finish:

@@ -236,6 +236,8 @@ ckit2:			;key is in .x
 	jmp (keychk)	;.a=character, .y=keycode, .x=shift status
 .else
 scnkey:
+	jmp SCNKEY
+
 repeat:
 	rts
 .endif
@@ -296,7 +298,7 @@ funtab:
 blink:			;////////// vic cursor blinker \\\\\\\\\\\\\
 	bit mode
 	bmi @bl2		;...branch if 8563 mode (hardware cursor)
-	lda blnsw
+	lda BLNSW
 	bne @bl2		;...branch if cursor not enabled (rts)
 	dec BLNCT
 	bne @bl2		;...branch if not time to blink	(rts)

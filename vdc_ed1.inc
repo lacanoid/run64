@@ -148,7 +148,7 @@ cint:
 	lda #10
 	sta XMAX	;set maximum keyboard buffer size
 	sta BLNCT	;reset vic cursor blink count
-	sta blnsw	;start vic cursor blinking
+	sta BLNSW	;start vic cursor blinking
 	sta DELAY	;reset delay before a key repeats
 	lda #4
 	sta KOUNT	;reset delay between key repeats
@@ -211,6 +211,8 @@ cint:
 	ora init_status
 	sta init_status
 @cint6:
+	lda COLOR
+	pha
 	jsr swapper1	;swap in 80-col vars
 	jsr taball	;initialize 80-col tab stops
 	jsr sreset	;clear 80-col wrap table
@@ -218,7 +220,9 @@ cint:
 
 	jsr swapper	;swap in 40-col vars
 	jsr sreset	;clear 40-col wrap table
-	jsr clsr	;clear 40-col text screen
+;	jsr clsr	;clear 40-col text screen
+	pla
+	sta color
 
 .ifdef target_c128
 	bit mmumcr	;test 40/80 key & stay in that mode

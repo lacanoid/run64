@@ -23,34 +23,35 @@ BSOUR1 = $A4
 CMP0   = $B0
 TEMP   = $B1
 
-TBLX   = $D6    ; Current Cursor Physical Line Number
-PNT    = $D1    ; Pointer to the Address of the Current Screen Line RAM Location
-DATA   = $D7    ; Temporary Storage Area for ASCII Value of Last Character Printed
-USER   = $F3    ; Pointer to the Address of the Current Screen Color RAM Location
-KEYTAB = $F5    ; Vector: Keyboard Decode Table
 CRSW   = $D0    ; Flag: Input from Keyboard or Screen
+PNT    = $D1    ; Pointer to the Address of the Current Screen Line RAM Location
 PNTR   = $D3    ; Cursor Column on Current Line
 QTSW   = $D4    ; Flag: Editor in Quote Mode? 0=No
+TBLX   = $D6    ; Current Cursor Physical Line Number
+DATA   = $D7    ; Temporary Storage Area for ASCII Value of Last Character Printed
 INSRT  = $D8    ; Flag: Insert Mode (Any Number Greater Than 0 Is the Number of Inserts)
+USER   = $F3    ; Pointer to the Address of the Current Screen Color RAM Location
+KEYTAB = $F5    ; Vector: Keyboard Decode Table
 LSTSHF = $028e  ; Last Pattern of SHIFT/CTRL/Logo Keypress
 
 LSTX   = $C5    ; Matrix Coordinate of Last Key Pressed, 64=None Pressed
 INDX   = $C8    ; Pointer: End of Logical Line for Input
 LSXP   = $C9    ; Cursor X Position at Start of Input
 LSTP   = $CA    ; Cursor Y Position at Start of Input
+SFDX   = $CB    ; Current key pressed
 
 BUF    = $0200  ; Line Editor Input Buffer
 ENDIN  = $0259  ; End of input buffer
 GDCOL  = $0287  ; Color of Character under Cursor
 RVS    = $C7    ; Flag: Print Reverse Characters? 0=No
+BLNSW  = $CC    ; Cursor Blink Enable: 0=Flash Cursor
+BLNCT  = $CD    ; Timer: Countdown to Blink Cursor
 GDBLN  = $CE    ; Character under Cursor
 BLNON  = $CF    ; Flag: Was Last Curson Blink on or off?
-BLNCT  = $CD    ; Timer: Countdown to Blink Cursor
 RPTFLG = $028A  ; Flag: Which Keys Will Repeat?
 KOUNT  = $028B  ; Counter for Timing the Delay Between Key Repeats
 DELAY  = $028C  ; Counter for Timing the Delay Until the First Key Repeat Begins
 SHFLAG = $028C  ; Shift key status flag
-SFDX   = $CB    ; Current key pressed
 
 IERROR = $0300  ; Vector to the Print BASIC Error Message Routine
 IMAIN  = $0302  ; Vector to the Main BASIC Program Loop

@@ -4,6 +4,7 @@
 .include "config.inc"
 .include "defs128.inc"
 .include "macros.inc"
+.include "boot.inc"
 
 .import __CARTHDR_LOAD__, __CARTHDR_RUN__, __CARTHDR_SIZE__
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
