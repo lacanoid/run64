@@ -183,6 +183,7 @@ sedsal  = $D9
 sedeal  = $DB
 
 swapbeg:
+
 pnt:    .word 0     ; = PNT
 user:   .word 0     ; = USER
 
@@ -214,6 +215,7 @@ insflg: .byte 0     ; Auto-Insert Mode Flag
 locks:  .byte 0     ; disables  <c=><shift>,   <ctrl>-S
 scroll: .byte 0     ; disables  screen scroll, line linker
 beeper: .byte 0     ; disables  <ctrl>-G
+
 swapend:
 
 mode:   .byte 0     ; 40/80 Column Mode Flag
@@ -365,7 +367,7 @@ configure:
         lda #>new_irq
         sta CINV+1
 
-        jmp @cf2
+;        jmp @cf2
 
         lda #$7f        ; disable CIA interrupts
         sta $dc0d
@@ -373,11 +375,10 @@ configure:
         lda $dc0d
         lda $dd0d
 
-
         lda IRQMASK     ; enable VIC raster interrupt
         ora #1
         sta IRQMASK
-        lda #150         ; set initial raster line
+        lda #10         ; set initial raster line
         sta RASTER
         lda SCROLY
         and #$7f        ; raster hight bit
@@ -388,23 +389,47 @@ configure:
         rts
 
 new_irq:
+        CLD
 ;        jsr EDITOR+$24   
-        jmp $EA31       ; default handler in ROM
-
         lda mmureg
         pha
-        CLD
+
+
+.if 1 ; not feature_use_roms
         ; editor handles split screen and calls SCNKEY and BLINK
-        jsr EDITOR+$24   
-        bcc @nirq9              ; split screen interrupt
+
+.if 1  ; copy of c64 rom handler
+        asl VICIRQ 
+        bcc raster_not  ; not a raster interrupt
+raster_not:
+raster_cont:
+        pla
+        inc EXTCOL
+        jmp $EA31       ; default handler in ROM
+.else
+        jsr EDITOR+$24    ; ; split screen, SCNKEY, BLINK
+        bcc raster_cont1              
+
         jsr UDTIM               ; update clock
         lda cia2+$0d            ; clear CIA2
+
         lda init_status         ; check for animations
         lsr
-        bcc @nirq9
+        bcc raster_cont1
         jsr animate
-@nirq9:
-; c64   $EA61      same in c64 rom + SCNKEY
+.endif
+
+.else
+        asl VICIRQ 
+        bcc raster_not  ; not a raster interrupt
+raster_not:
+raster_cont:
+        pla
+        jmp $EA31       ; default handler in ROM
+.endif
+
+raster_cont1:
+; c64   $EA61      same in c64 rom + SCNKEY - MMU
 ; c128  $FF33
         pla
         jsr tapemotor
@@ -416,6 +441,8 @@ new_irq:
         tax
         pla
         rti
+
+; ---------------------------------------------
 
 CAS1 = $C0
 tapemotor:  ; handle tape motor
@@ -442,6 +469,7 @@ animate:        ; run basic sprite animations
 .endif             ; feature_irq
         rts
 
+; ---------------------------------------------
 
 new_bsout:
 	sta DATA
