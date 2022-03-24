@@ -1,4 +1,5 @@
-.scope print 
+.scope print
+  pointer = $FD
   arg: .word 0
   .proc print_dec 
       ; Print a 16 bit unsigned binary integer from stack in base 10
@@ -44,7 +45,7 @@
   .endproc
 
   .proc print_hex_digit
-    IfGe #11, big
+    IfGe #10, big
       add #'0'
       jsr CHROUT
       rts
@@ -67,5 +68,116 @@
     and #$0f
     jsr print_hex_digit 
     rts
+  .endproc
+
+  .proc print_z
+    Stash pointer
+    IMov pointer, arg
+    ldx #0
+    loop:
+      lda (pointer,x)
+      IfFalse exit
+      jsr CHROUT
+      IInc pointer
+      clc
+      bcc loop
+    exit:
+      Unstash pointer
+      rts
+  .endproc
+  
+  .proc dump_char
+    pha
+    and #$7f
+    IfGe #32, regular_char
+      lda #'.'
+      clc 
+      jsr CHROUT
+      pla
+      rts
+    regular_char:
+    pla
+    jsr CHROUT
+    rts
+  .endproc 
+
+  .proc dump_text
+    Stash pointer
+    IMov pointer, arg
+    ldy #0
+    ldx #0
+    print_line:
+      NewLine
+      lda pointer+1
+      jsr print_hex_digits
+      lda pointer
+      jsr print_hex_digits
+      PrintChr ' '
+      PrintChr ' '
+      .scope print_chars
+        loop:
+          lda (pointer,x)
+          jsr dump_char
+          IInc pointer
+          dey
+          tya
+          and #31
+          bne loop
+        break:
+    .endscope
+    next_line:
+    tya
+    IfTrue print_line
+    exit:
+      Unstash pointer
+      NewLine
+      rts
+  .endproc
+
+  .proc dump_hex
+    Stash pointer
+    IMov pointer, arg
+    ldy #128
+    ldx #0
+    print_line:
+      NewLine
+      lda pointer+1
+      jsr print_hex_digits
+      lda pointer
+      jsr print_hex_digits
+      PrintChr ' '
+      .scope print_bytes
+        loop:
+        PrintChr ' '
+        lda (pointer,x)
+        jsr print_hex_digits
+        IInc pointer
+        dey
+        tya
+        and #7
+        bne loop
+        break:
+      .endscope
+      ISubB pointer, 8
+      PrintChr ' '
+      PrintChr ' '
+      .scope print_chars
+        loop:
+          lda (pointer,x)
+          jsr dump_char
+          IInc pointer
+          dey
+          tya
+          and #7
+          bne loop
+        break:
+    .endscope
+    next_line:
+    tya
+    IfTrue print_line
+    exit:
+      Unstash pointer
+      NewLine
+      rts
   .endproc
 .endscope

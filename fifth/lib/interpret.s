@@ -9,11 +9,11 @@
     IfTrue parse::error, catch
     jmp loop
   done:
-    ColorPush 1
+    ColorPush 3
     PrintChr 'O'
     PrintChr 'K'
     ColorPop
-    NewLine
+    
     rts
   catch:
     jsr print_error
@@ -21,10 +21,9 @@
 .endproc
 
 .proc print_error
-  ColorPush 1
+  ColorPush 10
   PrintChr '?'
   jsr parse::print_next_word
-  NewLine
   ColorPop
   rts 
 .endproc

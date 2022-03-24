@@ -8,39 +8,93 @@
   adc arg1
 .endmacro
 
-
-.macro bClear arg1
+.macro CClear arg1
   lda #0
   sta arg1
 .endmacro
 
-.macro iClear arg1
+.macro CxClear arg1, argx
+  ldx argx
+  lda #0
+  sta arg1, x
+.endmacro
+
+.macro IClear arg1
   lda #0
   sta arg1
   sta arg1+1
 .endmacro
 
-.macro bSet arg1, arg2
+.macro IxClear arg1, argx
+  ldx argx
+  lda #0
+  sta arg1, x
+  sta arg1+1, x
+.endmacro
+
+.macro CSet arg1, arg2
   lda #arg2
   sta arg1
 .endmacro
 
-.macro iSet arg1, arg2
+.macro CxSet arg1, argx, arg2
+  ldx argx
+  lda #arg2
+  sta arg1,x
+.endmacro
+
+.macro ISet arg1, arg2
   lda #<arg2
   sta arg1
   lda #>arg2
   sta arg1+1
 .endmacro
 
-.macro bMov arg1, arg2
+.macro IxSet arg1, argx, arg2
+  ldx argx
+  lda #<arg2
+  sta arg1
+  lda #>arg2
+  sta arg1+1
+.endmacro
+
+.macro CMov arg1, arg2
   lda arg2
   sta arg1
 .endmacro
 
-.macro iMov arg1, arg2
+.macro CxMov arg1, argx, arg2
+  ldx argx
+  lda arg2
+  sta arg1,x
+.endmacro
+
+.macro CMovCx arg1, arg2, argx
+  ldx argx
+  lda arg2,x
+  sta arg1
+.endmacro
+
+.macro IMov arg1, arg2
   lda arg2
   sta arg1
   lda arg2+1
+  sta arg1+1
+.endmacro
+
+.macro IxMov arg1, argx, arg2
+  ldx argx
+  lda arg2
+  sta arg1,x
+  lda arg2+1
+  sta arg1+1,x
+.endmacro
+
+.macro IMovIx arg1, arg2, argx
+  ldx argx
+  lda arg2,x
+  sta arg1
+  lda arg2+1,x
   sta arg1+1
 .endmacro
 
@@ -119,16 +173,16 @@
 .endmacro
 
 
-.macro bShiftLeft arg1
+.macro CShiftLeft arg1
   asl arg1 
 .endmacro
 
-.macro iShiftLeft arg1
+.macro IShiftLeft arg1
   asl arg1
   rol arg1+1
 .endmacro
 
-.macro iAdd arg1, arg2
+.macro IAdd arg1, arg2
   clc
   lda arg1
   adc arg2
@@ -136,4 +190,57 @@
   lda arg1+1
   adc arg2+1
   sta arg1+1
+.endmacro
+
+.macro IAddA arg1
+  .scope
+    add arg1
+    sta arg1
+    bcc skip
+    
+      inc arg1+1
+    skip:
+  .endscope
+.endmacro
+
+.macro ISubA arg1
+  .scope
+    eor #FF
+    add #1
+    add arg1
+    sta arg1
+    bcs skip
+      dec arg1+1
+    skip:
+  .endscope
+.endmacro
+
+.macro ISubB arg1,arg2
+  .scope
+    lda arg1
+    sub #arg2
+    sta arg1
+    bcs skip
+      dec arg1+1
+    skip:
+  .endscope
+.endmacro
+
+
+.macro IAddB arg1,arg2
+  .local skip
+  lda arg1
+  add #arg2
+  sta arg1
+  bcc skip
+  inc arg1+1
+  skip:
+.endmacro
+
+.macro IInc arg1
+  .local skip
+  inc arg1
+  IfTrue skip
+  inc arg1+1
+  skip:
 .endmacro

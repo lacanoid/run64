@@ -1,4 +1,99 @@
 
+.proc DUMP
+  Entry "DUMP"
+  SpLoad
+  CopyTo 1, print::arg
+  jsr print::dump_hex
+  SpLoad
+  Push 64
+  Exec ADD
+  rts
+  next:
+.endproc
+
+.proc TDUMP
+  Entry "TDUMP"
+  SpLoad
+  CopyTo 1, print::arg
+  jsr print::dump_text
+  SpLoad
+  Push 256
+  Exec ADD
+  rts
+  next:
+.endproc
+
+.proc PRINT
+  Entry "PRINT"
+  SpLoad
+  CopyTo 1, print::arg
+  jsr print::print_z
+  SpLoad
+  SpDec
+  rts
+  next:
+.endproc
+
+
+.proc VOCAB
+  Entry "VOCAB"
+  SpLoad
+  PushFrom vocab::bottom
+  rts
+  next:
+.endproc
+
+
+.proc PSTART
+  Entry "PSTART"
+  SpLoad
+  Push PROG_START
+  rts
+  next:
+.endproc
+
+.proc PEND
+  Entry "PEND"
+  SpLoad
+  Push PROG_END
+  rts
+  next:
+.endproc
+
+.proc HSTART
+  Entry "HSTART"
+  SpLoad
+  Push HEAP_START
+  rts
+  next:
+.endproc
+
+
+.proc HEND
+  Entry "HEND"
+  SpLoad
+  PushFrom TOP
+  rts
+  next:
+.endproc
+
+.proc HSIZE
+  Entry "HSIZE"
+  Exec HEND
+  Exec HSTART
+  Exec SUB
+  rts
+  next:
+.endproc
+
+.proc HCLEAR
+  Entry "HCLEAR"
+  ISet TOP, HEAP_START
+  
+  rts
+  next:
+.endproc
+
 .proc WHITE
     Entry "WHITE"
     Exec INK

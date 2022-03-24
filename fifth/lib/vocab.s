@@ -16,7 +16,7 @@
   bottom: .word VOCAB_START
 
   .proc reset_cursor
-    iMov cursor, bottom
+    IMov cursor, bottom
     rts 
   .endproc ; vocab::reset_cursor
 

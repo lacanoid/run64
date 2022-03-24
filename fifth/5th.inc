@@ -23,20 +23,15 @@ TMP = $FD
 
 
 .macro PrintString str
-  .local foo
-  .proc foo
-    ldx #0
-    loop:
-      lda string,x
-      beq done
-      jsr CHROUT
-      inx
-    bne loop  
-    beq done
-    string: 
+  .scope
+    ISet print::arg, data
+    jsr print::print_z
+    clc
+    bcc exit
+    data: 
       .asciiz str
-    done:
-  .endproc
+    exit:
+  .endscope
 .endmacro
 
 
@@ -54,39 +49,17 @@ TMP = $FD
   PrintChr 147
 .endmacro
 
-
 jmp main
 
+.include "lib/runtime.s"
+.include "lib/stack.s"
 .include "lib/vocab.s"
 .include "lib/parse.s"
 .include "lib/interpret.s"
 .include "lib/print.s"
+.include "lib/rpl.s"
 
-.proc main
-  bMov tmp_color, COLOR
-  ColorSet 1
-  ClearScreen
-  PrintString "5TH 0.1"
-  NewLine
-
-  loop:
-    ColorSet 1
-
-    jsr getinput
-
-    bMov COLOR, tmp_color
-
-    jsr interpret
-    
-    bMov tmp_color, COLOR
-    
-    ColorSet 14
-    jsr PRINT_STACK
-    lda f_quit
-    beq loop
-    rts
-    tmp_color: .byte 14
-.endproc 
+main: JMP rpl::main
 
 .proc getinput 
   ldx #0
@@ -109,14 +82,8 @@ jmp main
 
 ;.include "../utils.s"
 
-dbottom:
-    .word VOCAB_START
-
 
 f_quit:
     .byte 0
-
-hex_result: .word 0
-
-f_SP: .byte 0
-STACK: .res 256
+TOP:
+  .word PROG_END

@@ -10,9 +10,9 @@
     .byte 0
 
   .proc reset 
-    iSet offset, BUF
-    bClear eof
-    bClear error
+    ISet offset, BUF
+    CClear eof
+    CClear error
     rts
   .endproc
 
@@ -25,12 +25,12 @@
   .endproc
 
   .proc advance_offset
-    iMov offset, pointer
+    IMov offset, pointer
     rts
   .endproc
 
   .proc reset_pointer
-    iMov pointer,offset
+    IMov pointer,offset
     rts
   .endproc
 
@@ -64,14 +64,22 @@
       jsr advance_pointer
       jmp loop
     done:
-      NewLine
       rts 
   .endproc
 
 
   .proc next_word
-      jsr reset_pointer
-      lda (pointer,x)
+    jsr reset_pointer
+    ldx #0
+    lda (pointer,x)
+    IfNe #34, not_quoted
+    quoted:
+      jsr parse_string
+      IfTrue error, not_found
+      SpLoad
+      PushFrom cursor
+      rts
+    not_quoted:
       IfNe #'$', not_hex
     hex:
       jsr parse_hex 
@@ -99,20 +107,19 @@
   .endproc
 
 
+
   .proc parse_hex
-    iClear cursor
+    IClear cursor
     jsr reset_pointer
+    jsr advance_pointer
     ldx #0
     hex_digit:
       lda (pointer,x)
       and #$7f
-      jsr advance_pointer
-      
+
       cmp #33
       bcc hex_done
-
-      sec 
-      sbc #$30
+      sub #$30
       bmi hex_error
       cmp #10
       bcc hex_found
@@ -121,14 +128,14 @@
       sbc #7
       cmp #9
       bcc hex_error
-      cmp #15
+      cmp #16
       bcs hex_error
 
     hex_found:
-      iShiftLeft cursor
-      iShiftLeft cursor
-      iShiftLeft cursor
-      iShiftLeft cursor
+      IShiftLeft cursor
+      IShiftLeft cursor
+      IShiftLeft cursor
+      IShiftLeft cursor
       
       BCS hex_error
       
@@ -149,7 +156,7 @@
 
 
   .proc parse_dec
-      iClear cursor
+      IClear cursor
       jsr reset_pointer
       ldx #0
       dec_digit:
@@ -164,24 +171,21 @@
           IfGe #10, dec_error
           
           pha
-            iMov temp, cursor
+            IMov temp, cursor
           pla
 
-          iShiftLeft cursor
-          iShiftLeft cursor
+          IShiftLeft cursor
+          IShiftLeft cursor
           
           pha
-            iAdd cursor, temp
+            IAdd cursor, temp
           pla
 
-          iShiftLeft cursor
+          IShiftLeft cursor
 
           BCS dec_error
-          nomul:
-          ADC cursor
           
-          STA cursor
-          BCS dec_error
+          IAddA cursor 
           jsr advance_pointer
           jmp dec_digit
 
@@ -194,7 +198,7 @@
         rts 
 
       temp: .word 0
-  .endproc ; parse_hex
+  .endproc ; parse_dec
 
   
   .proc parse_entry
@@ -227,4 +231,34 @@
         jsr advance_offset 
         rts 
   .endproc ; parse_entry
+
+  .proc parse_string
+    
+    jsr advance_pointer
+    ldy #0
+    ldx #0
+    IMov cursor, TOP
+    
+    parse_char:
+      lda (pointer,x)
+      IfLt #32, error
+      IfEq #34, done
+      sta (cursor),y
+      jsr advance_pointer
+      iny 
+      bne parse_char
+    error:
+      inc error
+      rts
+    done:
+      lda #0
+      sta (cursor),y
+      iny      
+      jsr advance_pointer
+      jsr advance_offset
+      tya
+      IAddA TOP
+      
+      rts
+  .endproc    
 .endscope

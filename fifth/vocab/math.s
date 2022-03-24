@@ -85,18 +85,15 @@
 .endproc
 .proc ADD 
     Entry "+"
-
-    ldx f_SP
-    clc 
+    SpLoad
     lda STACK-4,x
     adc STACK-2,x
     sta STACK-4,x
+
     lda STACK-3,x
     adc STACK-1,x
-    sta STACK-3
-    dex
-    dex
-    stx f_SP 
+    sta STACK-3,x
+    SpDec
     rts
     next:
 .endproc
@@ -110,7 +107,7 @@
     sta STACK-4,x
     lda STACK-3,x
     sbc STACK-1,x
-    sta STACK-3
+    sta STACK-3,x
     dex
     dex
     stx f_SP 

@@ -53,9 +53,9 @@
     next:
 .endproc
 
+
 .proc PRINT_STACK
     Entry "??"
-    PrintChr '#'
     
     ldx f_SP 
     loop:
@@ -73,7 +73,6 @@
         bcc loop
 
     done:
-        NewLine
         rts
     next:
 .endproc

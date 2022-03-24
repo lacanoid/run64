@@ -31,7 +31,6 @@
   sta STACK-d*2+1,x
 .endmacro
 
-
 .macro Insert d, arg
   lda #<arg
   sta STACK-d*2,x
