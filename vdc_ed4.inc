@@ -492,16 +492,17 @@ beep:
 	cpy #beeppar1-beeppar
 	bne @beep1
 .else
+	lda #$0f
 	sta sidreg+24	;set volume control
-	ldy #$09
+	ldy #$0b
 	ldx #$00
 	sty sidreg+5	;set envelope
 	stx sidreg+6
-	lda #$30
+	lda #$10
 	sta sidreg+1	;set oscillator frequency
-	lda #$20
+	lda #$70
 	sta sidreg+4	;set waveform & ungate
-	lda #$21
+	lda #$71
 	sta sidreg+4	;gate it
 .endif
 	rts

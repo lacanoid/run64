@@ -475,8 +475,9 @@ DCHROK: JSR CHROUT
 
 ; -----------------------------------------------------------------------------
 ; convert base [$+&%]
-TRIGRAM:
+TRIGRAM_IN:
         lda #0
+        sta TMP0
         sta TMP1
 
         JSR GETCHR    ; 1-st char 
@@ -515,6 +516,10 @@ TRIGRAM:
         ora TMP1
         sta TMP1
 @tg9:
+        rts
+
+TRIGRAM:
+        jsr TRIGRAM_IN
         JMP CONVRT1
 
 ; -----------------------------------------------------------------------------

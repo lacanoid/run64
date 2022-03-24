@@ -2,7 +2,7 @@ Version 0.7
 ===========
 - new vdc64 program to use VDC chip in C128 in C64 mode 
 - new 5th mini forth interpreter & shell
-- convert to trigrams (#)
+- convert from to trigrams (#)
 
 Version 0.6
 ===========
