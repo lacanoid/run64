@@ -264,8 +264,11 @@ keybnk:	.byte 0		;
 sedt2:
 keytmp:	.byte 0		;
 
-.if feature_pfkey=1
+.if feature_scnkey=1
 decode: .res  12    ; vectors to keyboard matrix decode tables
+.endif
+
+.if feature_pfkey=1
 pkynum	= 10		;number of definable keys  (f1-f8, <shft>run, help)
 pkybuf:	.res pkynum	;programmable function key lengths table
 pkydef:	.res 256-pkynum	;programmable function key strings
@@ -367,8 +370,6 @@ configure:
         lda #>new_irq
         sta CINV+1
 
-;        jmp @cf2
-
         lda #$7f        ; disable CIA interrupts
         sta $dc0d
         sta $dd0d
@@ -402,11 +403,18 @@ new_irq:
         asl VICIRQ 
         bcc raster_not  ; not a raster interrupt
 raster_not:
+        ; not a raster interrupt
 raster_cont:
-        pla
-        inc EXTCOL
-        jmp $EA31       ; default handler in ROM
-.else
+;        inc EXTCOL
+       jsr UDTIM
+;        jmp $EA34       ; default handler in ROM
+        jsr blink        ; 40 column blink
+        jsr scnkey
+        jmp raster_cont1
+;        pla
+;        jmp $EA61        ; default handler in ROM
+
+.else  ; copy of c128 rom handler
         jsr EDITOR+$24    ; ; split screen, SCNKEY, BLINK
         bcc raster_cont1              
 
@@ -419,7 +427,7 @@ raster_cont:
         jsr animate
 .endif
 
-.else
+.else  ; use rom routines
         asl VICIRQ 
         bcc raster_not  ; not a raster interrupt
 raster_not:

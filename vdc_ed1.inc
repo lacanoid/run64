@@ -179,6 +179,9 @@ cint:
 	bpl @cint1
 	jsr swapzpin
 
+	lda COLOR
+	sta color
+
 	ldx #vectse-vectss-1
 @cint3:
 	lda vectss,x
@@ -443,13 +446,13 @@ irqrts:
 	beq @ir10		;...branch if not split scren
 	lda vicreg+17
 	bpl @ir10		;...branch if raster still not at bottom
-	sec		;ah-ha! this has to be the 'bottom' irq of a split screen
+	sec			;ah-ha! this has to be the 'bottom' irq of a split screen
 @ir10:
-	cli		;allow interruptable keyscan
+	cli			;allow interruptable keyscan
 	bcc @ir20	;done if 'middle' irq
 	jsr scnkey	;do general keyboard scan
 	jsr blink	;blink vic cursor
-	sec		;tell kernal this was the 60hz irq
+	sec			;tell kernal this was the 60hz irq
 @ir20:
 	rts
 .else
