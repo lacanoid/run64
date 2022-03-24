@@ -15,7 +15,7 @@ feature_bgcolor=1            ; background color setter RVS+CLR
 
 vdc_colors=1       ; use new vdc colors
 
-org = $8000
+org = $C000
 
 UDTIM     = $FFEA
 SCNKEY    = $FF9F
@@ -29,11 +29,6 @@ resultRegister = $d7ff
         lda vdc_config
         beq perror
         ; copy editor code into place
-        ldx #>(mainend-main)
-        inx
-        lda #0
-        jsr LINPRT 
-
         ldx #>(mainend-main)
         ldy #0
 @l1:    lda data,Y
@@ -96,15 +91,18 @@ banner: ; print banner and info
 ;        ldx #16
         lda #0
         jsr LINPRT
+        lda #'K'
+        jsr CHROUT
 
-;        lda #'K'
+;        lda #' '
 ;        jsr CHROUT
+
         lda #' '
         jsr CHROUT
 
 @m3:
-        ldx #<mode
-        lda #>mode
+        ldx #<(mainend-main)
+        lda #>(mainend-main)
         jsr LINPRT
 
         lda T1
@@ -120,7 +118,7 @@ exit:
 
 msg:    .byte 7
         .byte $12,$1c,$20,$96,$20,$9e,$20,$99,$20,$9a,$20,$9c,$20,$92,$05
-        .asciiz " VDC64 0.3 "
+        .asciiz " VDC64 0.4 "
 
 ; --------------------------
 data:
@@ -179,10 +177,14 @@ esc   = 27
 space = 32
 quote = 34
 
-sedsal  = $D9
-sedeal  = $DB
+mode    = $D9   ; 40/80 Column Mode Flag
+graphm  = $DA   ; text/graphic mode flag
+split   = $DB   ; vic split screen raster value
 
-swapbeg:
+sedsal  = $E0
+sedeal  = $E2
+
+swapbeg:   ; at $E0-$F9 on c128
 
 pnt:    .word 0     ; = PNT
 user:   .word 0     ; = USER
@@ -218,8 +220,8 @@ beeper: .byte 0     ; disables  <ctrl>-G
 
 swapend:
 
-mode:   .byte 0     ; 40/80 Column Mode Flag
-graphm: .byte 0     ; text/graphic mode flag
+;mode:   .byte 0     ; 40/80 Column Mode Flag
+;graphm: .byte 0     ; text/graphic mode flag
 charen:	.byte 0     ; ram/rom vic character character fetch flag (bit-2)
 pause:  .byte 0     ; ;<ctrl>-S flag
 kyndx:  .byte 0     ; Pending Function Key Flag
@@ -233,7 +235,7 @@ lintmp: .byte 0     ; temporary pointer to last line for LOOP4
 sav80a: .byte 0     ; temporary for 80-col routines
 sav80b: .byte 0     ; temporary for 80-col routines
 curcol: .byte 0     ; vdc cursor color before blink
-split:  .byte 0     ; vic split screen raster value
+;split:  .byte 0     ; vic split screen raster value
 bitmsk: .byte 0     ; temporary for TAB & line wrap routines
 saver:  .byte 0     ; yet another temporary place to save a register
 tabmap: .res  10
