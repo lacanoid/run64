@@ -153,22 +153,22 @@ d2pra   = cia2
 
 EDITOR:
 ;////////////////   E D I T O R     J U M P     T A B L E   \\\\\\\\\\\\\\\\\
-;	jmp cint	;initialize editor & screen
-	jmp disply	;display character in .a, color in .x
-	jmp lp2		;get a key from irq buffer into .a
-	jmp loop5	;get a chr from screen line into .a
-	jmp print	;print character in .a
-	jmp scrorg	;get size of current window (rows,cols) in .x, .y
-	jmp scnkey	;scan keyboard subroutine
-	jmp repeat	;repeat key logic & 'ckit2' to store decoded key
-	jmp plot	;read or set (.c) cursor position in .x, .y
-	jmp cursor	;move 8563 cursor subroutine
-	jmp escape	;execute escape function using chr in .a
-	jmp keyset	;redefine a programmable function key
-	jmp irq		;irq entry
-	jmp init80	;initialize 80-column character set
-	jmp swapper	;swap editor local variables (40/80 mode change)
-	jmp window	;set top left or bottom right (.c) of window
+;	jmp cint	;00 initialize editor & screen
+	jmp disply	;01 display character in .a, color in .x
+	jmp lp2		;02 get a key from irq buffer into .a
+	jmp loop5	;03 get a chr from screen line into .a
+	jmp print	;04 print character in .a
+	jmp scrorg	;05 get size of current window (rows,cols) in .x, .y
+	jmp scnkey	;06 scan keyboard subroutine
+	jmp repeat	;07 repeat key logic & 'ckit2' to store decoded key
+	jmp plot	;08 read or set (.c) cursor position in .x, .y
+	jmp cursor	;09 move 8563 cursor subroutine
+	jmp escape	;10 execute escape function using chr in .a
+	jmp keyset	;11 redefine a programmable function key
+	jmp irq		;12 irq entry
+	jmp init80	;13 initialize 80-column character set
+	jmp swapper	;14 swap editor local variables (40/80 mode change)
+	jmp window	;15 set top left or bottom right (.c) of window
 
 _spare:	.byte $ff,$ff,$ff
 

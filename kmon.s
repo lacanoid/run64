@@ -475,7 +475,62 @@ DCHROK: JSR CHROUT
 
 ; -----------------------------------------------------------------------------
 ; convert base [$+&%]
+TRIGRAM:
+        lda #0
+        sta TMP1
+
+        JSR GETCHR    ; 1-st char 
+        beq @tg9
+        and #$1f
+        sta TMP0
+
+        JSR GETCHR    ; 2-nd char
+        beq @tg9
+        pha
+        and #$F0      
+        cmp #$30
+        bne @tg2 
+; is it a number
+        lda TMP1
+        ora #$fe
+        sta TMP1
+
+@tg2:   ; letter
+        pla
+        and #$3f
+
+        ldx #5
+@tg1:   asl
+        rol TMP1        
+        dex
+        bne @tg1
+        ora TMP0
+        sta TMP0
+
+        JSR GETCHR    ; 3-rd char 6 bits
+        beq @tg9
+        and #$3f
+        asl
+        asl
+        ora TMP1
+        sta TMP1
+@tg9:
+        JMP CONVRT1
+
+; -----------------------------------------------------------------------------
+; convert base [$+&%]
 CONVRT: JSR RDPAR           ; read a parameter
+CONVRT1:
+        JSR FRESH           ; output character
+        LDA #'"'            
+        JSR CHROUT
+        LDA TMP0            
+        JSR CHROUT
+        LDA TMP1            
+        JSR CHROUT
+        LDA #'"'            
+        JSR CHROUT
+
         JSR FRESH           ; next line and clear
         LDA #'$'            ; output $ sigil for hex
         JSR CHROUT
@@ -504,6 +559,52 @@ CONVRT: JSR RDPAR           ; read a parameter
         LDX #$18            ; max digits + 1
         LDY #0              ; bits per digit - 1
         JSR PRINUM          ; output number
+
+        JSR FRESH           ; next line and clear
+
+        LDA #'#'            ; print % sigil for binary
+        JSR CHROUT
+        lda TMP0            ; 1st charaster
+        and #$1F
+        ora #$40
+        jsr CHROUT
+
+        lda TMP1            ; 2nd character
+        and #$03
+        sta T1
+
+        lda TMP0
+        asl
+        rol T1
+        asl
+        rol T1
+        asl
+        rol T1
+        lda T1
+
+        ldx TMP1          ;
+        cpx #$c6
+        beq @cvt3         ; it is a number
+
+        ora #$40
+        jsr CHROUT
+
+        lda TMP1            ; 3rd character
+        bmi @cvt5
+@cvt4:       ; it is a letter
+        lsr
+        lsr
+        and #$1f
+        ora #$40
+        bne @cvt9           ; allways
+@cvt5:  ; it is a digit
+        lsr
+        lsr
+@cvt3:
+        and #$0f
+        ora #$30
+@cvt9:
+        jsr CHROUT
         JMP STRT            ; back to mainloop
 
 ; -----------------------------------------------------------------------------
@@ -1144,13 +1245,13 @@ CMDDI0:.asciiz "@8,$"
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
-KEYW:   .byte "BDEGHIJMNRX@>"
+KEYW:   .byte "BDEGHIJMNRX@>#"
 HIKEY:  .byte "$+&%LSV"
 KEYTOP  =*
 
 ; vectors corresponding to commands above
 KADDR: .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1 
-        .WORD JSUB-1, DSPLYM-1, CMDNEW-1, CMDRUN-1, EXIT-1, DSTAT-1, ALTM-1
+        .WORD JSUB-1, DSPLYM-1, CMDNEW-1, CMDRUN-1, EXIT-1, DSTAT-1, ALTM-1, TRIGRAM-1
 
 ; -----------------------------------------------------------------------------
 MODTAB: .BYTE $10,$0A,$08,02    ; modulo number systems
