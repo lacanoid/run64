@@ -6,12 +6,12 @@
 
 .forceimport __EXEHDR__
 
-feature_scnkey=0   ; provide keyboard scan routine
-feature_pfkey=0    ; provide programmable function keys
-feature_irq=1      ; provide interrupt service routine
-feature_raster=1   ; raster interrupt (split screen support)
-feature_use_roms=0 ; use c64 roms (saves some space)
-feature_bgcolor=1  ; background color set with RVS+CLR
+feature_scnkey=0        ; provide keyboard scan routine
+feature_pfkey=0         ; provide programmable function keys
+feature_irq=1           ; provide interrupt service routine
+feature_irq_raster=1    ; raster interrupt (split screen support)
+feature_use_roms=0      ; use c64 roms where possible (saves some space)
+feature_bgcolor=1       ; background color set with RVS+CLR
 
 feature_irq_tapemotor=0      ; raster tape motor stuff
 
@@ -411,13 +411,32 @@ raster_cont:
 
         jsr UDTIM
 ;;;        jmp $EA34       ; default handler in ROM
-.if feature_raster      ; raster interrupt
-        jsr irq
+.if feature_irq_raster      ; raster interrupt
+        jsr irq_raster
 ;        jsr text
-.else
+        bcc raster_cont1
+.else                   ; no raster
         jsr blink       ; 40 column blink
-        jsr scnkey
+        jsr scnkey      ; scan keyboard
 .endif
+
+.if 0  ; show timing
+        inc $d030
+        ldy #25
+@l2:
+        inc EXTCOL
+        ldx #40
+@l1:
+        lda $0400,X
+        sta $0400,x
+        dex
+        bne @l1
+        dec EXTCOL
+        dey
+        bne @l2
+        dec $d030
+.endif
+
         jmp raster_cont1
 ;;;        pla
 ;;;        jmp $EA61        ; default handler in ROM
@@ -478,7 +497,7 @@ tapemotor:  ; handle tape motor
 .endif ; if not feature_use_roms
 
 animate:        ; run basic sprite animations
-.endif             ; feature_irq
+.endif          ; feature_irq
         rts
 
 ; ---------------------------------------------

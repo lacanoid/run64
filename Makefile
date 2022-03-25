@@ -50,10 +50,10 @@ run64.d81: ${PROGRAMS} autostart64.128 bootsect.128 Makefile
 	$(C1541) -format "${VOLNAME}" d81 run64.d81
 	./install.sh run64.d81
 
-bootsect.128: LDFLAGS += -C linker.cfg
+bootsect.128: LDFLAGS += -C autostart.cfg
 bootsect.128: bootsect.128.o autostart64.128.o autostart64.o
 
-autostart64.128: LDFLAGS += -C linker.cfg
+autostart64.128: LDFLAGS += -C autostart.cfg
 autostart64.128: bootsect.128.o autostart64.128.o autostart64.o
 
 kmon: LDFLAGS += -t c64 -C kmon.cfg -u __EXEHDR__

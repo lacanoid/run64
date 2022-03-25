@@ -336,13 +336,14 @@ irq:
 	sec
 	lda vicreg+25	;is this a vic raster irq?
 	and #$01
-	beq @irq10		;...branch if not (just rts with .c=1)
+	beq irq_1		;...branch if not (just rts with .c=1)
 
 	sta vicreg+25	;clear the raster interrupt bit
 
+irq_raster:
 	lda graphm	;is user controlling vic?
 	cmp #$ff
-@irq10:
+irq_1:
 	beq irqrts	;...branch if so (rts with .c=1)
 
 	bit vicreg+17	;assume 'middle' irq (note .c=0 here)
@@ -357,8 +358,9 @@ irq:
 	bit graphm
 	bvc @irq30		;...branch if not a split screen
 
-	lda split
-	sta vicreg+18	;split screen: make next irq occur in 'middle' of frame
+	ldx split
+	dex
+	stx vicreg+18	;split screen: make next irq occur in 'middle' of frame
 
 ;  set up for a graphic frame
 
@@ -445,7 +447,7 @@ irqrts:
 	lda vicreg+17
 	bpl @ir10		;...branch if raster still not at bottom
 	sec			;ah-ha! this has to be the 'bottom' irq of a split screen
-@ir10:
+@ir10:       ; 1MHz mode
 	cli			;allow interruptable keyscan
 	bcc @ir20	;done if 'middle' irq
 	jsr scnkey	;do general keyboard scan
