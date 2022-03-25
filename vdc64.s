@@ -6,13 +6,14 @@
 
 .forceimport __EXEHDR__
 
-feature_scnkey=0   ; keyboard scan routine
-feature_pfkey=0    ; programmable function keys
-feature_irq=1      ; raster interrupt service routine
+feature_scnkey=0   ; provide keyboard scan routine
+feature_pfkey=0    ; provide programmable function keys
+feature_irq=1      ; provide interrupt service routine
+feature_raster=1   ; raster interrupt (split screen support)
 feature_use_roms=0 ; use c64 roms (saves some space)
+feature_bgcolor=1  ; background color set with RVS+CLR
 
 feature_irq_tapemotor=0      ; raster tape motor stuff
-feature_bgcolor=1            ; background color setter RVS+CLR
 
 vdc_colors=1       ; use new vdc colors
 
@@ -178,10 +179,18 @@ esc   = 27
 space = 32
 quote = 34
 
-mode    = $D9   ; 40/80 Column Mode Flag
-graphm  = $DA   ; text/graphic mode flag
-split   = $DB   ; vic split screen raster value
+; locations $D9-$F2 are free
+; variables
+mode    = $D9   ;  217 40/80 Column Mode Flag
+graphm  = $DA   ;  218 text/graphic mode flag
+split   = $DB   ;  219 vic split screen raster value
 
+vm1     = $DC   ;  220 VIC Text Screen/Character Base Pointer
+vm2     = $DD   ;  221 VIC Bit-Map Base Pointer
+vm3     = $DE   ;  222 VDC Text Screen Base
+vm4     = $DF   ;  223 VDC Attribute Base
+
+; pointers
 sedsal  = $E0
 sedeal  = $E2
 
@@ -228,10 +237,10 @@ pause:  .byte 0     ; ;<ctrl>-S flag
 kyndx:  .byte 0     ; Pending Function Key Flag
 keyidx: .byte 0     ; Index Into Pending Function Key String
 curmod: .byte 0     ; VDC Cursor Mode (when enabled)
-vm1:    .byte 0     ; VIC Text Screen/Character Base Pointer
-vm2:    .byte 0     ; VIC Bit-Map Base Pointer
-vm3:    .byte 0     ; VDC Text Screen Base
-vm4:    .byte 0     ; VDC Attribute Base
+;vm1:    .byte 0     ; VIC Text Screen/Character Base Pointer
+;vm2:    .byte 0     ; VIC Bit-Map Base Pointer
+;vm3:    .byte 0     ; VDC Text Screen Base
+;vm4:    .byte 0     ; VDC Attribute Base
 lintmp: .byte 0     ; temporary pointer to last line for LOOP4
 sav80a: .byte 0     ; temporary for 80-col routines
 sav80b: .byte 0     ; temporary for 80-col routines
@@ -368,7 +377,8 @@ configure:
         lda #10         ; set initial raster line
         sta RASTER
         lda SCROLY
-        and #$7f        ; raster hight bit
+;        and #$7f        ; raster hight bit clear
+        ora #$80        ; raster hight bit set
         sta SCROLY
 
 @cf2:
@@ -388,7 +398,7 @@ raster_cont:
         jmp $EA31       ; default handler in ROM
 
 .else  ; do not use not ROMS
-;        inc EXTCOL
+        inc EXTCOL
 
 ;        jmp $EA31       ; default handler in ROM
 
@@ -396,13 +406,21 @@ raster_cont:
         pha
 
 .if 1  ; copy of c64 rom handler at 
+;        jsr EDITOR+$24    ; split screen, SCNKEY, BLINK
+;        bcc raster_cont1              
+
         jsr UDTIM
-;        jmp $EA34       ; default handler in ROM
-        jsr blink        ; 40 column blink
+;;;        jmp $EA34       ; default handler in ROM
+.if feature_raster      ; raster interrupt
+        jsr irq
+;        jsr text
+.else
+        jsr blink       ; 40 column blink
         jsr scnkey
+.endif
         jmp raster_cont1
-;        pla
-;        jmp $EA61        ; default handler in ROM
+;;;        pla
+;;;        jmp $EA61        ; default handler in ROM
 
 .else  ; copy of c128 rom handler at
         jsr EDITOR+$24    ; split screen, SCNKEY, BLINK
@@ -419,6 +437,8 @@ raster_cont:
 .endif
 
 raster_cont1:
+        lda cia2+$0d            ; clear CIA2
+        dec EXTCOL
 ; c64   $EA61      same in c64 rom + SCNKEY - MMU
 ; c128  $FF33
         pla

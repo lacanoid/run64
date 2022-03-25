@@ -437,7 +437,7 @@ doit:
 irqrts:
 	bcs @ir10		;kludge for 2MHz mode split screen:
 	lda vicreg+48	;...in 2MHz mode, RC8=0 always due to faster code
-	and #$01	;...and hence skips keyscan, etc.
+	and #$01		;...and hence skips keyscan, etc.
 	beq @ir10		;...branch if 1MHz mode
 	lda graphm
 	and #$40
