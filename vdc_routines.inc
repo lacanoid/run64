@@ -157,6 +157,7 @@ crsrof:
 	jsr disply	;restore corrected screen data at cursor position
 @c2:
 	rts
+
 ;	.page \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 vdcput:	ldx #31		;update data register
@@ -209,6 +210,22 @@ getusr:			;setup 8563 update registers (18,19) with  USER + .Y
 	inx
 	jmp vdcout	;8563 attribute memory address lo & rts
 
+; -- set vdc colors to their vic counterparts
+vdcsetcolors:
+        lda COLOR
+        and #$0F
+        tay 
+        lda coladj,y
+        sta COLOR
+
+        ldx #$1a
+        lda BGCOL0
+        and #$0F
+        tay 
+        lda coladj,y
+        jsr vdcout
+
+        rts
 
 ;	.page \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 init80:

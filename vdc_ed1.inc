@@ -177,10 +177,13 @@ cint:
 	sta swapout,x	;init 80-column 8563 mode locals
 	dex
 	bpl @cint1
-	jsr swapzpin
 
+	; preserve initial
 	lda COLOR
 	sta color
+
+	jsr swapzpout
+	jsr swapzpin
 
 	ldx #vectse-vectss-1
 @cint3:
@@ -214,18 +217,14 @@ cint:
 	ora init_status
 	sta init_status
 @cint6:
-	lda COLOR
-	pha
 	jsr swapper1	;swap in 80-col vars
-	jsr taball	;initialize 80-col tab stops
-	jsr sreset	;clear 80-col wrap table
-	jsr clsr	;clear 80-col text screen
+	jsr taball		;initialize 80-col tab stops
+	jsr sreset		;clear 80-col wrap table
+	jsr clsr		;clear 80-col text screen
 
-	jsr swapper	;swap in 40-col vars
-	jsr sreset	;clear 40-col wrap table
-;	jsr clsr	;clear 40-col text screen
-	pla
-	sta color
+	jsr swapper		;swap in 40-col vars
+	jsr sreset		;clear 40-col wrap table
+;	jsr clsr		;clear 40-col text screen
 
 .ifdef target_c128
 	bit mmumcr	;test 40/80 key & stay in that mode
@@ -301,7 +300,7 @@ scolor:
 	sta USER+1
 	rts
 
-.if feature_bgcolor=1
+.if feature_bgcolor=1  ; enable of setting of background color with RVS+CLR
 bgcolor:
 	lda RVS
 	beq bgcolrts
@@ -318,7 +317,6 @@ bgcolor40:
 	stx BGCOL0
 bgcolrts:
 	rts
-
 bgcolor80:
 	ldy COLOR
 	ldx #$1a    ; vdc background color

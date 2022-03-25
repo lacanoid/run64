@@ -3,6 +3,7 @@ Version 0.7
 - new vdc64 program to use VDC chip in C128 in C64 mode 
 - new 5th mini forth interpreter & shell
 - convert from to trigrams (#)
+- boot parameters increased to 8 bytes
 
 Version 0.6
 ===========

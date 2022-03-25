@@ -9,13 +9,14 @@
 feature_scnkey=0   ; keyboard scan routine
 feature_pfkey=0    ; programmable function keys
 feature_irq=1      ; raster interrupt service routine
+feature_use_roms=0 ; use c64 roms (saves some space)
 
 feature_irq_tapemotor=0      ; raster tape motor stuff
 feature_bgcolor=1            ; background color setter RVS+CLR
 
 vdc_colors=1       ; use new vdc colors
 
-org = $C000
+org = $8000
 
 UDTIM     = $FFEA
 SCNKEY    = $FF9F
@@ -328,23 +329,6 @@ mmucfg:
         .byte 0, 5, 3, 7
 
 ; -- hook into system
-
-vdcsetcolors:
-        lda COLOR
-        and #$0F
-        tay 
-        lda coladj,y
-        sta COLOR
-
-        ldx #$1a
-        lda BGCOL0
-        and #$0F
-        tay 
-        lda coladj,y
-        jsr vdcout
-
-        rts
-
 configure:
         lda COLOR
         pha
@@ -393,22 +377,26 @@ configure:
 
 new_irq:
         CLD
-;        jsr EDITOR+$24   
+
+        asl VICIRQ      ; clear IRQ 
+        bcc raster_not  ; not a raster interrupt
+
+raster_not:
+
+.if feature_use_roms
+raster_cont:
+        jmp $EA31       ; default handler in ROM
+
+.else  ; do not use not ROMS
+;        inc EXTCOL
+
+;        jmp $EA31       ; default handler in ROM
+
         lda mmureg
         pha
 
-
-.if 1 ; not feature_use_roms
-        ; editor handles split screen and calls SCNKEY and BLINK
-
-.if 1  ; copy of c64 rom handler
-        asl VICIRQ 
-        bcc raster_not  ; not a raster interrupt
-raster_not:
-        ; not a raster interrupt
-raster_cont:
-;        inc EXTCOL
-       jsr UDTIM
+.if 1  ; copy of c64 rom handler at 
+        jsr UDTIM
 ;        jmp $EA34       ; default handler in ROM
         jsr blink        ; 40 column blink
         jsr scnkey
@@ -416,8 +404,8 @@ raster_cont:
 ;        pla
 ;        jmp $EA61        ; default handler in ROM
 
-.else  ; copy of c128 rom handler
-        jsr EDITOR+$24    ; ; split screen, SCNKEY, BLINK
+.else  ; copy of c128 rom handler at
+        jsr EDITOR+$24    ; split screen, SCNKEY, BLINK
         bcc raster_cont1              
 
         jsr UDTIM               ; update clock
@@ -427,15 +415,7 @@ raster_cont:
         lsr
         bcc raster_cont1
         jsr animate
-.endif
 
-.else  ; use rom routines
-        asl VICIRQ 
-        bcc raster_not  ; not a raster interrupt
-raster_not:
-raster_cont:
-        pla
-        jmp $EA31       ; default handler in ROM
 .endif
 
 raster_cont1:
@@ -474,6 +454,8 @@ tapemotor:  ; handle tape motor
 @tm9:
 .endif
         rts
+
+.endif ; if not feature_use_roms
 
 animate:        ; run basic sprite animations
 .endif             ; feature_irq
