@@ -185,6 +185,9 @@ cint:
 	jsr swapzpout
 	jsr swapzpin
 
+	lda vicreg+24
+	sta vm1			; this preserves upper/lower
+
 	ldx #vectse-vectss-1
 @cint3:
 	lda vectss,x

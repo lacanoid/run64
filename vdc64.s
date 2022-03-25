@@ -84,7 +84,11 @@ banner: ; print banner and info
         inx
         bne @m1
 @m2:
-        ldx vdc_config
+        lda #'V'        ; print vdc version
+        jsr CHROUT
+        lda vdcadr
+        and #7
+        tax
 ;        beq @m_16k
 ;@m_64k:
 ;        ldx #64
@@ -93,8 +97,6 @@ banner: ; print banner and info
 ;        ldx #16
         lda #0
         jsr LINPRT
-        lda #'K'
-        jsr CHROUT
 
 ;        lda #' '
 ;        jsr CHROUT
@@ -102,7 +104,15 @@ banner: ; print banner and info
         lda #' '
         jsr CHROUT
 
-@m3:
+@m3:                    ; print location
+        ldx #<(mainend-main)
+        lda #>(mainend-main)
+        jsr LINPRT
+
+        lda #' '
+        jsr CHROUT
+
+@m4:                    ; print size
         ldx #<(mainend-main)
         lda #>(mainend-main)
         jsr LINPRT
@@ -398,7 +408,7 @@ raster_cont:
         jmp $EA31       ; default handler in ROM
 
 .else  ; do not use not ROMS
-        inc EXTCOL
+;        inc EXTCOL
 
 ;        jmp $EA31       ; default handler in ROM
 
@@ -424,14 +434,14 @@ raster_cont:
         inc $d030
         ldy #25
 @l2:
-        inc EXTCOL
+;        inc EXTCOL
         ldx #40
 @l1:
         lda $0400,X
         sta $0400,x
         dex
         bne @l1
-        dec EXTCOL
+;        dec EXTCOL
         dey
         bne @l2
         dec $d030
@@ -457,7 +467,7 @@ raster_cont:
 
 raster_cont1:
         lda cia2+$0d            ; clear CIA2
-        dec EXTCOL
+;        dec EXTCOL
 ; c64   $EA61      same in c64 rom + SCNKEY - MMU
 ; c128  $FF33
         pla
