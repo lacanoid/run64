@@ -17,6 +17,17 @@
     next:
 .endproc
 
+.proc ROT
+    Entry "ROT"
+    SpLoad
+    Copy 3,0
+    Copy 2,3
+    Copy 1,2
+    Copy 0,1
+    rts 
+    next:
+.endproc
+
 .proc OVER
     Entry "OVER"
     SpLoad
@@ -57,18 +68,18 @@
 .proc PRINT_STACK
     Entry "??"
     
-    ldx f_SP 
+    ldx #0
     loop:
-        cpx #1
-        bcc done 
+        cpx f_SP
+        bcs done 
 
         lda #' '
         jsr CHROUT
         
+        inx
+        inx
         PrintDec
         
-        dex
-        dex
         clc 
         bcc loop
 

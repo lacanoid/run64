@@ -53,9 +53,9 @@
 .macro IxSet arg1, argx, arg2
   ldx argx
   lda #<arg2
-  sta arg1
+  sta arg1,x
   lda #>arg2
-  sta arg1+1
+  sta arg1+1,x
 .endmacro
 
 .macro CMov arg1, arg2

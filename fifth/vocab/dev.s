@@ -1,96 +1,72 @@
+DEF INC, INCR
+  _ #1
+  _ ADD
+END
 
-.proc TEST
-  rEntry "TEST"
-  rJsr HEND
-  rJsr HSTART
-  rJsr SUB
-  rInt 2
-  rJsr ADD
-  rRun INC
-  rRet
-  next:
-.endproc
+DEF TEST
+  _ HEND
+  _ HSTART
+  _ SUB
+  IF 
+    _ #1
+    _ ADD
+  ELSE
+    _ #0
+    _ DUP
+    _ #1
+    _ ADD
+    _ DEC
+    IF 
+    _ #2
+    _ DEC 
+    ENDIF
+  _ #3
+  _ DEC
+  ENDIF
+END 
 
-.proc INC
-  rEntry "INC"
-  rInt 1
-  rJsr ADD
-  rRet
-  next:
-.endproc
+DEF DUMP
+_ DUP
+_ #print::dump_hex
+_ #print::arg
+_ CALL1
+_ #64
+_ ADD
+END
 
-.proc TEST2
-  Entry "TEST2"
-  Run TEST
-  SpLoad
-  Push 2
-  Exec ADD
-  rts
-  next:
-.endproc
+DEF TDUMP
+  _ DUP
+  _ #print::dump_text
+  _ #print::arg
+  _ CALL1
+  _ #256
+  _ ADD
+END
 
+DEF PRINT
+  _ #print::print_z
+  _ #print::arg
+  _ CALL1
+END
 
+__ CALL1
+  _ ROT
+  _ POKE16
+  _ SYS
+__
 
-.proc DUMP
-  Entry "DUMP"
-  SpLoad
-  CopyTo 1, print::arg
-  jsr print::dump_hex
-  SpLoad
-  Push 64
-  Exec ADD
-  rts
-  next:
-.endproc
+__ VOCAB
+  _ #vocab::bottom
+  _ PEEK16
+__
 
-.proc TDUMP
-  Entry "TDUMP"
-  SpLoad
-  CopyTo 1, print::arg
-  jsr print::dump_text
-  SpLoad
-  Push 256
-  Exec ADD
-  rts
-  next:
-.endproc
+__ PSTART
+  _ #PROG_START
+__
 
-.proc PRINT
-  Entry "PRINT"
-  SpLoad
-  CopyTo 1, print::arg
-  jsr print::print_z
-  SpLoad
-  SpDec
-  rts
-  next:
-.endproc
-
-
-.proc VOCAB
-  Entry "VOCAB"
-  SpLoad
-  PushFrom vocab::bottom
-  rts
-  next:
-.endproc
-
-
-.proc PSTART
-  Entry "PSTART"
-  SpLoad
-  Push PROG_START
-  rts
-  next:
-.endproc
-
-.proc PEND
-  Entry "PEND"
-  SpLoad
-  Push PROG_END
-  rts
-  next:
-.endproc
+__ PEND
+  _ #PROG_END
+__
 
 .proc HSTART
   Entry "HSTART"
@@ -168,6 +144,16 @@
     lda (TMP),y
     InsertA 1
     rts 
+    next:
+.endproc
+
+.proc SYS
+    Entry "SYS"
+    SpLoad
+    PopTo rewrite+1
+    rewrite:
+    jsr $DEF
+    rts
     next:
 .endproc
 

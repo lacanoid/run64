@@ -1,3 +1,46 @@
+
+.macro _ arg
+  .if .blank ({arg}) 
+    rRet
+  .elseif (.match (.left (1, {arg}), #))
+    rInt (.right (.tcount ({arg})-1, {arg}))
+  .else 
+    rRun arg 
+  .endif
+.endmacro
+
+.macro __ name, label
+  .if .blank ({name}) 
+    rRet
+    next:
+    .endscope
+  .elseif .blank({label})
+    .scope
+    rEntry name
+  .else
+    .scope
+    rEntry name,label
+  .endif
+.endmacro
+
+.macro DEF name, label
+  .scope
+    rEntry name, label
+.endmacro
+
+.macro DATA
+  rRet
+  data:
+.endmacro
+
+.macro END name, label
+    .ifndef data 
+      rRet
+    .endif
+    next:
+  .endScope
+.endmacro
+
 .macro Run arg
   ISet runtime::IP, arg
   jsr runtime::run
@@ -7,6 +50,29 @@
   IMov runtime::IP, arg
   jsr runtime::run
 .endmacro
+
+
+.macro IF 
+  ;.out .sprintf ("IF %d",@then)
+  .scope
+  .byte runtime::_IF
+  .word else
+.endmacro
+
+.macro ELSE 
+  .byte runtime::_PTR
+  .word endif
+  else:
+.endmacro
+
+.macro ENDIF
+  .ifndef else
+    else:
+  .endif
+    endif:
+  .endscope
+.endmacro
+
 
 .macro rPtr arg
   .byte runtime::_PTR
@@ -47,11 +113,13 @@
   IP: .word 0
   INST: .byte 0
   _PTR = 0
-  _RET = 1
-  _INT = 2
+  _RET = $FF
+  _INT = $AA
   _STR = 3
   _JSR = 4
-  _RUN = 5
+  _RUN = $EE
+  _IF = $CC
+  _JMP = $4C
 
   .proc exec
     IMov ptr, IP
@@ -63,11 +131,26 @@
     IfEq #_INT, doInt
     ;IfEq #_STR, doStr
     IfEq #_JSR, doJsr
+    IfEq #_JMP, doJmp
     IfEq #_RUN, doRun
-    brk
+    IfEq #_IF, doIf
+    BRK
+    sec
     rts
   .endproc
 
+  .proc doIf
+    SpLoad
+    GetLo 1
+    bne then
+    GetHi 1
+    bne then
+    jmp doPtr
+    then:
+    IAddB IP, 3
+    clc
+    rts
+  .endproc
   
   .proc doRet
     ;PrintChr 'R'
@@ -104,19 +187,17 @@
   .endproc
 
   .proc doJsr
-    IAddB IP, 3
-    ;PrintChr 'J'
-    iny
-    lda (ptr),y
-    sta rewrite+1
-    iny 
-    lda (ptr),y
-    sta rewrite+2
-    rewrite:
-    jsr 0
+    jsr indirect_jump
     clc
     rts 
   .endproc
+
+  .proc doJmp
+    jsr indirect_jump
+    sec
+    rts 
+  .endproc
+  
 
   .proc doRun
     ;PrintChr 'X'
@@ -133,6 +214,19 @@
     clc
     rts
   .endproc 
+
+  .proc indirect_jump
+    IAddB IP, 3
+    iny
+    lda (ptr),y
+    sta rewrite+1
+    iny 
+    lda (ptr),y
+    sta rewrite+2
+    rewrite:
+    jsr 0
+    rts 
+  .endproc
 
   .proc run 
     loop:

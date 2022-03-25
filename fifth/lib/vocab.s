@@ -1,10 +1,10 @@
 .macro Entry name
-    .local exec
-    clc 
-    bcc exec 
+  .scope
+    jmp exec
     .word next
     .asciiz name
     exec:
+  .endscope
 .endmacro
 
 .macro rExec entry
@@ -12,12 +12,18 @@
   jsr runtime::run
 .endmacro
 
-.macro rEntry name
+.macro rEntry name, label
   .scope
-    .byte 0
-    .word code 
-    .word next
-    .asciiz name
+    .ifblank label
+      ::.ident (.string(name))=entry 
+    .else
+      ::.ident (.string(label))=entry
+    .endif
+    entry:
+      .byte 0
+      .word code 
+      .word next
+      .asciiz .string(name)
     code:
   .endscope
 .endmacro
