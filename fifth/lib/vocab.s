@@ -7,6 +7,21 @@
     exec:
 .endmacro
 
+.macro rExec entry
+  ISet runtime::IP, entry
+  jsr runtime::run
+.endmacro
+
+.macro rEntry name
+  .scope
+    .byte 0
+    .word code 
+    .word next
+    .asciiz name
+    code:
+  .endscope
+.endmacro
+
 .macro Exec entry
   jsr entry
 .endmacro

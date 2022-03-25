@@ -1,4 +1,36 @@
 
+.proc TEST
+  rEntry "TEST"
+  rJsr HEND
+  rJsr HSTART
+  rJsr SUB
+  rInt 2
+  rJsr ADD
+  rRun INC
+  rRet
+  next:
+.endproc
+
+.proc INC
+  rEntry "INC"
+  rInt 1
+  rJsr ADD
+  rRet
+  next:
+.endproc
+
+.proc TEST2
+  Entry "TEST2"
+  Run TEST
+  SpLoad
+  Push 2
+  Exec ADD
+  rts
+  next:
+.endproc
+
+
+
 .proc DUMP
   Entry "DUMP"
   SpLoad
