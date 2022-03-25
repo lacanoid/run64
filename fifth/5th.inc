@@ -51,12 +51,12 @@ TMP = $FD
 
 jmp main
 
-.include "lib/runtime.s"
 .include "lib/stack.s"
+.include "lib/print.s"
 .include "lib/vocab.s"
+.include "lib/runtime.s"
 .include "lib/parse.s"
 .include "lib/interpret.s"
-.include "lib/print.s"
 .include "lib/rpl.s"
 
 main: JMP rpl::main

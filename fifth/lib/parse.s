@@ -100,8 +100,15 @@
     entry:
       jsr parse_entry
       IfTrue error, not_found
+      ldy #0
+      lda (cursor),y
+      beq run_entry
       jmp (cursor)
       rts 
+      run_entry:
+        IMov runtime::IP, cursor
+        jsr runtime::run
+      rts
     not_found:
       rts 
   .endproc
