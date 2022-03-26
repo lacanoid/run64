@@ -11,18 +11,18 @@
 
 
 .macro rPtr arg
-  .byte runtime::_PTR
+  .byte bytecode::tPTR
   .word arg
 .endmacro
 
 .macro rInt arg
-  .byte runtime::_INT
+  .byte bytecode::tINT
   .word arg
 .endmacro
 
 .macro rStr arg
   .scope 
-    .byte runtime::_STR
+    .byte bytecode::tSTR
     .word next
     .asciiz arg
     next:
@@ -30,32 +30,46 @@
 .endmacro
 
 .macro rJsr arg
-  .byte runtime::_JSR
+  .byte bytecode::tJSR
   .word arg
 .endmacro
 
 .macro rRun arg
-  .byte runtime::_RUN
+  .byte bytecode::tRUN
   .word arg
 .endmacro
 
 .macro rRet
-  .byte runtime::_RET
+  .byte bytecode::tRET
+.endmacro
+
+.macro Peek address
+  .scope 
+    lda address
+    sta rewrite+1
+    lda address+1
+    sta rewrite+1
+    rewrite:
+    lda $DEF
+  .endscope
+.endmacro
+
+.macro PokeA address
+  .scope 
+    pha
+    lda address
+    sta rewrite+1
+    lda address+1
+    sta rewrite+2
+    pla
+    rewrite:
+    sta $DEF
+  .endscope
 .endmacro
 
 .scope runtime
   ptr = cursor
   IP: .word 0
-  INST: .byte 0
-  _PTR = 0
-  _RET = $FF
-  _INT = $AA
-  _STR = 3
-  _JSR = 4
-  _RUN = $EE
-  _IF = $CC
-  _JMP = $4C
-
   .proc doPtr
     ;PrintChr 'P'
     jsr load_ip
@@ -80,18 +94,23 @@
   .endproc
 
   .proc exec
+    ;IMov print::arg, IP
+    ;NewLine
+    ;jsr print::print_hex
     IMov ptr, IP
     ldy #0
     lda (ptr),y
-
-    IfEq #_PTR, doPtr
-    IfEq #_RET, doRet
-    IfEq #_INT, doInt
-    IfEq #_STR, doStr
-    IfEq #_JSR, doJsr
-    IfEq #_JMP, doJmp
-    IfEq #_RUN, doRun
-    IfEq #_IF, doIf
+    IfEq #bytecode::tJMP, doJmp
+    and #15
+    IfEq #bytecode::tPTR, doPtr
+    IfEq #bytecode::tCTL, doJsr
+    IfEq #bytecode::tRET, doRet
+    IfEq #bytecode::tINT, doInt
+    IfEq #bytecode::tSTR, doStr
+    IfEq #bytecode::tJSR, doJsr
+    IfEq #bytecode::tRUN, doRun
+    IfEq #bytecode::tIF, doIf
+    
     sec
     rts
   .endproc
@@ -119,12 +138,15 @@
   .endproc
 
   .proc doJsr
+    ;PrintChr 'C'
     jsr indirect_jump
     clc
     rts 
   .endproc
 
   .proc doJmp
+    ;PrintChr 'J'
+    
     jsr indirect_jump
     sec
     rts 

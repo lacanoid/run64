@@ -11,12 +11,17 @@
   .endif
 .endmacro
 
+.macro CMD name, label
+  .scope
+    DEF_CMD = 1
+    cEntry name, label
+.endmacro
+
 .macro PROC name, label
   .scope
     DEF_PROC = 1
     jEntry name, label
 .endmacro
-
 
 .macro DEF name, label
   .scope
@@ -34,7 +39,7 @@
       .ifndef data 
         rRet
       .endif
-    .elseif DEF_PROC
+    .elseif .def (DEF_PROC)
     .endif
     .ifndef next
       next:
@@ -44,12 +49,12 @@
 
 .macro IF 
   .scope
-  .byte runtime::_IF
+  .byte bytecode::tIF
   .word else
 .endmacro
 
 .macro ELSE 
-  .byte runtime::_PTR
+  .byte bytecode::tPTR
   .word endif
   else:
 .endmacro
@@ -68,13 +73,29 @@
 .endmacro
 
 .macro WHILE
-    .byte runtime::_IF
+    .byte bytecode::tIF
     .word break
 .endmacro
 
 .macro REPEAT
-    .byte runtime::_PTR
+    .byte bytecode::tPTR
     .word begin
     break:
   .endscope
 .endmacro
+
+.scope bytecode 
+  tJMP = $4C
+  tPTR = 0
+  tRET = 1
+  tINT = 2
+  tSTR = 3
+  tJSR = 4
+  tRUN = 5
+  tIF = 6 
+  tCTL = 7
+  tSKIP = 8
+  tELSE = tPTR + 16
+  tTHEN = tSKIP + 16
+  
+.endscope

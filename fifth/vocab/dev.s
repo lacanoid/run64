@@ -1,3 +1,4 @@
+
 DEF HDUMP
   _ HSTART
   _ DUMP
@@ -19,6 +20,7 @@ DEF TEST
     _ #1
     _ SUB
     _ DUP
+    _ DEC
   WHILE
   REPEAT
 END 
@@ -39,6 +41,11 @@ DEF TDUMP
   _ CALL1
   _ #256
   _ ADD
+END
+
+PROC CR
+  NewLine
+  rts
 END
 
 DEF PRINT
@@ -66,6 +73,7 @@ DEF PEND
   _ #PROG_END
 END 
 
+
 DEF HSTART
   _ #HEAP_START
 END
@@ -88,6 +96,7 @@ DEF HCLEAR
 END 
 
 PROC POKE
+  Stash TMP
   SpLoad
   CopyTo 2,TMP
   GetLo 1
@@ -97,15 +106,108 @@ PROC POKE
 
   SpDec
   SpDec
-  
+  Unstash TMP
   rts 
 END
 
 PROC PEEK
+  Stash TMP
   SpLoad
   CopyTo 1,TMP
   ldy #0
   lda (TMP),y
   InsertA 1
+  Unstash TMP
   rts 
 END
+
+
+DEF H
+  _ HSTART
+  _ DLINE
+  _ DLINE
+  _ CR
+END
+
+DEF DLINE
+  _ CR
+  _ DUP
+  _ HEX
+  _ " "
+  _ PRINT
+  _ DUP
+  _ PEEK
+  _ DUP
+  _ DEC
+  _ DUP
+  _ #bytecode::tRET
+  _ EQ
+  IF
+    _ DROP 
+    _ "RET"
+    _ PRINT
+    _ #0
+    _
+  ENDIF
+  _ DUP
+  _ #bytecode::tRUN
+  _ EQ
+  IF
+    _ DROP
+    _ INCR
+    _ DUP
+    _ GET
+    _ #5
+    _ ADD
+    _ PRINT
+    _ #2
+    _ ADD
+    _
+  ENDIF
+  _ DUP
+  _ #bytecode::tIF
+  _ EQ
+  IF
+    _ DROP
+    _ "IF " 
+    _ PRINT
+    _ INCR
+    _ GET
+    _ HEX
+    _ #2
+    _ ADD
+    _
+  ENDIF
+  _ DUP
+  _ #bytecode::tPTR
+  _ EQ
+  IF
+    _ DROP
+    _ "PTR " 
+    _ PRINT
+    _ INCR
+    _ GET
+    _ HEX
+    _ #2
+    _ ADD
+    _
+  ENDIF
+  _ DUP
+  _ #bytecode::tINT
+  _ EQ
+  IF
+    _ DROP
+    _ "INT "
+    _ PRINT
+    _ #1
+    _ ADD
+    _ DUP
+    _ GET
+    _ DEC
+    _ #2
+    _ ADD
+    _
+  ENDIF
+  _ "???"
+  _ PRINT
+END 

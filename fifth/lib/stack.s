@@ -20,7 +20,7 @@ STACK: .res 256
   dec stash::SP
   dec stash::SP
   .ifblank arg1
-    ldx stack::SP
+    ldx stash::SP
     lda stash::STACK-2,x 
   .else 
     IMovIx arg1, stash::STACK-2, stash::SP
@@ -31,9 +31,10 @@ STACK: .res 256
   dec stash::SP
   dec stash::SP
   .ifblank arg1
-    ldx stack::SP
-    lda stash::stack,x 
+    ldx stash::SP
+    lda stash::STACK,x 
   .else 
     IMovIx arg1, stash::STACK, stash::SP
   .endif
 .endmacro
+

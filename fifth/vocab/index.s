@@ -2,13 +2,22 @@
 .include "math.s"
 .include "stack.s"
 
-PROC QUIT
-  inc f_quit
-  rts 
+CMD cELSE,"ELSE"
+  PrintChr 'E'
+  jmp compiler::write_else
+END
+
+CMD cTHEN,"THEN"
+  PrintChr 'T'
+  jmp compiler::write_then
+END
+
+CMD cIF,"IF"
+  PrintChr 'I'
+  jmp compiler::write_if
 END
 
 PROC VLIST
-  next=0
   jsr vocab::reset_cursor
   print_entry:
     ldy #5
@@ -25,4 +34,10 @@ PROC VLIST
     bne print_entry
   NewLine
   rts
+END
+
+PROC QUIT
+  next=0
+  inc f_quit
+  rts 
 END

@@ -42,11 +42,12 @@ PROC CLEAR
   rts
 END
 
-PROC CNT
+PROC CNT, "#"
   SpLoad
   PushByteFrom f_SP
   Push 2
   Run DIV
+  rts
 END
 
 PROC PRINT_STACK, "??"
@@ -89,7 +90,6 @@ PROC LOOK, "?"
   SpLoad
   PrintDec
   rts
-  next:  
 END
 
 PROC SYS
@@ -101,6 +101,7 @@ PROC SYS
 END
 
 PROC GET, "@"
+  Stash TMP
   SpLoad
   CopyTo 1,TMP
   ldy #0
@@ -109,10 +110,12 @@ PROC GET, "@"
   iny
   lda (TMP),y
   SetHi 1
+  Unstash TMP
   rts 
 END
 
 PROC SET,  "!"
+  Stash TMP
   SpLoad
   CopyTo 2,TMP
   GetLo 1
@@ -123,7 +126,6 @@ PROC SET,  "!"
   sta (TMP),y
   SpDec
   SpDec
-  
+  Unstash TMP
   rts 
-  next:
 END
