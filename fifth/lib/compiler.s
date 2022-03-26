@@ -1,4 +1,4 @@
-.scope parse
+.scope compiler
   pointer = $FD
 
   input:
@@ -8,13 +8,6 @@
     .byte 0
   error:
     .byte 0
-
-  .proc reset 
-    ISet offset, BUF
-    CClear eof
-    CClear error
-    rts
-  .endproc
 
   .proc advance_pointer
     inc pointer
@@ -68,55 +61,31 @@
   .endproc
 
 
-  .proc next_word
+  .proc parse_word
     jsr reset_pointer
     ldx #0
     lda (pointer,x)
+    
     IfNe #34, not_quoted
     quoted:
-      jsr parse_string
-      IfTrue error, not_found
-      SpLoad
-      PushFrom cursor
-      rts
+      jmp parse_string
     not_quoted:
       IfNe #'$', not_hex
     hex:
-      jsr parse_hex 
-      IfTrue error, not_found
-      SpLoad
-      PushFrom cursor
-      rts 
+      jmp parse_hex 
     not_hex:
       IfLt #'0', not_dec
       IfGe #'9'+1, not_dec
     decimal:
-      jsr parse_dec
-      IfTrue error, not_found
-      SpLoad
-      PushFrom cursor
-      rts 
+      jmp parse_dec
     not_dec:
     entry:
-      jsr parse_entry
-      IfTrue error, not_found
-      ldy #0
-      lda (cursor),y
-      beq run_entry
-      jmp (cursor)
-      rts 
-      run_entry:
-        IMov runtime::IP, cursor
-        jsr runtime::run
-      rts
-    not_found:
-      rts 
+      jmp parse_entry
   .endproc
-
-
+  result: .word 0
 
   .proc parse_hex
-    IClear cursor
+    IClear result
     jsr reset_pointer
     jsr advance_pointer
     ldx #0
@@ -139,15 +108,15 @@
       bcs hex_error
 
     hex_found:
-      IShiftLeft cursor
-      IShiftLeft cursor
-      IShiftLeft cursor
-      IShiftLeft cursor
+      IShiftLeft result
+      IShiftLeft result
+      IShiftLeft result
+      IShiftLeft result
       
       BCS hex_error
       
-      ORA cursor
-      STA cursor
+      ORA result
+      STA result
       BCS hex_error
       jsr advance_pointer
       jmp hex_digit 
@@ -157,13 +126,11 @@
       rts 
     hex_done:
       jsr advance_offset
-      rts 
+      jmp write_int
   .endproc ; parse_hex
 
-
-
   .proc parse_dec
-      IClear cursor
+      IClear result
       jsr reset_pointer
       ldx #0
       dec_digit:
@@ -178,21 +145,21 @@
           IfGe #10, dec_error
           
           pha
-            IMov temp, cursor
+            IMov temp, result
           pla
 
-          IShiftLeft cursor
-          IShiftLeft cursor
+          IShiftLeft result
+          IShiftLeft result
           
           pha
-            IAdd cursor, temp
+            IAdd result, temp
           pla
 
-          IShiftLeft cursor
+          IShiftLeft result
 
           BCS dec_error
           
-          IAddA cursor 
+          IAddA result 
           jsr advance_pointer
           jmp dec_digit
 
@@ -202,8 +169,7 @@
 
       dec_done:
         jsr advance_offset
-        rts 
-
+        jmp write_int
       temp: .word 0
   .endproc ; parse_dec
 
@@ -236,36 +202,99 @@
         lda (pointer,x)
         IfGe #33, next_entry
         jsr advance_offset 
-        rts 
+        IMov result, cursor
+        jmp write_run
   .endproc ; parse_entry
 
   .proc parse_string
-    
+    lda #runtime::_STR
+    jsr write
+    Stash HEAP_END
+    IAddB HEAP_END,2
     jsr advance_pointer
-    ldy #0
     ldx #0
-    IMov cursor, HEAP_END
-    
     parse_char:
       lda (pointer,x)
       IfLt #32, error
       IfEq #34, done
-      sta (cursor),y
+      jsr write
       jsr advance_pointer
-      iny 
       bne parse_char
     error:
       inc error
       rts
     done:
-      lda #0
-      sta (cursor),y
-      iny      
       jsr advance_pointer
-      jsr advance_offset
-      tya
-      IAddA HEAP_END
+      jsr advance_offset  
+      lda #0
+      jsr write
+      Unstash cursor
+      ldy #0
+      lda HEAP_END
+      sta (cursor),y
+      lda HEAP_END+1
+      iny
+      sta (cursor),y
       
       rts
   .endproc    
+
+  .proc write 
+    pha
+    IMov cursor, HEAP_END
+    ldx #0
+    pla
+    sta (cursor,x)
+    inc HEAP_END
+    rts
+  .endproc    
+
+  .proc write_int
+      lda #runtime::_INT
+      jmp write_result
+  .endproc
+
+.proc write_run
+      lda #runtime::_RUN
+      jmp write_result
+  .endproc
+
+  .proc write_result 
+      jsr write
+      lda result
+      jsr write
+      lda result+1
+      jsr write
+      rts 
+  .endproc
+
+
+.proc compile
+    ISet offset, BUF
+    ISet HEAP_END, HEAP_START
+    CClear eof
+    CClear error
+  loop:
+    jsr skip_space
+    IfTrue eof, done
+    
+    jsr parse_word
+    IfTrue error, catch
+    jmp loop
+  done:
+    lda #runtime::_RET
+    jsr write
+    ColorPush 3
+    PrintChr 'O'
+    PrintChr 'K'
+    ColorPop
+    rts
+  catch: 
+    ColorPush 10
+    PrintChr '?'
+    jsr print_next_word
+    ColorPop
+    rts 
+.endproc
+
 .endscope

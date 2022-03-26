@@ -55,8 +55,7 @@ jmp main
 .include "lib/print.s"
 .include "lib/vocab.s"
 .include "lib/runtime.s"
-.include "lib/parse.s"
-.include "lib/interpret.s"
+.include "lib/compiler.s"
 .include "lib/rpl.s"
 
 main: JMP rpl::main
@@ -85,5 +84,5 @@ main: JMP rpl::main
 
 f_quit:
     .byte 0
-TOP:
+HEAP_END:
   .word PROG_END

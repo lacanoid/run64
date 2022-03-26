@@ -1,29 +1,27 @@
-.macro Entry name
-    .local exec
-    clc 
-    bcc exec 
-    .word next
-    .asciiz name
-    exec:
-.endmacro
 
-.macro rExec entry
-  ISet runtime::IP, entry
-  jsr runtime::run
-.endmacro
 
-.macro rEntry name
+.macro GenericEntry id, name, label
   .scope
-    .byte 0
-    .word code 
-    .word next
-    .asciiz name
+    ::.ident (.string(name))=entry 
+    entry:
+      .byte id
+      .word code 
+      .word next
+      .ifblank label
+        .asciiz .string(name)
+      .else
+        .asciiz label
+      .endif
     code:
   .endscope
 .endmacro
 
-.macro Exec entry
-  jsr entry
+.macro rEntry name, label
+  GenericEntry 0, name, label
+.endmacro
+
+.macro jEntry name, label
+  GenericEntry $4C, name, label
 .endmacro
 
 .scope vocab 
