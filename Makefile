@@ -71,6 +71,9 @@ patch128: patch128.o
 vdc64: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
 vdc64: vdc64.o
 
+vdc128: LDFLAGS += -t c128  
+vdc128: vdc128.o
+
 raster: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
 raster: raster.o
 

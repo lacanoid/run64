@@ -48,8 +48,8 @@ GETIN     = $FFE4   ; get a character
 ; kernal variables
 STATUS    = $90        ; kernal i/o status word
 
-DFLTN     = $99    ; Default Input Device #
-DFLTO     = $9A    ; Default Output Device #
+DFLTN     = $99        ; Default Input Device #
+DFLTO     = $9A        ; Default Output Device #
 
 T1        = $9E        ; Tape pass 1 error log index
 T2        = $9F        ; Tape pass 2 error log correction index
@@ -62,6 +62,10 @@ FNLEN     = $B7        ; Length of Current Filename
 SA        = $B9        ; current secondary address (official name SA)
 FA        = $BA        ; Current Device Number
 FNADR     = $BB        ; (2) Pointer: Current Filename
+
+CINV      = $0314      ; Vector to IRQ Interrupt Routine
+CBINV     = $0316      ; Vector: BRK Instruction Interrupt
+NMINV     = $0318      ; Vector: Non-Maskable Interrupt 
 
 ; -----------------------------------------------------------------------------
 ; temporary pointers

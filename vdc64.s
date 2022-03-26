@@ -17,7 +17,7 @@ feature_irq_tapemotor=0      ; raster tape motor stuff
 
 vdc_colors=1       ; use new vdc colors
 
-org = $8000
+org = $C000
 
 UDTIM     = $FFEA
 SCNKEY    = $FF9F
@@ -105,8 +105,8 @@ banner: ; print banner and info
         jsr CHROUT
 
 @m3:                    ; print location
-        ldx #<(mainend-main)
-        lda #>(mainend-main)
+        ldx #<main
+        lda #>main
         jsr LINPRT
 
         lda #' '

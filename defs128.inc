@@ -27,6 +27,10 @@ LSTSHF  = $0A25  ; Last Pattern of SHIFT/CTRL/Logo Keypress
 BLNON	= $0A26	 ; VIC Cursor Mode (Blinking, Solid)
 BLNSW   = $0A27  ; VIC Cursor Disable
 BLNCT   = $0A28  ; VIC Cursor Blink Counter
+VM1		= $0A2C	 ; 2604	VIC Text Screen/Character Base Pointer
+VM2		= $0A2D	 ; 2605	VIC Bit-Map Base Pointer
+VM3		= $0A2E	 ; 2606	VDC Text Screen Base
+VM4		= $0A2F	 ; 2607	VDC Attribute Base
 SHFLAG  = $D3    ; Shift key status flag
 SFDX    = $D4    ; Current key pressed
 LSTX    = $D5    ; Keyscan Last Key Index
@@ -48,5 +52,8 @@ INSRT   = $F5    ; Insert Mode Flag
 
 C64MODE   = $FF4D  ; go 64 mode
 
+IIRQ      = $0314  ; Vector to IRQ Interrupt Routine
+IBRK      = $0316  ; Vector: BRK Instruction Interrupt
+INMI      = $0318  ; Vector: Non-Maskable Interrupt 
 
 
