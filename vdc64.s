@@ -44,8 +44,6 @@ resultRegister = $d7ff
 
         ; initialize
         jsr banner
-        lda #13
-        jsr CHROUT
         ; initialize
         jsr org
         jsr banner
@@ -122,16 +120,34 @@ banner: ; print banner and info
         lda #>(mainend-main)
         jsr LINPRT
 
+
+.if 0 ; show screen size
+        lda #' '
+        jsr CHROUT
+
+        ; print screen size
+        jsr SCREEN
+        sty rows1
+        lda #0
+        jsr LINPRT
+        lda #'X'
+        jsr CHROUT
+        ldx rows1
+        lda #0
+        jsr LINPRT
+.endif
+
+        lda #13
+        jsr CHROUT
+
+
         lda T1
         sta COLOR
-
-exit:
-        lda #0
-        sta resultRegister
-
-;        jmp ($a000)
-
         rts
+rows1:
+        .byte 0
+
+; --------------------------
 
 msg:    .byte 7
         .byte $12,$1c,$20,$96,$20,$9e,$20,$99,$20,$9a,$20,$9c,$20,$92,$05

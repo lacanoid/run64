@@ -43,6 +43,8 @@ LOAD      = $FFD5   ; load from device
 SAVE      = $FFD8   ; save to device
 STOP      = $FFE1   ; check for stop key
 GETIN     = $FFE4   ; get a character
+SCREEN    = $FFED   ; Return screen format
+PLOT      = $FFF0   ; Set cursor location
 
 ; -----------------------------------------------------------------------------
 ; kernal variables
