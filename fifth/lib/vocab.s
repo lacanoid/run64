@@ -1,30 +1,27 @@
-.macro Entry name
-  .scope
-    jmp exec
-    .word next
-    .asciiz name
-    exec:
-  .endscope
-.endmacro
 
-.macro rEntry name, label
+
+.macro GenericEntry id, name, label
   .scope
-    .ifblank label
-      ::.ident (.string(name))=entry 
-    .else
-      ::.ident (.string(label))=entry
-    .endif
+    ::.ident (.string(name))=entry 
     entry:
-      .byte 0
+      .byte id
       .word code 
       .word next
-      .asciiz .string(name)
+      .ifblank label
+        .asciiz .string(name)
+      .else
+        .asciiz label
+      .endif
     code:
   .endscope
 .endmacro
 
-.macro Exec entry
-  jsr entry
+.macro rEntry name, label
+  GenericEntry 0, name, label
+.endmacro
+
+.macro jEntry name, label
+  GenericEntry $4C, name, label
 .endmacro
 
 .scope vocab 

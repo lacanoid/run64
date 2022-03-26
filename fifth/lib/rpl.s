@@ -1,4 +1,5 @@
 .scope rpl 
+
   .proc main
     ISet 53280,0
     CMov tmp_color, COLOR
@@ -14,8 +15,10 @@
 
       CMov COLOR, tmp_color
       NewLine
-      jsr interpret
-    
+      
+      jsr compiler::compile
+      Run HEAP_START  
+      
       CMov tmp_color, COLOR
       
       ColorSet 3

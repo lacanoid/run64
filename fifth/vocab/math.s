@@ -1,90 +1,84 @@
 
-.proc DIV
-    Entry "/"
-    divisor = STACK-2     ;$59 used for hi-byte
-    dividend = STACK-4	  ;$fc used for hi-byte
-    remainder = STACK 	  ;$fe used for hi-byte
-    temp = STACK+2
-    result = dividend ;save memory by reusing divident to store the result
+PROC DIV, "/"
+  divisor = STACK-2     ;$59 used for hi-byte
+  dividend = STACK-4	  ;$fc used for hi-byte
+  remainder = STACK 	  ;$fe used for hi-byte
+  temp = STACK+2
+  result = dividend ;save memory by reusing divident to store the result
 
-    ldx f_SP
+  ldx f_SP
 
-    divide:
-    	lda #0	        ;preset remainder to 0
-        sta remainder,x
-        sta remainder+1,x
-        ldy #16	        ;repeat for each bit: ...
+  divide:
+    lda #0	        ;preset remainder to 0
+    sta remainder,x
+    sta remainder+1,x
+    ldy #16	        ;repeat for each bit: ...
 
-    divloop:
-        asl dividend,x	;dividend lb & hb*2, msb -> Carry
-        rol dividend+1,x	
-        rol remainder,x	;remainder lb & hb * 2 + msb from carry
-        rol remainder+1,x
-        lda remainder,x
-        sec
-        sbc divisor,x	;substract divisor to see if it fits in
-        sta temp,x       ;lb result -> temp, for we may need it later
-        lda remainder+1,x
-        sbc divisor+1,x
-        bcc skip	;if carry=0 then divisor didn't fit in yet
+  divloop:
+    asl dividend,x	;dividend lb & hb*2, msb -> Carry
+    rol dividend+1,x	
+    rol remainder,x	;remainder lb & hb * 2 + msb from carry
+    rol remainder+1,x
+    lda remainder,x
+    sec
+    sbc divisor,x	;substract divisor to see if it fits in
+    sta temp,x       ;lb result -> temp, for we may need it later
+    lda remainder+1,x
+    sbc divisor+1,x
+    bcc skip	;if carry=0 then divisor didn't fit in yet
 
-        sta remainder+1,x	;else save substraction result as new remainder,
-        lda temp,x
-        sta remainder,x	
-        inc result,x	;and INCrement result cause divisor fit in 1 times
+    sta remainder+1,x	;else save substraction result as new remainder,
+    lda temp,x
+    sta remainder,x	
+    inc result,x	;and INCrement result cause divisor fit in 1 times
 
     skip:
-        dey
-        bne divloop	
-        dex
-        dex
-        stx f_SP 
-        rts
+      dey
+      bne divloop	
+      dex
+      dex
+      stx f_SP 
+      rts
     next:
-.endproc
-.proc MUL
-    Entry "*"
+END
 
-    multiplier	= STACK-4
-    multiplicand	= STACK-2 
-    product		= STACK 
-    ldx f_SP
-    mult16:
-        lda	#$00
-        sta	product+2,x	; clear upper bits of product
-        sta	product+3,x 
-        ldy	#$10		; set binary count to 16 
-    shift_r:
-        lsr	multiplier+1,x	; divide multiplier by 2 
-        ror	multiplier,x
-        bcc	rotate_r 
-        lda	product+2,x	; get upper half of product and add multiplicand
-        clc
-        adc	multiplicand,x
-        sta	product+2,x
-        lda	product+3,x 
-        adc	multiplicand+1,x
-    rotate_r:
-    	ror			; rotate partial product 
-        sta	product+3,x 
-        ror	product+2,x
-        ror	product+1,x
-        ror	product,x
-        dey
-        bne	shift_r
-        lda product,x
-        sta multiplier,x
-        lda product+1,x
-        sta multiplier+1,x
-        dex
-        dex
-        stx f_SP
+PROC MUL, "*"
+  multiplier	= STACK-4
+  multiplicand	= STACK-2 
+  product		= STACK 
+  SpLoad
+  mult16:
+    lda	#$00
+    sta	product+2,x	; clear upper bits of product
+    sta	product+3,x 
+    ldy	#$10		; set binary count to 16 
+  shift_r:
+    lsr	multiplier+1,x	; divide multiplier by 2 
+    ror	multiplier,x
+    bcc	rotate_r 
+    lda	product+2,x	; get upper half of product and add multiplicand
+    clc
+    adc	multiplicand,x
+    sta	product+2,x
+    lda	product+3,x 
+    adc	multiplicand+1,x
+  rotate_r:
+    ror			; rotate partial product 
+    sta	product+3,x 
+    ror	product+2,x
+    ror	product+1,x
+    ror	product,x
+    dey
+    bne	shift_r
+    lda product,x
+    sta multiplier,x
+    lda product+1,x
+    sta multiplier+1,x
+    SpDec
+    rts
+END 
 
-        rts
-    next:
-.endproc
-.proc ADD 
-    Entry "+"
+PROC ADD, "+"
     SpLoad
     lda STACK-4,x
     adc STACK-2,x
@@ -95,10 +89,9 @@
     sta STACK-3,x
     SpDec
     rts
-    next:
-.endproc
-.proc SUB 
-    Entry "-"
+END
+
+PROC SUB, "-"
 
     ldx f_SP
     sec 
@@ -112,5 +105,4 @@
     dex
     stx f_SP 
     rts
-    next:
-.endproc
+END

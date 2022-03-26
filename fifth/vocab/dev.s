@@ -1,10 +1,17 @@
-DEF INC, INCR
+DEF HDUMP
+  _ HSTART
+  _ DUMP
+  _ DROP
+END
+
+DEF INCR, "INC"
   _ #1
   _ ADD
 END
 
 DEF TEST
-
+  _ "COUNTDOWN"
+  _ PRINT
   _ #10
   BEGIN
     _ DUP
@@ -64,7 +71,7 @@ DEF HSTART
 END
 
 DEF HEND
-  _ #TOP
+  _ #HEAP_END
   _ GET
 END
 
@@ -75,13 +82,12 @@ DEF HSIZE
 END
 
 DEF HCLEAR
-  _ HSTART
   _ HEND
+  _ HSTART
   _ SET
 END 
 
-.proc POKE
-  Entry "POKE"
+PROC POKE
   SpLoad
   CopyTo 2,TMP
   GetLo 1
@@ -93,17 +99,13 @@ END
   SpDec
   
   rts 
-  next:
-.endproc
+END
 
-.proc PEEK
-    Entry "PEEK"
-    SpLoad
-    CopyTo 1,TMP
-    ldy #0
-    lda (TMP),y
-    InsertA 1
-    rts 
-    next:
-.endproc
-
+PROC PEEK
+  SpLoad
+  CopyTo 1,TMP
+  ldy #0
+  lda (TMP),y
+  InsertA 1
+  rts 
+END

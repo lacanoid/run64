@@ -1,46 +1,4 @@
 
-.macro _ arg
-  .if .blank ({arg}) 
-    rRet
-  .elseif (.match (.left (1, {arg}), #))
-    rInt (.right (.tcount ({arg})-1, {arg}))
-  .else 
-    rRun arg 
-  .endif
-.endmacro
-
-.macro __ name, label
-  .if .blank ({name}) 
-    rRet
-    next:
-    .endscope
-  .elseif .blank({label})
-    .scope
-    rEntry name
-  .else
-    .scope
-    rEntry name,label
-  .endif
-.endmacro
-
-.macro DEF name, label
-  .scope
-    rEntry name, label
-.endmacro
-
-.macro DATA
-  rRet
-  data:
-.endmacro
-
-.macro END name, label
-    .ifndef data 
-      rRet
-    .endif
-    next:
-  .endScope
-.endmacro
-
 .macro Run arg
   ISet runtime::IP, arg
   jsr runtime::run
@@ -49,44 +7,6 @@
 .macro RunFrom arg
   IMov runtime::IP, arg
   jsr runtime::run
-.endmacro
-
-
-.macro IF 
-  .scope
-  .byte runtime::_IF
-  .word else
-.endmacro
-
-.macro ELSE 
-  .byte runtime::_PTR
-  .word endif
-  else:
-.endmacro
-
-.macro ENDIF
-  .ifndef else
-    else:
-  .endif
-    endif:
-  .endscope
-.endmacro
-
-.macro BEGIN
-  .scope
-    begin:
-.endmacro
-
-.macro WHILE
-    .byte runtime::_IF
-    .word break
-.endmacro
-
-.macro REPEAT
-    .byte runtime::_PTR
-    .word begin
-    break:
-  .endscope
 .endmacro
 
 
@@ -123,11 +43,6 @@
   .byte runtime::_RET
 .endmacro
 
-
-.macro cEnd
-  .word runtime::end
-.endmacro
-  
 .scope runtime
   ptr = cursor
   IP: .word 0
@@ -140,23 +55,6 @@
   _RUN = $EE
   _IF = $CC
   _JMP = $4C
-
-  .proc exec
-    IMov ptr, IP
-    ldy #0
-    lda (ptr),y
-
-    IfEq #_PTR, doPtr
-    IfEq #_RET, doRet
-    IfEq #_INT, doInt
-    IfEq #_STR, doStr
-    IfEq #_JSR, doJsr
-    IfEq #_JMP, doJmp
-    IfEq #_RUN, doRun
-    IfEq #_IF, doIf
-    sec
-    rts
-  .endproc
 
   .proc doPtr
     ;PrintChr 'P'
@@ -181,10 +79,27 @@
     rts
   .endproc
 
+  .proc exec
+    IMov ptr, IP
+    ldy #0
+    lda (ptr),y
+
+    IfEq #_PTR, doPtr
+    IfEq #_RET, doRet
+    IfEq #_INT, doInt
+    IfEq #_STR, doStr
+    IfEq #_JSR, doJsr
+    IfEq #_JMP, doJmp
+    IfEq #_RUN, doRun
+    IfEq #_IF, doIf
+    sec
+    rts
+  .endproc
+
 .proc doStr
   IAddB IP, 3
-  ;SpLoad
-  ;PushFrom IP
+  SpLoad
+  PushFrom IP
   jmp doPtr
 .endproc
 
@@ -214,7 +129,6 @@
     sec
     rts 
   .endproc
-  
 
   .proc doRun
     ;PrintChr 'X'

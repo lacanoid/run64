@@ -1,8 +1,5 @@
-
-.proc LS
-    Entry "LS"
-    NewLine
-    jsr dos::ls
-    rts 
-    next:
-.endproc
+PROC LS
+  NewLine
+  jsr dos::ls
+  rts 
+END

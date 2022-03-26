@@ -1,147 +1,118 @@
 
-.proc DROP
-    Entry "DROP"
-    SpLoad
-    SpDec
-    rts 
-    next:
-.endproc
+PROC DROP
+  SpLoad
+  SpDec
+  rts 
+END 
 
-.proc SWAP
-    Entry "SWAP"
-    SpLoad
-    Copy 1,0
-    Copy 2,1
-    Copy 0,2
-    rts 
-    next:
-.endproc
+PROC SWAP
+  SpLoad
+  Copy 1,0
+  Copy 2,1
+  Copy 0,2
+  rts
+END 
 
-.proc ROT
-    Entry "ROT"
-    SpLoad
-    Copy 3,0
-    Copy 2,3
-    Copy 1,2
-    Copy 0,1
-    rts 
-    next:
-.endproc
+PROC ROT
+  SpLoad
+  Copy 3,0
+  Copy 2,3
+  Copy 1,2
+  Copy 0,1
+  rts
+END
 
-.proc OVER
-    Entry "OVER"
-    SpLoad
-    Copy 2,0
-    SpInc
-    rts 
-    next:
-.endproc
+PROC OVER
+  SpLoad
+  Copy 2,0
+  SpInc
+  rts 
+END
 
-.proc DUP
-    Entry "DUP"
-    SpLoad
-    Copy 1,0
-    SpInc
-    rts 
-    next:
-.endproc
+PROC DUP
+  SpLoad
+  Copy 1,0
+  SpInc
+  rts 
+END
 
-.proc CLEAR
-    Entry "CLEAR"
-    lda #0
-    sta f_SP
-    rts
-    next:
-.endproc
+PROC CLEAR
+  lda #0
+  sta f_SP
+  rts
+END
 
+PROC CNT
+  SpLoad
+  PushByteFrom f_SP
+  Push 2
+  Run DIV
+END
 
+PROC PRINT_STACK, "??"
+  ldx #0
+  loop:
+    cpx f_SP
+    bcs done 
 
-.proc _COUNT
-    Entry "COUNT"
-    SpLoad
-    PushByteFrom f_SP
-    rts
-    next:
-.endproc
-
-
-.proc PRINT_STACK
-    Entry "??"
+    lda #' '
+    jsr CHROUT
     
-    ldx #0
-    loop:
-        cpx f_SP
-        bcs done 
-
-        lda #' '
-        jsr CHROUT
-        
-        inx
-        inx
-        PrintDec
-        
-        clc 
-        bcc loop
-
-    done:
-        rts
-    next:
-.endproc
-
-
-.proc HEX
-    Entry ".$"
-    SpLoad
-    PrintHex
-    SpDec
-    rts
-    next:
-.endproc
-
-.proc DEC
-    Entry "."
-    SpLoad
+    inx
+    inx
     PrintDec
-    SpDec
-    PrintChr ' '
+    
+    clc 
+    bcc loop
+
+  done:
     rts
-    next:     
-.endproc 
+END
 
-.proc LOOK
-    Entry "?"
-    SpLoad
-    PrintDec
-    rts
-    next:  
-.endproc 
+PROC HEX, ".$"
+  SpLoad
+  PrintHex
+  SpDec
+  rts
+END
 
-.proc SYS
-    Entry "SYS"
-    SpLoad
-    PopTo rewrite+1
-    rewrite:
-    jsr $DEF
-    rts
-    next:
-.endproc
+PROC DEC, "."
+  SpLoad
+  PrintDec
+  SpDec
+  PrintChr ' '
+  rts
+  next:   
+END
 
-.proc GET
-    Entry "@"
-    SpLoad
-    CopyTo 1,TMP
-    ldy #0
-    lda (TMP),y
-    SetLo 1
-    iny
-    lda (TMP),y
-    SetHi 1
-    rts 
-    next:
-.endproc
+PROC LOOK, "?"
+  SpLoad
+  PrintDec
+  rts
+  next:  
+END
 
-.proc SET
-  Entry "!"
+PROC SYS
+  SpLoad
+  PopTo rewrite+1
+  rewrite:
+  jsr $DEF
+  rts
+END
+
+PROC GET, "@"
+  SpLoad
+  CopyTo 1,TMP
+  ldy #0
+  lda (TMP),y
+  SetLo 1
+  iny
+  lda (TMP),y
+  SetHi 1
+  rts 
+END
+
+PROC SET,  "!"
   SpLoad
   CopyTo 2,TMP
   GetLo 1
@@ -155,4 +126,4 @@
   
   rts 
   next:
-.endproc
+END
