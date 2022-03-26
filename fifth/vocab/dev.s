@@ -4,25 +4,16 @@ DEF INC, INCR
 END
 
 DEF TEST
-  _ HEND
-  _ HSTART
-  _ SUB
-  IF 
-    _ #1
-    _ ADD
-  ELSE
-    _ #0
+
+  _ #10
+  BEGIN
     _ DUP
-    _ #1
-    _ ADD
     _ DEC
-    IF 
-    _ #2
-    _ DEC 
-    ENDIF
-  _ #3
-  _ DEC
-  ENDIF
+    _ #1
+    _ SUB
+    _ DUP
+  WHILE
+  REPEAT
 END 
 
 DEF DUMP
@@ -49,76 +40,45 @@ DEF PRINT
   _ CALL1
 END
 
-__ CALL1
+DEF CALL1
   _ ROT
-  _ POKE16
+  _ SET
   _ SYS
-__
+END
 
-__ VOCAB
+DEF VOCAB
   _ #vocab::bottom
-  _ PEEK16
-__
+  _ GET
+END
 
-__ PSTART
+DEF PSTART
   _ #PROG_START
-__
+END
 
-__ PEND
+DEF PEND
   _ #PROG_END
-__
+END 
 
-.proc HSTART
-  Entry "HSTART"
-  SpLoad
-  Push HEAP_START
-  rts
-  next:
-.endproc
+DEF HSTART
+  _ #HEAP_START
+END
 
+DEF HEND
+  _ #TOP
+  _ GET
+END
 
-.proc HEND
-  Entry "HEND"
-  SpLoad
-  PushFrom TOP
-  rts
-  next:
-.endproc
+DEF HSIZE
+  _ HEND
+  _ HSTART
+  _ SUB
+END
 
-.proc HSIZE
-  Entry "HSIZE"
-  Exec HEND
-  Exec HSTART
-  Exec SUB
-  rts
-  next:
-.endproc
-
-.proc HCLEAR
-  Entry "HCLEAR"
-  ISet TOP, HEAP_START
-  
-  rts
-  next:
-.endproc
-
-.proc WHITE
-    Entry "WHITE"
-    Exec INK
-    SpLoad
-    Push $1
-    Exec POKE
-    rts
-    next:
-.endproc
-
-.proc INK
-  Entry "INK"
-  SpLoad
-  Push $286
-  rts 
-  next:
-.endproc
+DEF HCLEAR
+  _ HSTART
+  _ HEND
+  _ SET
+END 
 
 .proc POKE
   Entry "POKE"
@@ -147,43 +107,3 @@ __
     next:
 .endproc
 
-.proc SYS
-    Entry "SYS"
-    SpLoad
-    PopTo rewrite+1
-    rewrite:
-    jsr $DEF
-    rts
-    next:
-.endproc
-
-.proc PEEK16
-    Entry "@"
-    SpLoad
-    CopyTo 1,TMP
-    ldy #0
-    lda (TMP),y
-    SetLo 1
-    iny
-    lda (TMP),y
-    SetHi 1
-    rts 
-    next:
-.endproc
-
-.proc POKE16
-  Entry "!"
-  SpLoad
-  CopyTo 2,TMP
-  GetLo 1
-  ldy #0
-  sta (TMP),y
-  iny
-  GetHi 1
-  sta (TMP),y
-  SpDec
-  SpDec
-  
-  rts 
-  next:
-.endproc

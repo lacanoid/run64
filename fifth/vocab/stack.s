@@ -115,3 +115,44 @@
     rts
     next:  
 .endproc 
+
+.proc SYS
+    Entry "SYS"
+    SpLoad
+    PopTo rewrite+1
+    rewrite:
+    jsr $DEF
+    rts
+    next:
+.endproc
+
+.proc GET
+    Entry "@"
+    SpLoad
+    CopyTo 1,TMP
+    ldy #0
+    lda (TMP),y
+    SetLo 1
+    iny
+    lda (TMP),y
+    SetHi 1
+    rts 
+    next:
+.endproc
+
+.proc SET
+  Entry "!"
+  SpLoad
+  CopyTo 2,TMP
+  GetLo 1
+  ldy #0
+  sta (TMP),y
+  iny
+  GetHi 1
+  sta (TMP),y
+  SpDec
+  SpDec
+  
+  rts 
+  next:
+.endproc

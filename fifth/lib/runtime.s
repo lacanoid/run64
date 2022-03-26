@@ -53,7 +53,6 @@
 
 
 .macro IF 
-  ;.out .sprintf ("IF %d",@then)
   .scope
   .byte runtime::_IF
   .word else
@@ -73,6 +72,23 @@
   .endscope
 .endmacro
 
+.macro BEGIN
+  .scope
+    begin:
+.endmacro
+
+.macro WHILE
+    .byte runtime::_IF
+    .word break
+.endmacro
+
+.macro REPEAT
+    .byte runtime::_PTR
+    .word begin
+    break:
+  .endscope
+.endmacro
+
 
 .macro rPtr arg
   .byte runtime::_PTR
@@ -85,8 +101,12 @@
 .endmacro
 
 .macro rStr arg
-  .byte runtime::_STR
-  .word arg
+  .scope 
+    .byte runtime::_STR
+    .word next
+    .asciiz arg
+    next:
+  .endscope
 .endmacro
 
 .macro rJsr arg
@@ -129,25 +149,28 @@
     IfEq #_PTR, doPtr
     IfEq #_RET, doRet
     IfEq #_INT, doInt
-    ;IfEq #_STR, doStr
+    IfEq #_STR, doStr
     IfEq #_JSR, doJsr
     IfEq #_JMP, doJmp
     IfEq #_RUN, doRun
     IfEq #_IF, doIf
-    BRK
     sec
+    rts
+  .endproc
+
+  .proc doPtr
+    ;PrintChr 'P'
+    jsr load_ip
+    clc
     rts
   .endproc
 
   .proc doIf
     SpLoad
-    GetLo 1
-    bne then
-    GetHi 1
-    bne then
-    jmp doPtr
-    then:
-    IAddB IP, 3
+    SpDec
+    IsTrue 0
+    beq doPtr     ; if false move IP to else
+    IAddB IP, 3   ; otherwise continue
     clc
     rts
   .endproc
@@ -158,18 +181,12 @@
     rts
   .endproc
 
-
-  .proc doPtr
-    ;PrintChr 'P'
-    iny
-    lda (ptr),y
-    sta IP
-    iny 
-    lda (ptr),y
-    sta IP+1
-    clc
-    rts
-  .endproc
+.proc doStr
+  IAddB IP, 3
+  ;SpLoad
+  ;PushFrom IP
+  jmp doPtr
+.endproc
 
 .proc doInt
     IAddB IP, 3
@@ -203,17 +220,33 @@
     ;PrintChr 'X'
     IAddB IP,3
     Stash IP
+    jsr load_ip
+    jsr run
+    Unstash IP
+    clc
+    rts
+  .endproc 
+
+ .proc load_ip
     iny
     lda (ptr),y
     sta IP
     iny 
     lda (ptr),y
     sta IP+1
-    jsr run
-    Unstash IP
-    clc
     rts
   .endproc 
+
+  .proc load_to_stack
+    iny
+    lda (ptr),y
+    sta IP
+    iny 
+    lda (ptr),y
+    sta IP+1
+    rts
+  .endproc 
+
 
   .proc indirect_jump
     IAddB IP, 3

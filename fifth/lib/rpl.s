@@ -19,11 +19,11 @@
       CMov tmp_color, COLOR
       
       ColorSet 3
-      Exec PRINT_STACK
+      Run PRINT_STACK
       PrintChr ' '
       ColorSet 4      
-      Exec HSIZE
-      Exec DEC
+      Run HSIZE
+      Run DEC
       NewLine
       lda f_quit
       beq loop

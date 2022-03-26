@@ -31,6 +31,11 @@
   sta STACK-d*2+1,x
 .endmacro
 
+.macro IsTrue d
+  lda STACK-d*2,x
+  ora STACK-d*2+1,x
+.endmacro
+
 .macro Insert d, arg
   lda #<arg
   sta STACK-d*2,x

@@ -7,11 +7,6 @@
   .endscope
 .endmacro
 
-.macro rExec entry
-  ISet runtime::IP, entry
-  jsr runtime::run
-.endmacro
-
 .macro rEntry name, label
   .scope
     .ifblank label
