@@ -19,11 +19,11 @@ main:
 ;-------------------------------------------
 
 init: 
-        vdcout vdcreg_fgbg,$0c
+;       vdcout vdcreg_fgbg,$0c
 
         jsr irq_setup
 
-        jsr vdc_raster
+;        jsr vdc_raster
         rts
 
 blit:

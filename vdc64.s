@@ -41,6 +41,11 @@ resultRegister = $d7ff
         inc @l2+2
         dex 
         bpl @l1
+
+        ; initialize
+        jsr banner
+        lda #13
+        jsr CHROUT
         ; initialize
         jsr org
         jsr banner
@@ -130,7 +135,7 @@ exit:
 
 msg:    .byte 7
         .byte $12,$1c,$20,$96,$20,$9e,$20,$99,$20,$9a,$20,$9c,$20,$92,$05
-        .asciiz " VDC64 0.4 "
+        .byte " VDC64 0.4 ",0
 
 ; --------------------------
 data:

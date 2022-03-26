@@ -63,10 +63,6 @@ SA        = $B9        ; current secondary address (official name SA)
 FA        = $BA        ; Current Device Number
 FNADR     = $BB        ; (2) Pointer: Current Filename
 
-CINV      = $0314      ; Vector to IRQ Interrupt Routine
-CBINV     = $0316      ; Vector: BRK Instruction Interrupt
-NMINV     = $0318      ; Vector: Non-Maskable Interrupt 
-
 ; -----------------------------------------------------------------------------
 ; temporary pointers
 TMP0      = $C1        ; used to return input, often holds end address
