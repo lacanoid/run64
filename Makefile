@@ -5,7 +5,8 @@ X128 := x128
 
 TIME := $(shell date +%y%m%d%H%M%S)
 VOLNAME := run64 ${TIME},sy
-PROGRAMS := kmon pip patch64 patch128 mtop
+PROGRAMS := 
+VOLUMES := run64.d64 run64.d71 run64.d81
 
 ifdef CC65_HOME
 	AS := $(CC65_HOME)/bin/$(AS)
@@ -21,22 +22,36 @@ endif
 
 ASFLAGS = --create-dep $(@:.o=.dep)
 
-all: disks
+all: subdirs run64.d81
 
 clean:
 	rm -f $(PROGRAMS)
-	rm -rf *.o run64.d64 run64.d71 run64.d81
+	rm -f $(VOLUMES)
+	rm -rf *.o $(VOLUMES)
 
 zap: clean
 	rm -rf *.dep
 
-check: run64.d64
-	$(X128) -debugcart -limitcycles 10000000 -sounddev dummy -silent -console -8 $+
+test: subdirs run64.d81
+#	$(X128) -debugcart -limitcycles 10000000 -sounddev dummy -silent -console -8 $+
+	$(X128) run64.d81
 
-disks: fortune run64.d71 run64.d81
+disks: subdirs issue run64.d71 run64.d81
 
-fortune:
-	fortune > issue,s
+subdirs:
+	cd boot ; make
+	cd tools ; make
+	cd vdc64 ; make
+#	cd fifth ; make $+
+
+issue:
+	echo "${VOLNAME}" > s/issue,s
+	echo >> s/issue,s ; echo >> s/issue,s 
+	fortune -s  > s/issue,s 
+	echo >> s/issue,s ; echo >> s/issue,s 
+	fortune -l >> s/issue,s 
+#	echo >> s/issue,s ; echo >> s/issue,s 
+#	fortune -o >> s/issue,s 
 
 run64.d64: ${PROGRAMS} Makefile
 	$(C1541) -format "${VOLNAME}" d64 run64.d64
@@ -49,20 +64,5 @@ run64.d71: ${PROGRAMS} Makefile
 run64.d81: ${PROGRAMS} Makefile
 	$(C1541) -format "${VOLNAME}" d81 run64.d81
 	./install.sh run64.d81
-
-kmon: LDFLAGS += -t c64 -C kmon.cfg -u __EXEHDR__
-kmon: kmon.o
-
-pip: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__ 
-pip: pip.o
-
-patch64: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__ 
-patch64: patch64.o
-
-patch128: LDFLAGS += -t c128  
-patch128: patch128.o
-
-mtop: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
-mtop: mtop.o
 
 -include *.dep
