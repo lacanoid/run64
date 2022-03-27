@@ -124,7 +124,6 @@ raster:                 ; new interrupt routine
         nop
 
         ldy DLPOS
-
 raster_exec:   ; execute display list instructions
         lda raster_list,y   ; instruction value
         tax

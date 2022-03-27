@@ -6,16 +6,18 @@
 
 .forceimport __EXEHDR__
 
-feature_scnkey=0   ; keyboard scan routine
-feature_pfkey=0    ; programmable function keys
-feature_irq=1      ; raster interrupt service routine
+feature_scnkey=0        ; provide keyboard scan routine
+feature_pfkey=0         ; provide programmable function keys
+feature_irq=1           ; provide interrupt service routine
+feature_irq_raster=1    ; raster interrupt (split screen support)
+feature_use_roms=0      ; use c64 roms where possible (saves some space)
+feature_bgcolor=1       ; background color set with RVS+CLR
 
 feature_irq_tapemotor=0      ; raster tape motor stuff
-feature_bgcolor=1            ; background color setter RVS+CLR
 
 vdc_colors=1       ; use new vdc colors
 
-org = $8000
+org = $C000
 
 UDTIM     = $FFEA
 SCNKEY    = $FF9F
@@ -30,11 +32,6 @@ resultRegister = $d7ff
         beq perror
         ; copy editor code into place
         ldx #>(mainend-main)
-        inx
-        lda #0
-        jsr LINPRT 
-
-        ldx #>(mainend-main)
         ldy #0
 @l1:    lda data,Y
 @l2:    sta org,y
@@ -44,6 +41,9 @@ resultRegister = $d7ff
         inc @l2+2
         dex 
         bpl @l1
+
+        ; initialize
+        jsr banner
         ; initialize
         jsr org
         jsr banner
@@ -87,7 +87,11 @@ banner: ; print banner and info
         inx
         bne @m1
 @m2:
-        ldx vdc_config
+        lda #'V'        ; print vdc version
+        jsr CHROUT
+        lda vdcadr
+        and #7
+        tax
 ;        beq @m_16k
 ;@m_64k:
 ;        ldx #64
@@ -97,30 +101,57 @@ banner: ; print banner and info
         lda #0
         jsr LINPRT
 
-;        lda #'K'
+;        lda #' '
 ;        jsr CHROUT
+
         lda #' '
         jsr CHROUT
 
-@m3:
-        ldx #<mode
-        lda #>mode
+@m3:                    ; print location
+        ldx #<main
+        lda #>main
         jsr LINPRT
+
+        lda #' '
+        jsr CHROUT
+
+@m4:                    ; print size
+        ldx #<(mainend-main)
+        lda #>(mainend-main)
+        jsr LINPRT
+
+
+.if 0 ; show screen size
+        lda #' '
+        jsr CHROUT
+
+        ; print screen size
+        jsr SCREEN
+        sty rows1
+        lda #0
+        jsr LINPRT
+        lda #'X'
+        jsr CHROUT
+        ldx rows1
+        lda #0
+        jsr LINPRT
+.endif
+
+        lda #13
+        jsr CHROUT
+
 
         lda T1
         sta COLOR
-
-exit:
-        lda #0
-        sta resultRegister
-
-;        jmp ($a000)
-
         rts
+rows1:
+        .byte 0
+
+; --------------------------
 
 msg:    .byte 7
         .byte $12,$1c,$20,$96,$20,$9e,$20,$99,$20,$9a,$20,$9c,$20,$92,$05
-        .asciiz " VDC64 0.3 "
+        .byte " VDC64 0.4 ",0
 
 ; --------------------------
 data:
@@ -179,10 +210,22 @@ esc   = 27
 space = 32
 quote = 34
 
-sedsal  = $D9
-sedeal  = $DB
+; locations $D9-$F2 are free
+; variables
+mode    = $D9   ;  217 40/80 Column Mode Flag
+graphm  = $DA   ;  218 text/graphic mode flag
+split   = $DB   ;  219 vic split screen raster value
 
-swapbeg:
+vm1     = $DC   ;  220 VIC Text Screen/Character Base Pointer
+vm2     = $DD   ;  221 VIC Bit-Map Base Pointer
+vm3     = $DE   ;  222 VDC Text Screen Base
+vm4     = $DF   ;  223 VDC Attribute Base
+
+; pointers
+sedsal  = $E0
+sedeal  = $E2
+
+swapbeg:   ; at $E0-$F9 on c128
 
 pnt:    .word 0     ; = PNT
 user:   .word 0     ; = USER
@@ -218,22 +261,22 @@ beeper: .byte 0     ; disables  <ctrl>-G
 
 swapend:
 
-mode:   .byte 0     ; 40/80 Column Mode Flag
-graphm: .byte 0     ; text/graphic mode flag
+;mode:   .byte 0     ; 40/80 Column Mode Flag
+;graphm: .byte 0     ; text/graphic mode flag
 charen:	.byte 0     ; ram/rom vic character character fetch flag (bit-2)
 pause:  .byte 0     ; ;<ctrl>-S flag
 kyndx:  .byte 0     ; Pending Function Key Flag
 keyidx: .byte 0     ; Index Into Pending Function Key String
 curmod: .byte 0     ; VDC Cursor Mode (when enabled)
-vm1:    .byte 0     ; VIC Text Screen/Character Base Pointer
-vm2:    .byte 0     ; VIC Bit-Map Base Pointer
-vm3:    .byte 0     ; VDC Text Screen Base
-vm4:    .byte 0     ; VDC Attribute Base
+;vm1:    .byte 0     ; VIC Text Screen/Character Base Pointer
+;vm2:    .byte 0     ; VIC Bit-Map Base Pointer
+;vm3:    .byte 0     ; VDC Text Screen Base
+;vm4:    .byte 0     ; VDC Attribute Base
 lintmp: .byte 0     ; temporary pointer to last line for LOOP4
 sav80a: .byte 0     ; temporary for 80-col routines
 sav80b: .byte 0     ; temporary for 80-col routines
 curcol: .byte 0     ; vdc cursor color before blink
-split:  .byte 0     ; vic split screen raster value
+;split:  .byte 0     ; vic split screen raster value
 bitmsk: .byte 0     ; temporary for TAB & line wrap routines
 saver:  .byte 0     ; yet another temporary place to save a register
 tabmap: .res  10
@@ -326,23 +369,6 @@ mmucfg:
         .byte 0, 5, 3, 7
 
 ; -- hook into system
-
-vdcsetcolors:
-        lda COLOR
-        and #$0F
-        tay 
-        lda coladj,y
-        sta COLOR
-
-        ldx #$1a
-        lda BGCOL0
-        and #$0F
-        tay 
-        lda coladj,y
-        jsr vdcout
-
-        rts
-
 configure:
         lda COLOR
         pha
@@ -382,7 +408,8 @@ configure:
         lda #10         ; set initial raster line
         sta RASTER
         lda SCROLY
-        and #$7f        ; raster hight bit
+;        and #$7f        ; raster hight bit clear
+        ora #$80        ; raster hight bit set
         sta SCROLY
 
 @cf2:
@@ -391,31 +418,62 @@ configure:
 
 new_irq:
         CLD
-;        jsr EDITOR+$24   
+
+        asl VICIRQ      ; clear IRQ 
+        bcc raster_not  ; not a raster interrupt
+
+raster_not:
+
+.if feature_use_roms
+raster_cont:
+        jmp $EA31       ; default handler in ROM
+
+.else  ; do not use not ROMS
+;        inc EXTCOL
+
+;        jmp $EA31       ; default handler in ROM
+
         lda mmureg
         pha
 
+.if 1  ; copy of c64 rom handler at 
+;        jsr EDITOR+$24    ; split screen, SCNKEY, BLINK
+;        bcc raster_cont1              
 
-.if 1 ; not feature_use_roms
-        ; editor handles split screen and calls SCNKEY and BLINK
+        jsr UDTIM
+;;;        jmp $EA34       ; default handler in ROM
+.if feature_irq_raster      ; raster interrupt
+        jsr irq_raster
+;        jsr text
+        bcc raster_cont1
+.else                   ; no raster
+        jsr blink       ; 40 column blink
+        jsr scnkey      ; scan keyboard
+.endif
 
-.if 1  ; copy of c64 rom handler
-        asl VICIRQ 
-        bcc raster_not  ; not a raster interrupt
-raster_not:
-        ; not a raster interrupt
-raster_cont:
+.if 0  ; show timing
+        inc $d030
+        ldy #25
+@l2:
 ;        inc EXTCOL
-       jsr UDTIM
-;        jmp $EA34       ; default handler in ROM
-        jsr blink        ; 40 column blink
-        jsr scnkey
-        jmp raster_cont1
-;        pla
-;        jmp $EA61        ; default handler in ROM
+        ldx #40
+@l1:
+        lda $0400,X
+        sta $0400,x
+        dex
+        bne @l1
+;        dec EXTCOL
+        dey
+        bne @l2
+        dec $d030
+.endif
 
-.else  ; copy of c128 rom handler
-        jsr EDITOR+$24    ; ; split screen, SCNKEY, BLINK
+        jmp raster_cont1
+;;;        pla
+;;;        jmp $EA61        ; default handler in ROM
+
+.else  ; copy of c128 rom handler at
+        jsr EDITOR+$24    ; split screen, SCNKEY, BLINK
         bcc raster_cont1              
 
         jsr UDTIM               ; update clock
@@ -425,18 +483,12 @@ raster_cont:
         lsr
         bcc raster_cont1
         jsr animate
-.endif
 
-.else  ; use rom routines
-        asl VICIRQ 
-        bcc raster_not  ; not a raster interrupt
-raster_not:
-raster_cont:
-        pla
-        jmp $EA31       ; default handler in ROM
 .endif
 
 raster_cont1:
+        lda cia2+$0d            ; clear CIA2
+;        dec EXTCOL
 ; c64   $EA61      same in c64 rom + SCNKEY - MMU
 ; c128  $FF33
         pla
@@ -473,8 +525,10 @@ tapemotor:  ; handle tape motor
 .endif
         rts
 
+.endif ; if not feature_use_roms
+
 animate:        ; run basic sprite animations
-.endif             ; feature_irq
+.endif          ; feature_irq
         rts
 
 ; ---------------------------------------------

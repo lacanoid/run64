@@ -177,10 +177,16 @@ cint:
 	sta swapout,x	;init 80-column 8563 mode locals
 	dex
 	bpl @cint1
-	jsr swapzpin
 
+	; preserve initial
 	lda COLOR
 	sta color
+
+	jsr swapzpout
+	jsr swapzpin
+
+	lda vicreg+24
+	sta vm1			; this preserves upper/lower
 
 	ldx #vectse-vectss-1
 @cint3:
@@ -214,18 +220,14 @@ cint:
 	ora init_status
 	sta init_status
 @cint6:
-	lda COLOR
-	pha
 	jsr swapper1	;swap in 80-col vars
-	jsr taball	;initialize 80-col tab stops
-	jsr sreset	;clear 80-col wrap table
-	jsr clsr	;clear 80-col text screen
+	jsr taball		;initialize 80-col tab stops
+	jsr sreset		;clear 80-col wrap table
+	jsr clsr		;clear 80-col text screen
 
-	jsr swapper	;swap in 40-col vars
-	jsr sreset	;clear 40-col wrap table
-;	jsr clsr	;clear 40-col text screen
-	pla
-	sta color
+	jsr swapper		;swap in 40-col vars
+	jsr sreset		;clear 40-col wrap table
+;	jsr clsr		;clear 40-col text screen
 
 .ifdef target_c128
 	bit mmumcr	;test 40/80 key & stay in that mode
@@ -301,7 +303,7 @@ scolor:
 	sta USER+1
 	rts
 
-.if feature_bgcolor=1
+.if feature_bgcolor=1  ; enable of setting of background color with RVS+CLR
 bgcolor:
 	lda RVS
 	beq bgcolrts
@@ -318,7 +320,6 @@ bgcolor40:
 	stx BGCOL0
 bgcolrts:
 	rts
-
 bgcolor80:
 	ldy COLOR
 	ldx #$1a    ; vdc background color
@@ -338,13 +339,14 @@ irq:
 	sec
 	lda vicreg+25	;is this a vic raster irq?
 	and #$01
-	beq @irq10		;...branch if not (just rts with .c=1)
+	beq irq_1		;...branch if not (just rts with .c=1)
 
 	sta vicreg+25	;clear the raster interrupt bit
 
+irq_raster:
 	lda graphm	;is user controlling vic?
 	cmp #$ff
-@irq10:
+irq_1:
 	beq irqrts	;...branch if so (rts with .c=1)
 
 	bit vicreg+17	;assume 'middle' irq (note .c=0 here)
@@ -359,8 +361,9 @@ irq:
 	bit graphm
 	bvc @irq30		;...branch if not a split screen
 
-	lda split
-	sta vicreg+18	;split screen: make next irq occur in 'middle' of frame
+	ldx split
+	dex
+	stx vicreg+18	;split screen: make next irq occur in 'middle' of frame
 
 ;  set up for a graphic frame
 
@@ -439,7 +442,7 @@ doit:
 irqrts:
 	bcs @ir10		;kludge for 2MHz mode split screen:
 	lda vicreg+48	;...in 2MHz mode, RC8=0 always due to faster code
-	and #$01	;...and hence skips keyscan, etc.
+	and #$01		;...and hence skips keyscan, etc.
 	beq @ir10		;...branch if 1MHz mode
 	lda graphm
 	and #$40
@@ -447,7 +450,7 @@ irqrts:
 	lda vicreg+17
 	bpl @ir10		;...branch if raster still not at bottom
 	sec			;ah-ha! this has to be the 'bottom' irq of a split screen
-@ir10:
+@ir10:       ; 1MHz mode
 	cli			;allow interruptable keyscan
 	bcc @ir20	;done if 'middle' irq
 	jsr scnkey	;do general keyboard scan

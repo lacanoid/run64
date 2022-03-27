@@ -43,13 +43,15 @@ LOAD      = $FFD5   ; load from device
 SAVE      = $FFD8   ; save to device
 STOP      = $FFE1   ; check for stop key
 GETIN     = $FFE4   ; get a character
+SCREEN    = $FFED   ; Return screen format
+PLOT      = $FFF0   ; Set cursor location
 
 ; -----------------------------------------------------------------------------
 ; kernal variables
 STATUS    = $90        ; kernal i/o status word
 
-DFLTN     = $99    ; Default Input Device #
-DFLTO     = $9A    ; Default Output Device #
+DFLTN     = $99        ; Default Input Device #
+DFLTO     = $9A        ; Default Output Device #
 
 T1        = $9E        ; Tape pass 1 error log index
 T2        = $9F        ; Tape pass 2 error log correction index

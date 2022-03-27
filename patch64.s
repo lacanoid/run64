@@ -46,7 +46,7 @@ start:
         lda EXTCOL
         sta $ecd9     ; border color
         lda BGCOL0
-        sta $ecda     ; backgorund color
+        sta $ecda     ; background color
         lda COLOR
         sta $e534+1   ; foreground color
         lda FA
