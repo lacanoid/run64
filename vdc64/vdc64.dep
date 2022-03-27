@@ -1,0 +1,4 @@
+vdc64.o:	vdc64.s ../defs64.inc .././defs.inc ../macros.inc vdc_ed1.inc vdc_ed2.inc vdc_ed3.inc vdc_ed4.inc vdc_ed5.inc vdc_ed6.inc vdc_routines.inc vdc_ed7.inc
+
+vdc64.s ../defs64.inc .././defs.inc ../macros.inc vdc_ed1.inc vdc_ed2.inc vdc_ed3.inc vdc_ed4.inc vdc_ed5.inc vdc_ed6.inc vdc_routines.inc vdc_ed7.inc:
+

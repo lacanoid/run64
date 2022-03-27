@@ -1,0 +1,4 @@
+autostart64.128.o:	autostart64.128.s ../config.inc ../defs128.inc ../defs.inc ../macros.inc boot.inc
+
+autostart64.128.s ../config.inc ../defs128.inc ../defs.inc ../macros.inc boot.inc:
+

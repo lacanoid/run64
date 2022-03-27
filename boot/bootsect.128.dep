@@ -1,0 +1,4 @@
+bootsect.128.o:	bootsect.128.s ../config.inc ../defs128.inc ../defs.inc ../macros.inc boot.inc
+
+bootsect.128.s ../config.inc ../defs128.inc ../defs.inc ../macros.inc boot.inc:
+

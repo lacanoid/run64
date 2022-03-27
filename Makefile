@@ -5,7 +5,7 @@ X128 := x128
 
 TIME := $(shell date +%y%m%d%H%M%S)
 VOLNAME := run64 ${TIME},sy
-PROGRAMS := kmon pip patch64 patch128 vdc64 raster mtop
+PROGRAMS := kmon pip patch64 patch128 mtop
 
 ifdef CC65_HOME
 	AS := $(CC65_HOME)/bin/$(AS)
@@ -21,11 +21,11 @@ endif
 
 ASFLAGS = --create-dep $(@:.o=.dep)
 
-all: bootsect.128 autostart64.128 disks
+all: disks
 
 clean:
 	rm -f $(PROGRAMS)
-	rm -rf *.o run64.d64 run64.d71 run64.d81 bootsect.128 autostart64.128
+	rm -rf *.o run64.d64 run64.d71 run64.d81
 
 zap: clean
 	rm -rf *.dep
@@ -38,23 +38,17 @@ disks: fortune run64.d71 run64.d81
 fortune:
 	fortune > issue,s
 
-run64.d64: ${PROGRAMS} autostart64.128 bootsect.128 Makefile
+run64.d64: ${PROGRAMS} Makefile
 	$(C1541) -format "${VOLNAME}" d64 run64.d64
 	./install.sh run64.d64
 
-run64.d71: ${PROGRAMS} autostart64.128 bootsect.128 Makefile
+run64.d71: ${PROGRAMS} Makefile
 	$(C1541) -format "${VOLNAME}" d71 run64.d71
 	./install.sh run64.d71
 
-run64.d81: ${PROGRAMS} autostart64.128 bootsect.128 Makefile
+run64.d81: ${PROGRAMS} Makefile
 	$(C1541) -format "${VOLNAME}" d81 run64.d81
 	./install.sh run64.d81
-
-bootsect.128: LDFLAGS += -C autostart.cfg
-bootsect.128: bootsect.128.o autostart64.128.o autostart64.o
-
-autostart64.128: LDFLAGS += -C autostart.cfg
-autostart64.128: bootsect.128.o autostart64.128.o autostart64.o
 
 kmon: LDFLAGS += -t c64 -C kmon.cfg -u __EXEHDR__
 kmon: kmon.o
@@ -68,19 +62,7 @@ patch64: patch64.o
 patch128: LDFLAGS += -t c128  
 patch128: patch128.o
 
-vdc64: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
-vdc64: vdc64.o
-
-vdc128: LDFLAGS += -t c128  
-vdc128: vdc128.o
-
-raster: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
-raster: raster.o
-
 mtop: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
 mtop: mtop.o
-
-5th: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
-5th: 5th.o
 
 -include *.dep
