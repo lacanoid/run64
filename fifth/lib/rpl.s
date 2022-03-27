@@ -10,7 +10,7 @@
     compile:
       jsr compiler::compile_skip_first
       IfTrue compiler::error, catch      
-      Run HDUMP
+      ;Run HDUMP
       Run H
       
     done:

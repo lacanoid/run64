@@ -43,29 +43,6 @@
   .byte bytecode::tRET
 .endmacro
 
-.macro Peek address
-  .scope 
-    lda address
-    sta rewrite+1
-    lda address+1
-    sta rewrite+1
-    rewrite:
-    lda $DEF
-  .endscope
-.endmacro
-
-.macro PokeA address
-  .scope 
-    pha
-    lda address
-    sta rewrite+1
-    lda address+1
-    sta rewrite+2
-    pla
-    rewrite:
-    sta $DEF
-  .endscope
-.endmacro
 
 .scope runtime
   ptr = cursor
@@ -93,6 +70,10 @@
     rts
   .endproc
 
+  .proc doSkip
+    IInc IP
+  .endproc
+
   .proc exec
     ;IMov print::arg, IP
     ;NewLine
@@ -103,7 +84,7 @@
     IfEq #bytecode::tJMP, doJmp
     and #15
     IfEq #bytecode::tPTR, doPtr
-    IfEq #bytecode::tCTL, doJsr
+    IfEq #bytecode::tSKIP, doSkip
     IfEq #bytecode::tRET, doRet
     IfEq #bytecode::tINT, doInt
     IfEq #bytecode::tSTR, doStr
@@ -206,3 +187,61 @@
 
 
 .endscope
+
+
+.macro Peek address
+  .scope 
+    lda address
+    sta rewrite+1
+    lda address+1
+    sta rewrite+1
+    rewrite:
+    lda $DEF
+  .endscope
+.endmacro
+
+.macro PokeA address
+  .scope 
+    pha
+    lda address
+    sta rewrite+1
+    lda address+1
+    sta rewrite+2
+    pla
+    rewrite:
+    sta $DEF
+  .endscope
+.endmacro
+
+.macro Pointer name, address
+  
+  .scope 
+ 
+    ptr:
+     ::.ident(.string(name))=ptr
+    .ifnblank address
+      .word address
+    .else
+      .word 0
+    .endif
+    ::.ident(.concat(.string(name),"__write")):
+      PokeA ptr
+      IInc ptr
+      rts
+  .endscope
+.endmacro
+
+
+.macro WriteA name, foo
+  jsr .ident(.concat(.string(name),"__write"))
+.endmacro
+
+.macro Write EE, arg
+  lda arg
+  WriteA EE
+.endmacro
+ 
+ .macro WriteB EE, arg13
+  lda #.lobyte(arg13)
+  WriteA EE
+.endmacro

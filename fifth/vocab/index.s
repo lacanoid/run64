@@ -3,17 +3,14 @@
 .include "stack.s"
 
 CMD cELSE,"ELSE"
-  PrintChr 'E'
   jmp compiler::write_else
 END
 
 CMD cTHEN,"THEN"
-  PrintChr 'T'
   jmp compiler::write_then
 END
 
 CMD cIF,"IF"
-  PrintChr 'I'
   jmp compiler::write_if
 END
 

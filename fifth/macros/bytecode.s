@@ -54,7 +54,7 @@
 .endmacro
 
 .macro ELSE 
-  .byte bytecode::tPTR
+  .byte bytecode::tELSE
   .word endif
   else:
 .endmacro
@@ -70,15 +70,16 @@
 .macro BEGIN
   .scope
     begin:
+    .byte bytecode::tBEGIN
 .endmacro
 
 .macro WHILE
-    .byte bytecode::tIF
+    .byte bytecode::tWHILE
     .word break
 .endmacro
 
 .macro REPEAT
-    .byte bytecode::tPTR
+    .byte bytecode::tREPEAT
     .word begin
     break:
   .endscope
@@ -93,9 +94,11 @@
   tJSR = 4
   tRUN = 5
   tIF = 6 
-  tCTL = 7
   tSKIP = 8
   tELSE = tPTR + 16
   tTHEN = tSKIP + 16
-  
+  tBEGIN = tSKIP + 32
+  tWHILE = tIF + 32
+  tREPEAT = tPTR + 32
+  tCTL = tJSR + 128
 .endscope

@@ -20,7 +20,6 @@ DEF TEST
     _ #1
     _ SUB
     _ DUP
-    _ DEC
   WHILE
   REPEAT
 END 
@@ -124,21 +123,30 @@ END
 
 DEF H
   _ HSTART
-  _ DLINE
+  _ DLIST
+  _ DROP
+END
+
+DEF DLIST, "LIST"
+  BEGIN
   _ DLINE
   _ CR
+  _ DUP
+  WHILE
+  REPEAT
+  _ DROP
 END
 
 DEF DLINE
-  _ CR
   _ DUP
   _ HEX
   _ " "
   _ PRINT
   _ DUP
   _ PEEK
-  _ DUP
-  _ DEC
+  ;_ DUP
+  ;_ DEC
+
   _ DUP
   _ #bytecode::tRET
   _ EQ
@@ -149,6 +157,53 @@ DEF DLINE
     _ #0
     _
   ENDIF
+
+  _ DUP
+  _ #bytecode::tBEGIN
+  _ EQ
+  IF
+    _ DROP 
+    _ "BEGIN"
+    _ PRINT
+    _ INCR
+    _
+  ENDIF
+
+  _ DUP
+  _ #bytecode::tTHEN
+  _ EQ
+  IF
+    _ DROP 
+    _ "THEN"
+    _ PRINT
+    _ INCR
+    _
+  ENDIF
+  
+  _ DUP
+  _ #bytecode::tWHILE
+  _ EQ
+  IF
+    _ DROP 
+    _ "WHILE"
+    _ PRINT
+    _ #3
+    _ ADD
+    _ 
+  ENDIF
+  
+  _ DUP
+  _ #bytecode::tREPEAT
+  _ EQ
+  IF
+    _ DROP 
+    _ "REPEAT"
+    _ PRINT
+    _ #3
+    _ ADD
+    _ 
+  ENDIF
+
   _ DUP
   _ #bytecode::tRUN
   _ EQ
@@ -165,27 +220,43 @@ DEF DLINE
     _
   ENDIF
   _ DUP
+  _ #bytecode::tSTR
+  _ EQ
+  IF
+    _ DROP
+    _ INCR
+    _ DUP
+    _ GET
+    _ SWAP
+    _ "'"
+    _ PRINT
+    _ #2
+    _ ADD
+    _ PRINT
+    _ "'"
+    _ PRINT
+    _ 
+  ENDIF
+  _ DUP
   _ #bytecode::tIF
   _ EQ
   IF
     _ DROP
-    _ "IF " 
+    _ "IF" 
     _ PRINT
-    _ INCR
-    _ GET
-    _ HEX
-    _ #2
+    _ #3
     _ ADD
     _
   ENDIF
   _ DUP
-  _ #bytecode::tPTR
+  _ #bytecode::tELSE
   _ EQ
   IF
     _ DROP
-    _ "PTR " 
+    _ "ELSE " 
     _ PRINT
     _ INCR
+    _ DUP
     _ GET
     _ HEX
     _ #2
@@ -197,8 +268,6 @@ DEF DLINE
   _ EQ
   IF
     _ DROP
-    _ "INT "
-    _ PRINT
     _ #1
     _ ADD
     _ DUP
@@ -210,4 +279,6 @@ DEF DLINE
   ENDIF
   _ "???"
   _ PRINT
+  _ DROP
+  _ #0
 END 
