@@ -1,14 +1,19 @@
+Pointer writer, HEAP_END
+
 .scope compiler
   pointer = $FD
-
-  input:
+  IP = writer
   offset:
     .word 0
   eof:
     .byte 0
   error:
     .byte 0
-
+  cstack:
+    .res 128
+  csp:
+    .byte 0  
+  
   .proc advance_pointer
     inc pointer
     IfTrue skip
@@ -18,11 +23,13 @@
   .endproc
 
   .proc advance_offset
+    ;IMov offset, input::ptr
     IMov offset, pointer
     rts
   .endproc
 
   .proc reset_pointer
+    ;IMov offset, input::ptr
     IMov pointer,offset
     rts
   .endproc
@@ -32,6 +39,7 @@
     jsr reset_pointer
     ldx #0
     loop:
+      ;jsr input::read
       lda (pointer,x)
       IfFalse stop
       IfEq #13, stop
@@ -51,6 +59,7 @@
     jsr reset_pointer
     ldx #0
     loop:
+      ;jsr input:read
       lda (pointer,x)
       IfLt #33, done
       jsr CHROUT
@@ -63,6 +72,7 @@
 
   .proc parse_word
     jsr reset_pointer
+    ;jsr input::read
     ldx #0
     lda (pointer,x)
     
@@ -90,6 +100,7 @@
     jsr advance_pointer
     ldx #0
     hex_digit:
+      ; jsr input::read
       lda (pointer,x)
       and #$7f
 
@@ -122,8 +133,7 @@
       jmp hex_digit 
 
     hex_error:
-      inc error
-      rts 
+      jmp die
     hex_done:
       jsr advance_offset
       jmp write_int
@@ -134,6 +144,8 @@
       jsr reset_pointer
       ldx #0
       dec_digit:
+    
+          ; jsr input::read
           lda (pointer,x)
           and #$7f
           
@@ -164,7 +176,7 @@
           jmp dec_digit
 
       dec_error:
-          inc error
+          jmp die
           rts 
 
       dec_done:
@@ -174,6 +186,41 @@
   .endproc ; parse_dec
 
   
+
+
+  .proc parse_string
+    lda #bytecode::tSTR
+    jsr write
+    Stash IP
+    IAddB IP,2
+    jsr advance_pointer
+    ldx #0
+    parse_char:
+      ; jsr input::read
+    
+      lda (pointer,x)
+      IfLt #32, error
+      IfEq #34, done
+      jsr write
+      jsr advance_pointer
+      bne parse_char
+    error:
+      jmp die
+    done:
+      jsr advance_pointer
+      jsr advance_offset  
+      lda #0
+      jsr write
+      Unstash cursor
+      ldy #0
+      lda IP
+      sta (cursor),y
+      lda IP+1
+      iny
+      sta (cursor),y
+      rts
+  .endproc    
+
   .proc parse_entry
       jsr vocab::reset_cursor
       match_entry:
@@ -184,6 +231,8 @@
       next_char:
         lda (vocab::cursor),y
         beq end_entry       ; possible match, branch if zero terminator
+        ; jsr input::read
+    
         cmp (pointer,x)
         bne next_entry        ; no match
         jsr advance_pointer
@@ -195,72 +244,44 @@
         bne match_entry
 
       not_found:
-        inc error
-        rts
+        jmp die
 
       end_entry:
         lda (pointer,x)
         IfGe #33, next_entry
         jsr advance_offset 
         IMov result, cursor
+        ldy #0
+        lda (cursor),y
+        IfEq #bytecode::tCTL, write_cmd
         jmp write_run
   .endproc ; parse_entry
 
-  .proc parse_string
-    lda #runtime::_STR
-    jsr write
-    Stash HEAP_END
-    IAddB HEAP_END,2
-    jsr advance_pointer
-    ldx #0
-    parse_char:
-      lda (pointer,x)
-      IfLt #32, error
-      IfEq #34, done
-      jsr write
-      jsr advance_pointer
-      bne parse_char
-    error:
-      inc error
-      rts
-    done:
-      jsr advance_pointer
-      jsr advance_offset  
-      lda #0
-      jsr write
-      Unstash cursor
-      ldy #0
-      lda HEAP_END
-      sta (cursor),y
-      lda HEAP_END+1
-      iny
-      sta (cursor),y
-      
-      rts
-  .endproc    
 
-  .proc write 
-    pha
-    IMov cursor, HEAP_END
-    ldx #0
-    pla
-    sta (cursor,x)
-    inc HEAP_END
+  .proc write
+    ;jmp writer::write
+    PokeA writer
+    IInc writer
+    ;pha
+      ;jsr print::print_hex_digits
+      ;PrintChr ' '
+    ;pla
     rts
   .endproc    
 
   .proc write_int
-      lda #runtime::_INT
+      lda #bytecode::tINT
+      jsr write
       jmp write_result
   .endproc
 
-.proc write_run
-      lda #runtime::_RUN
+  .proc write_run
+      lda #bytecode::tRUN
+      jsr write
       jmp write_result
   .endproc
 
   .proc write_result 
-      jsr write
       lda result
       jsr write
       lda result+1
@@ -268,12 +289,112 @@
       rts 
   .endproc
 
+    .proc write_cmd
+      RunFrom result
+      rts 
+    .endproc
+
+  .proc write_if
+      lda #bytecode::tIF
+      jsr write
+      lda #bytecode::tIF
+      jsr cpush
+      rts
+  .endproc
+
+  .proc write_else
+      lda #bytecode::tPTR
+      jsr write
+      lda #2
+      jsr cresolve
+      jsr cdrop
+      lda #bytecode::tPTR
+      jsr cpush
+      rts
+  .endproc
+
+  .proc write_then
+      lda #0
+      jsr cresolve
+      jsr cdrop
+      lda #bytecode::tTHEN
+      jsr write
+      rts
+  .endproc
+
+
+  .proc cpush
+    ldx csp 
+    inx
+    inx
+    inx
+    stx csp
+    jmp cset
+  .endproc
+
+  .proc cset
+    ldx csp 
+    sta cstack-3,x
+    lda IP
+    sta cstack-2,x
+    lda IP+1
+    sta cstack-1,x
+    stx csp
+    IAddB IP,2
+    rts 
+  .endproc
+
+  .proc cresolve
+    pha
+    ldx csp
+    
+    lda cstack-2, x
+    sta cursor 
+    lda cstack-1, x
+    sta cursor+1
+
+    ldy #0
+    pla
+    clc
+    adc IP
+    sta (cursor),y 
+    iny
+    lda #0  
+    adc IP+1
+    sta (cursor),y 
+    
+    rts 
+  .endproc
+
+  .proc cdrop
+    ldx csp
+    dex
+    dex
+    dex 
+    bmi catch
+    rts 
+    catch:
+      jmp die
+  .endproc
+
+  
+  .proc compile_skip_first
+    ISet offset, BUF
+    jsr reset_pointer
+    jsr advance_pointer
+    jsr advance_offset
+    jmp do_compile
+  .endproc
 
 .proc compile
-    ISet offset, BUF
-    ISet HEAP_END, HEAP_START
+  ISet offset, BUF
+.endproc    
+
+.proc do_compile
+    ISet IP, HEAP_START
     CClear eof
     CClear error
+    CClear csp
   loop:
     jsr skip_space
     IfTrue eof, done
@@ -282,19 +403,25 @@
     IfTrue error, catch
     jmp loop
   done:
-    lda #runtime::_RET
+    lda #bytecode::tRET
     jsr write
-    ColorPush 3
-    PrintChr 'O'
-    PrintChr 'K'
-    ColorPop
+    lda #$12
+    jsr write
+    lda #$34
+    jsr write
+    lda csp
+    ;jsr print::print_hex_digits
+    
     rts
-  catch: 
-    ColorPush 10
-    PrintChr '?'
-    jsr print_next_word
-    ColorPop
-    rts 
-.endproc
+  catch:
+    jmp die
+  exit:
+    rts
+  .endproc
+
+  .proc die
+    inc error
+    rts
+  .endproc 
 
 .endscope

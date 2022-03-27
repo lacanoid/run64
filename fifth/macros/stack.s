@@ -31,6 +31,15 @@
   sta STACK-d*2+1,x
 .endmacro
 
+.macro CmpLo d
+  cmp STACK-d*2,x
+.endmacro
+
+.macro CmpHi d
+  cmp STACK-d*2+1,x
+.endmacro
+
+
 .macro IsTrue d
   lda STACK-d*2,x
   ora STACK-d*2+1,x

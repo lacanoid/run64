@@ -1,3 +1,18 @@
+PROC EQ, "=="
+  SpLoad
+  SpDec
+  GetHi 0
+  CmpHi 1
+  bne false
+  GetLo 0
+  CmpLo 1
+  bne false
+  Insert 1, 1
+  rts  
+  false:
+  Insert 1, 0
+  rts
+END
 
 PROC DIV, "/"
   divisor = STACK-2     ;$59 used for hi-byte
@@ -79,30 +94,29 @@ PROC MUL, "*"
 END 
 
 PROC ADD, "+"
-    SpLoad
-    lda STACK-4,x
-    adc STACK-2,x
-    sta STACK-4,x
+  SpLoad
+  clc
+  lda STACK-4,x
+  adc STACK-2,x
+  sta STACK-4,x
 
-    lda STACK-3,x
-    adc STACK-1,x
-    sta STACK-3,x
-    SpDec
-    rts
+  lda STACK-3,x
+  adc STACK-1,x
+  sta STACK-3,x
+  SpDec
+  rts
 END
 
 PROC SUB, "-"
+  SpLoad
+  sec 
+  lda STACK-4,x
+  sbc STACK-2,x
+  sta STACK-4,x
 
-    ldx f_SP
-    sec 
-    lda STACK-4,x
-    sbc STACK-2,x
-    sta STACK-4,x
-    lda STACK-3,x
-    sbc STACK-1,x
-    sta STACK-3,x
-    dex
-    dex
-    stx f_SP 
-    rts
+  lda STACK-3,x
+  sbc STACK-1,x
+  sta STACK-3,x
+  SpDec
+  rts
 END

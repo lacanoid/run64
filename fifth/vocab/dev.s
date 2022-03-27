@@ -1,3 +1,4 @@
+
 DEF HDUMP
   _ HSTART
   _ DUMP
@@ -41,6 +42,11 @@ DEF TDUMP
   _ ADD
 END
 
+PROC CR
+  NewLine
+  rts
+END
+
 DEF PRINT
   _ #print::print_z
   _ #print::arg
@@ -66,6 +72,7 @@ DEF PEND
   _ #PROG_END
 END 
 
+
 DEF HSTART
   _ #HEAP_START
 END
@@ -88,6 +95,7 @@ DEF HCLEAR
 END 
 
 PROC POKE
+  Stash TMP
   SpLoad
   CopyTo 2,TMP
   GetLo 1
@@ -97,15 +105,180 @@ PROC POKE
 
   SpDec
   SpDec
-  
+  Unstash TMP
   rts 
 END
 
 PROC PEEK
+  Stash TMP
   SpLoad
   CopyTo 1,TMP
   ldy #0
   lda (TMP),y
   InsertA 1
+  Unstash TMP
   rts 
 END
+
+
+DEF H
+  _ HSTART
+  _ DLIST
+  _ DROP
+END
+
+DEF DLIST, "LIST"
+  BEGIN
+  _ DLINE
+  _ CR
+  _ DUP
+  WHILE
+  REPEAT
+  _ DROP
+END
+
+DEF DLINE
+  _ DUP
+  _ HEX
+  _ " "
+  _ PRINT
+  _ DUP
+  _ PEEK
+  ;_ DUP
+  ;_ DEC
+
+  _ DUP
+  _ #bytecode::tRET
+  _ EQ
+  IF
+    _ DROP 
+    _ "RET"
+    _ PRINT
+    _ #0
+    _
+  ENDIF
+
+  _ DUP
+  _ #bytecode::tBEGIN
+  _ EQ
+  IF
+    _ DROP 
+    _ "BEGIN"
+    _ PRINT
+    _ INCR
+    _
+  ENDIF
+
+  _ DUP
+  _ #bytecode::tTHEN
+  _ EQ
+  IF
+    _ DROP 
+    _ "THEN"
+    _ PRINT
+    _ INCR
+    _
+  ENDIF
+  
+  _ DUP
+  _ #bytecode::tWHILE
+  _ EQ
+  IF
+    _ DROP 
+    _ "WHILE"
+    _ PRINT
+    _ #3
+    _ ADD
+    _ 
+  ENDIF
+  
+  _ DUP
+  _ #bytecode::tREPEAT
+  _ EQ
+  IF
+    _ DROP 
+    _ "REPEAT"
+    _ PRINT
+    _ #3
+    _ ADD
+    _ 
+  ENDIF
+
+  _ DUP
+  _ #bytecode::tRUN
+  _ EQ
+  IF
+    _ DROP
+    _ INCR
+    _ DUP
+    _ GET
+    _ #5
+    _ ADD
+    _ PRINT
+    _ #2
+    _ ADD
+    _
+  ENDIF
+  _ DUP
+  _ #bytecode::tSTR
+  _ EQ
+  IF
+    _ DROP
+    _ INCR
+    _ DUP
+    _ GET
+    _ SWAP
+    _ "'"
+    _ PRINT
+    _ #2
+    _ ADD
+    _ PRINT
+    _ "'"
+    _ PRINT
+    _ 
+  ENDIF
+  _ DUP
+  _ #bytecode::tIF
+  _ EQ
+  IF
+    _ DROP
+    _ "IF" 
+    _ PRINT
+    _ #3
+    _ ADD
+    _
+  ENDIF
+  _ DUP
+  _ #bytecode::tELSE
+  _ EQ
+  IF
+    _ DROP
+    _ "ELSE " 
+    _ PRINT
+    _ INCR
+    _ DUP
+    _ GET
+    _ HEX
+    _ #2
+    _ ADD
+    _
+  ENDIF
+  _ DUP
+  _ #bytecode::tINT
+  _ EQ
+  IF
+    _ DROP
+    _ #1
+    _ ADD
+    _ DUP
+    _ GET
+    _ DEC
+    _ #2
+    _ ADD
+    _
+  ENDIF
+  _ "???"
+  _ PRINT
+  _ DROP
+  _ #0
+END 

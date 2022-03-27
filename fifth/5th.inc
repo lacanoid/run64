@@ -1,12 +1,12 @@
 .include "../defs64.inc"
 cursor = $FB
 input = BUF
-TMP = $FD
-
+TMP = $B0
+  
 .include "macros/index.s"
 
 .macro ColorSet c
-    lda #c
+    lda #c 
     sta COLOR
 .endmacro
 
@@ -25,7 +25,7 @@ TMP = $FD
 .macro PrintString str
   .scope
     ISet print::arg, data
-    jsr print::print_z
+    jsr print::print_z 
     clc
     bcc exit
     data: 
@@ -33,8 +33,6 @@ TMP = $FD
     exit:
   .endscope
 .endmacro
-
-
 
 .macro PrintChr c
   lda #c
@@ -48,7 +46,7 @@ TMP = $FD
 .macro ClearScreen 
   PrintChr 147
 .endmacro
-
+ 
 jmp main
 
 .include "lib/stack.s"

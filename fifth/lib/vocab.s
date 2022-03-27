@@ -17,11 +17,15 @@
 .endmacro
 
 .macro rEntry name, label
-  GenericEntry 0, name, label
+  GenericEntry bytecode::tPTR, name, label
 .endmacro
 
 .macro jEntry name, label
-  GenericEntry $4C, name, label
+  GenericEntry bytecode::tJMP, name, label
+.endmacro
+
+.macro cEntry name, label
+  GenericEntry bytecode::tCTL, name, label
 .endmacro
 
 .scope vocab 
