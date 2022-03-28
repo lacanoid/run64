@@ -123,7 +123,6 @@
     add arg1
     sta arg1
     bcc skip
-    
       inc arg1+1
     skip:
   .endscope

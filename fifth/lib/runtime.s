@@ -78,45 +78,6 @@
 .endmacro
 
 
-.macro Run arg
-  ISet runtime::IP, arg
-  jsr runtime::run
-.endmacro
-
-.macro RunFrom arg
-  IMov runtime::IP, arg
-  jsr runtime::run
-.endmacro
-
-
-.macro rPtr arg
-  .byte bytecode::tPTR
-  .word arg
-.endmacro
-
-.macro rInt arg
-  .byte bytecode::tINT
-  .word arg
-.endmacro
-
-.macro rStr arg
-  .scope 
-    .byte bytecode::tSTR
-    .word next
-    .asciiz arg
-    next:
-  .endscope
-.endmacro
-
-
-.macro rRun arg
-  .byte bytecode::tRUN
-  .word arg
-.endmacro
-
-.macro rRet
-  .byte bytecode::tRET
-.endmacro
 
 .scope runtime
   ptr = cursor
@@ -133,13 +94,22 @@
     IsTrue 0
     IfFalse
       jmp doPtr     ; if false move IP to else
-    Else 
-      IAddB IP, 3   ; otherwise continue
     EndIf
+    IAddB IP, 3   ; otherwise continue
     clc
     rts
   .endproc
   
+  .proc doUnless
+    SpDec
+    IsTrue 0
+    IfTrue
+      jmp doPtr     ; if false move IP to else
+    EndIf
+    IAddB IP, 3   ; otherwise continue
+    clc
+    rts
+  .endproc
 
   .proc doNop
     IInc IP
@@ -160,6 +130,7 @@
     JmpEq #bytecode::tSTR, doStr
     JmpEq #bytecode::tRUN, doRun
     JmpEq #bytecode::tIF, doIf
+    JmpEq #bytecode::tIF, doUnless
   .endproc
 
 .proc doStr
@@ -225,7 +196,7 @@
     Begin
       jsr exec
       BraTrue ended, break
-    Repeat
+    Again
     rts
   .endproc
 

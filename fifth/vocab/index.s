@@ -18,17 +18,17 @@ CMD cIF,"IF"
 END
 
 CMD cBEGIN,"BEGIN"
-  ;jmp compiler::write_begin
+  jmp compiler::write_begin
   rts
 END
 
 CMD cWHILE,"WHILE"
-  ;jmp compiler::write_while
+  jmp compiler::write_while
   rts
 END
 
-CMD cREPEAT,"REPEAT"
-  ;jmp compiler::write_if
+CMD cAGAIN,"AGAIN"
+  jmp compiler::write_again
   rts
 END
 

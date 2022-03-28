@@ -55,6 +55,13 @@
   jsr print::print_hex_digits
 .endmacro
 
+.macro BPrintHex arg1
+  .ifnblank
+    lda arg1
+  .endif
+  jsr print::print_hex_digits
+.endmacro
+
 .macro PrintZ arg1, offset
   .ifnblank offset
     ISet print::arg, {arg1+offset}
@@ -62,4 +69,8 @@
     ISet print::arg, {arg1}
   .endif
   jsr print::print_z
+.endmacro
+
+.macro PrintName arg1
+  PrintZ arg1, vocab::name_offset
 .endmacro

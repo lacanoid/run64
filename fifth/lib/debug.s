@@ -19,7 +19,7 @@
     lda table,x
     jmp CHROUT
     table:
-      .asciiz "PRISWCN?????J???"
+      .asciiz "PRISWTFN????X???"
   .endproc 
 
   .proc token_bytes
@@ -125,8 +125,8 @@
       PrintZ cBEGIN, vocab::name_offset
       rts
     EndIf
-    IfEq #bytecode::tREPEAT
-      PrintZ cREPEAT, vocab::name_offset
+    IfEq #bytecode::tAGAIN
+      PrintZ cAGAIN, vocab::name_offset
       rts
     EndIf
     IfEq #bytecode::tWHILE

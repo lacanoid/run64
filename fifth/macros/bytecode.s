@@ -1,4 +1,44 @@
 
+.macro Run arg
+  ISet runtime::IP, arg
+  jsr runtime::run
+.endmacro
+
+.macro RunFrom arg
+  IMov runtime::IP, arg
+  jsr runtime::run
+.endmacro
+
+
+.macro rPtr arg
+  .byte bytecode::tPTR
+  .word arg
+.endmacro
+
+.macro rInt arg
+  .byte bytecode::tINT
+  .word arg
+.endmacro
+
+.macro rStr arg
+  .scope 
+    .byte bytecode::tSTR
+    .word next
+    .asciiz arg
+    next:
+  .endscope
+.endmacro
+
+
+.macro rRun arg
+  .byte bytecode::tRUN
+  .word arg
+.endmacro
+
+.macro rRet
+  .byte bytecode::tRET
+.endmacro
+
 .macro _ arg
   .if .blank ({arg}) 
     rRet
@@ -78,12 +118,13 @@
     .word break
 .endmacro
 
-.macro REPEAT
-    .byte bytecode::tREPEAT
+.macro AGAIN
+    .byte bytecode::tAGAIN
     .word begin
     break:
   .endscope
 .endmacro
+
 
 .enum bytecode 
   tPTR 
@@ -92,12 +133,13 @@
   tSTR
   tRUN
   tIF
+  tUNLESS
   tNOP
   tCTL = 15
   tELSE = tPTR + 16
   tTHEN = tNOP + 16
   tBEGIN = tNOP + 32
   tWHILE = tIF + 32
-  tREPEAT = tPTR + 32
+  tAGAIN = tPTR + 32
   tPROC = $4C
 .endenum

@@ -65,7 +65,7 @@
     BraLt #33, break
     jsr CHROUT
     jsr advance_pointer
-    Repeat
+    Again
     rts 
   .endproc
 
@@ -196,7 +196,7 @@
     BraEq #34, break
     jsr write
     jsr advance_pointer
-    Repeat
+    Again
     jsr advance_pointer ; consume end quote
     jsr advance_offset  
     lda #0
@@ -284,7 +284,7 @@
     lda #bytecode::tIF    
     jsr write
     lda #bytecode::tIF
-    jsr ref_forward
+    jsr write_hope
     rts
   .endproc
 
@@ -293,25 +293,36 @@
     jsr write
 
     ; TODO: check if tIF
-    lda #2
-    jsr resolve_forward
+
+    lda #bytecode::tIF
+    ldy #2
+    jsr resolve_hope
+    bcs catch
+
     jsr cdrop
 
     lda #bytecode::tIF 
-    jsr ref_forward
+    jsr write_hope
     rts
+    catch:
+      jmp rmismatch
   .endproc
 
   .proc write_then
     
-    ; TODO: check if tIF
-    lda #0
-    jsr resolve_forward
+    lda #bytecode::tIF
+    ldy #0
+    jsr resolve_hope
+    bcs catch
+
     jsr cdrop
 
     lda #bytecode::tTHEN
     jsr write
     rts
+    catch:
+      PrintName cTHEN
+      jmp rmismatch
   .endproc
 
   .proc write_begin
@@ -319,7 +330,7 @@
     jsr write
 
     lda #bytecode::tBEGIN
-    jsr ref_back
+    jsr store_ref
     rts
   .endproc
 
@@ -327,39 +338,39 @@
     lda #bytecode::tWHILE
     jsr write
     lda #bytecode::tWHILE
-    jsr ref_back
+    jsr write_hope
     rts
   .endproc
 
-  .proc write_repeat
-    lda #bytecode::tREPEAT
+  .proc write_again
+    lda #bytecode::tAGAIN
     jsr write
-    Begin
-      ldx csp
-      lda cstack-3,x
-      IfEq #bytecode::tBEGIN
-        lda #2
-        jsr resolve_forward
-        jsr cdrop
-        IAddB IP, 2
-        rts
-      EndIf
-      IfEq #bytecode::tWHILE
-        lda #0
-        jsr resolve_back
-        Continue
-      EndIf 
+    loop:
+      lda #bytecode::tWHILE
+      ldy #2
+      jsr resolve_hope
+      bcs not_while
+      jsr cdrop
+      jmp loop
+
+      not_while:
+      
+      lda #bytecode::tBEGIN
+      jsr write_ref
+      jsr cdrop
+      bcs catch
+    rts
+    catch:
       jmp rmismatch
-    Repeat
   .endproc
 
-  .proc ref_forward
-    jsr ref_back
+  .proc write_hope
+    jsr store_ref
     IAddB IP,2
     rts 
   .endproc
 
-  .proc ref_back
+  .proc store_ref
     ldx csp 
     inx
     inx
@@ -374,45 +385,46 @@
   .endproc
 
 
-  .proc resolve_forward
-    pha
+  .proc resolve_hope
     ldx csp
-    txa
     beq catch
 
-    lda cstack-2, x
-    sta cursor 
-    lda cstack-1, x
-    sta cursor+1
+    cmp cstack-3, x
+    bne catch
 
-    ldy #0
-    pla
+    IMov temp, IP
+    tya 
+    IAddA temp
+    Stash IP
+      IMovIx IP, cstack-2,csp
+      lda temp
+      jsr write
+      lda temp+1
+      jsr write
+    Unstash IP
     clc
-    adc IP
-    sta (cursor),y 
-    iny
-    lda #0  
-    adc IP+1
-    sta (cursor),y 
-    
-    rts 
+    rts
     catch:
-    jmp lmismatch
+    sec
+    rts
+    temp: .word 0
   .endproc
 
-  .proc resolve_back
-    pha
+  .proc write_ref
     ldx csp
-    txa
     beq catch
+    cmp cstack-3, x
+    bne catch
 
     lda cstack-2, x
     jsr write
     lda cstack-1, x
     jsr write
+    clc
     rts 
     catch:
-    jmp lmismatch
+    sec
+    rts 
   .endproc
 
   .proc cdrop
@@ -451,7 +463,7 @@
     
     jsr parse_word
     BraTrue error, catch
-  Repeat
+  Again
   lda #bytecode::tRET
   jsr write
   lda #$12

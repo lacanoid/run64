@@ -38,15 +38,20 @@
         CSet $CC, 1
         PrintChr ' '
         pla 
-        BraEq #'Q', break
+        IfEq #'Q'
+          jmp exit
+        EndIf
         IfEq #'O'
           dec skip_depth
+          jmp exec_line
         EndIf
         IfEq #'P'
           inc skip_depth
+          jmp exec_line
         EndIf
         IfEq #'R'
           CClear skip_depth
+          jmp exec_line
         EndIf
         IfEq #'S'
           jsr new_line
@@ -57,19 +62,26 @@
           jsr new_line
           jmp next_line
         EndIf
+        IfEq #'D'
+          IMov print::arg, runtime::IP 
+          jsr print::dump_hex
+          jsr new_line
+          jmp next_line
+        EndIf
       EndIf
+      exec_line:
       jsr new_line
       Begin
         jsr runtime::exec
         BraTrue runtime::ended, exit
         lda skip_depth
         BraGe rstack::SP, break
-      Repeat
+      Again
       BraTrue runtime::ended, exit
       next_line:
       CMov skip_depth, rstack::SP
       jsr new_line
-    Repeat
+    Again
     exit:
       jsr new_line
     rts
@@ -128,7 +140,7 @@
       ; Run DEC
       NewLine
       BraTrue f_quit, break
-    Repeat
+    Again
     PrintString "BYE."
     rts
     tmp_color: .byte 14

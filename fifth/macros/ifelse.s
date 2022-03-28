@@ -116,7 +116,7 @@
   jmp continue
 .endmacro
 
-.macro Repeat
+.macro Again
   jmp continue
   break:
   .endScope

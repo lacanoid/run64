@@ -32,7 +32,7 @@ DEF TEST
     _ SUB
     _ DUP
   WHILE
-  REPEAT
+  AGAIN
 END 
 
 DEF DUMP
