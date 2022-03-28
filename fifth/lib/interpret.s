@@ -4,9 +4,9 @@
   
   loop:
     jsr parse::skip_space
-    IfTrue parse::eof, done
+    BraTrue parse::eof, done
     jsr parse::next_word
-    IfTrue parse::error, catch
+    BraTrue parse::error, catch
     jmp loop
   done:
     ColorPush 3

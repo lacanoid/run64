@@ -69,8 +69,8 @@
 
 .macro BEGIN
   .scope
-    begin:
     .byte bytecode::tBEGIN
+    begin:
 .endmacro
 
 .macro WHILE
@@ -85,20 +85,19 @@
   .endscope
 .endmacro
 
-.scope bytecode 
-  tJMP = $4C
-  tPTR = 0
-  tRET = 1
-  tINT = 2
-  tSTR = 3
-  tJSR = 4
-  tRUN = 5
-  tIF = 6 
-  tSKIP = 8
+.enum bytecode 
+  tPTR 
+  tRET 
+  tINT 
+  tSTR
+  tRUN
+  tIF
+  tSKIP
+  tCTL = 15
   tELSE = tPTR + 16
   tTHEN = tSKIP + 16
   tBEGIN = tSKIP + 32
   tWHILE = tIF + 32
   tREPEAT = tPTR + 32
-  tCTL = tJSR + 128
-.endscope
+  tPROC = $4C
+.endenum

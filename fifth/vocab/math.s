@@ -1,5 +1,5 @@
 PROC EQ, "=="
-  SpLoad
+  
   SpDec
   GetHi 0
   CmpHi 1
@@ -61,7 +61,7 @@ PROC MUL, "*"
   multiplier	= STACK-4
   multiplicand	= STACK-2 
   product		= STACK 
-  SpLoad
+  ldx f_SP
   mult16:
     lda	#$00
     sta	product+2,x	; clear upper bits of product
@@ -94,7 +94,7 @@ PROC MUL, "*"
 END 
 
 PROC ADD, "+"
-  SpLoad
+  ldx f_SP
   clc
   lda STACK-4,x
   adc STACK-2,x
@@ -108,7 +108,7 @@ PROC ADD, "+"
 END
 
 PROC SUB, "-"
-  SpLoad
+  ldx f_SP
   sec 
   lda STACK-4,x
   sbc STACK-2,x

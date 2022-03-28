@@ -1,8 +1,10 @@
+.align 2 
+STACK: .res 64
 f_SP: .byte 0
-STACK: .res 256
 
 .scope stash
-  STACK: .res 256
+  .align 2 
+  STACK: .res 64
   SP: .byte 0
 .endscope
 
@@ -37,4 +39,5 @@ STACK: .res 256
     IMovIx arg1, stash::STACK, stash::SP
   .endif
 .endmacro
+
 

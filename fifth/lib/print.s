@@ -45,7 +45,7 @@
   .endproc
 
   .proc print_hex_digit
-    IfGe #10, big
+    BraGe #10, big
       add #'0'
       jsr CHROUT
       rts
@@ -76,7 +76,7 @@
     ldx #0
     loop:
       lda (pointer,x)
-      IfFalse exit
+      BraFalse exit
       jsr CHROUT
       IInc pointer
       clc
@@ -89,9 +89,8 @@
   .proc dump_char
     pha
     and #$7f
-    IfGe #32, regular_char
+    BraGe #32, regular_char
       lda #'.'
-      clc 
       jsr CHROUT
       pla
       rts
@@ -127,7 +126,7 @@
     .endscope
     next_line:
     tya
-    IfTrue print_line
+    BraTrue print_line
     exit:
       Unstash pointer
       NewLine
@@ -175,7 +174,7 @@
     .endscope
     next_line:
     tya
-    IfTrue print_line
+    BraTrue print_line
     exit:
       Unstash pointer
       NewLine

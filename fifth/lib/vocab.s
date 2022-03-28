@@ -1,12 +1,11 @@
-
-
-.macro GenericEntry id, name, label
+.macro GenericEntry id, name, label, token
   .scope
     ::.ident (.string(name))=entry 
     entry:
       .byte id
       .word code 
       .word next
+      .byte token
       .ifblank label
         .asciiz .string(name)
       .else
@@ -17,18 +16,20 @@
 .endmacro
 
 .macro rEntry name, label
-  GenericEntry bytecode::tPTR, name, label
+  GenericEntry bytecode::tPTR, name, label, bytecode::tRUN
 .endmacro
 
 .macro jEntry name, label
-  GenericEntry bytecode::tJMP, name, label
+  GenericEntry bytecode::tPROC, name, label, bytecode::tPROC
 .endmacro
 
 .macro cEntry name, label
-  GenericEntry bytecode::tCTL, name, label
+  GenericEntry bytecode::tPROC, name, label, bytecode::tCTL
 .endmacro
 
 .scope vocab 
+  name_offset = 6
+  token_offset = 5
   cursor = $FB
   bottom: .word VOCAB_START
 

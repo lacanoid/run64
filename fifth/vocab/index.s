@@ -4,20 +4,23 @@
 
 CMD cELSE,"ELSE"
   jmp compiler::write_else
+  rts
 END
 
 CMD cTHEN,"THEN"
   jmp compiler::write_then
+  rts
 END
 
 CMD cIF,"IF"
   jmp compiler::write_if
+  rts
 END
 
 PROC VLIST
   jsr vocab::reset_cursor
   print_entry:
-    ldy #5
+    ldy #vocab::name_offset
     print_char:
       lda (vocab::cursor),y
       jsr CHROUT

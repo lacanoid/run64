@@ -1,51 +1,54 @@
-
-.macro SpLoad
-  ldx f_SP
-.endmacro
-
 .macro SpInc
-  inx
-  inx
-  stx f_SP
+ ; PrintChr '+'
+  inc f_SP
+  inc f_SP
 .endmacro
 
 .macro SpDec
-  dex
-  dex
-  stx f_SP
+  ; PrintChr '-'
+  dec f_SP
+  dec f_SP
 .endmacro
 
 .macro GetLo d
-  lda STACK-d*2,x
+  ldx f_SP
+  lda STACK-d*2,x 
 .endmacro
 
 .macro GetHi d
+  ldx f_SP
   lda STACK-d*2+1,x
 .endmacro
 
 .macro SetLo d
+  ldx f_SP
   sta STACK-d*2,x
 .endmacro
 
 .macro SetHi d
+  ldx f_SP
   sta STACK-d*2+1,x
 .endmacro
 
 .macro CmpLo d
+  ldx f_SP
   cmp STACK-d*2,x
 .endmacro
 
 .macro CmpHi d
+  ldx f_SP
   cmp STACK-d*2+1,x
 .endmacro
 
 
 .macro IsTrue d
+  ldx f_SP
   lda STACK-d*2,x
   ora STACK-d*2+1,x
 .endmacro
 
 .macro Insert d, arg
+  ldx f_SP
   lda #<arg
   sta STACK-d*2,x
   lda #>arg
@@ -53,12 +56,14 @@
 .endmacro
 
 .macro InsertA d
+  ldx f_SP
   sta STACK-d*2,x
   lda #0
   sta STACK-d*2+1,x
 .endmacro
 
 .macro InsertFrom d, address
+  ldx f_SP
   lda address
   sta STACK-d*2,x
   lda address+1
@@ -71,6 +76,7 @@
 .endmacro
 
 .macro Copy c, d
+  ldx f_SP
   lda STACK-c*2,x
   sta STACK-d*2,x
   lda STACK-c*2+1,x
@@ -78,6 +84,7 @@
 .endmacro
 
 .macro CopyTo c, address
+  ldx f_SP
   lda STACK-c*2,x
   sta address
   lda STACK-c*2+1,x
@@ -85,6 +92,7 @@
 .endmacro
 
 .macro CopyByteTo c, address
+  ldx f_SP
   lda STACK-c*2,x
   sta address
 .endmacro
@@ -120,12 +128,12 @@
 .endmacro
 
 
-.macro PrintDec
+.macro OutputDec
   CopyTo 1, print::arg
   jsr print::print_dec
 .endmacro
 
-.macro PrintHex
+.macro OutputHex
   CopyTo 1, print::arg
   jsr print::print_hex
 .endmacro

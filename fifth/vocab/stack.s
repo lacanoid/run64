@@ -1,12 +1,12 @@
 
 PROC DROP
-  SpLoad
+  
   SpDec
   rts 
 END 
 
 PROC SWAP
-  SpLoad
+  
   Copy 1,0
   Copy 2,1
   Copy 0,2
@@ -14,7 +14,7 @@ PROC SWAP
 END 
 
 PROC ROT
-  SpLoad
+  
   Copy 3,0
   Copy 2,3
   Copy 1,2
@@ -23,14 +23,14 @@ PROC ROT
 END
 
 PROC OVER
-  SpLoad
+  
   Copy 2,0
   SpInc
   rts 
 END
 
 PROC DUP
-  SpLoad
+  
   Copy 1,0
   SpInc
   rts 
@@ -43,7 +43,7 @@ PROC CLEAR
 END
 
 PROC CNT, "#"
-  SpLoad
+  
   PushByteFrom f_SP
   Push 2
   Run DIV
@@ -51,35 +51,37 @@ PROC CNT, "#"
 END
 
 PROC PRINT_STACK, "??"
-  ldx #0
+  ldx f_SP
   loop:
-    cpx f_SP
-    bcs done 
+    cpx #0
+    beq done 
 
     lda #' '
     jsr CHROUT
     
-    inx
-    inx
-    PrintDec
-    
+    dex
+    lda STACK,x
+    sta print::arg+1
+    dex
+    lda STACK,x
+    sta print::arg
+    jsr print::print_dec
     clc 
     bcc loop
-
   done:
     rts
 END
 
 PROC HEX, ".$"
-  SpLoad
-  PrintHex
+  
+  OutputHex
   SpDec
   rts
 END
 
 PROC DEC, "."
-  SpLoad
-  PrintDec
+  
+  OutputDec
   SpDec
   PrintChr ' '
   rts
@@ -87,13 +89,13 @@ PROC DEC, "."
 END
 
 PROC LOOK, "?"
-  SpLoad
-  PrintDec
+  
+  OutputDec
   rts
 END
 
 PROC SYS
-  SpLoad
+  
   PopTo rewrite+1
   rewrite:
   jsr $DEF
@@ -102,7 +104,7 @@ END
 
 PROC GET, "@"
   Stash TMP
-  SpLoad
+  
   CopyTo 1,TMP
   ldy #0
   lda (TMP),y
@@ -116,7 +118,7 @@ END
 
 PROC SET,  "!"
   Stash TMP
-  SpLoad
+  
   CopyTo 2,TMP
   GetLo 1
   ldy #0

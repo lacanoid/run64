@@ -18,7 +18,7 @@
 
   .proc advance_pointer
     inc pointer
-    IfTrue skip
+    BraTrue skip
       inc pointer+1
     skip:
     rts
@@ -40,9 +40,9 @@
     ldx #0
     loop:
       lda (pointer,x)
-      IfFalse stop
-      IfEq #13, stop
-      IfGe #33, done
+      BraFalse stop
+      BraEq #13, stop
+      BraGe #33, done
       jsr advance_pointer
       jmp loop
     done:
@@ -59,7 +59,7 @@
     ldx #0
     loop:
       lda (pointer,x)
-      IfLt #33, done
+      BraLt #33, done
       jsr CHROUT
       jsr advance_pointer
       jmp loop
@@ -72,34 +72,34 @@
     jsr reset_pointer
     ldx #0
     lda (pointer,x)
-    IfNe #34, not_quoted
+    BraNe #34, not_quoted
     quoted:
       jsr parse_string
-      IfTrue error, not_found
-      SpLoad
+      BraTrue error, not_found
+      
       PushFrom cursor
       rts
     not_quoted:
-      IfNe #'$', not_hex
+      BraNe #'$', not_hex
     hex:
       jsr parse_hex 
-      IfTrue error, not_found
-      SpLoad
+      BraTrue error, not_found
+      
       PushFrom cursor
       rts 
     not_hex:
-      IfLt #'0', not_dec
-      IfGe #'9'+1, not_dec
+      BraLt #'0', not_dec
+      BraGe #'9'+1, not_dec
     decimal:
       jsr parse_dec
-      IfTrue error, not_found
-      SpLoad
+      BraTrue error, not_found
+      
       PushFrom cursor
       rts 
     not_dec:
     entry:
       jsr parse_entry
-      IfTrue error, not_found
+      BraTrue error, not_found
       ldy #0
       lda (cursor),y
       beq run_entry
@@ -170,12 +170,12 @@
           lda (pointer,x)
           and #$7f
           
-          IfLt #33, dec_done
+          BraLt #33, dec_done
 
           sub #'0'
 
-          IfNeg dec_error
-          IfGe #10, dec_error
+          BraNeg dec_error
+          BraGe #10, dec_error
           
           pha
             IMov temp, cursor
@@ -211,7 +211,7 @@
   .proc parse_entry
       jsr vocab::reset_cursor
       match_entry:
-        ldy #5
+        ldy vocab::name_offset
         jsr reset_pointer
         ldx #0
 
@@ -234,7 +234,7 @@
 
       end_entry:
         lda (pointer,x)
-        IfGe #33, next_entry
+        BraGe #33, next_entry
         jsr advance_offset 
         rts 
   .endproc ; parse_entry
@@ -248,8 +248,8 @@
     
     parse_char:
       lda (pointer,x)
-      IfLt #32, error
-      IfEq #34, done
+      BraLt #32, error
+      BraEq #34, done
       sta (cursor),y
       jsr advance_pointer
       iny 
