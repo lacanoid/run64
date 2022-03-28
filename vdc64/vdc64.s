@@ -28,8 +28,8 @@ resultRegister = $d7ff
 
         ; autodetect vdc version and exit if not found
         jsr detect
-        lda vdc_config
-        beq perror
+        bcs perror
+
         ; copy editor code into place
         ldx #>(mainend-main)
         ldy #0
@@ -43,14 +43,13 @@ resultRegister = $d7ff
         bpl @l1
 
         ; initialize
-        jsr banner
-        ; initialize
         jsr org
         jsr banner
         rts
 
 detect: ; detect VDC
         ldy #0
+        stx vdc_config
         ldx #$1c
         stx vdcadr
 @d1:
@@ -59,10 +58,13 @@ detect: ; detect VDC
         dey
         bne @d1
         ; no vdc
+        sec
         rts
 @d2:    ; vdc detected
-        lda vdcdat
-        sta vdc_config
+        ldx vdcdat
+        inx
+        stx vdc_config
+        clc
         rts
 
 perror:
@@ -151,7 +153,12 @@ rows1:
 
 msg:    .byte 7
         .byte $12,$1c,$20,$96,$20,$9e,$20,$99,$20,$9a,$20,$9c,$20,$92,$05
-        .byte " VDC64 0.4 ",0
+        .byte " VDC64 0.5 "
+        .byte 27,"X"
+        .byte "RUNNING ON 80 COLUMN SCREEN",13
+        .byte "TYPE CTRL-[ THEN X TO SWITCH",13
+        .byte 27,"X"
+        .byte 0
 
 ; --------------------------
 data:

@@ -14,14 +14,16 @@ To do
 - reverse should use vdc reverse attribute
 - some tests (super expander, PLOT & SCREEN/SCRORG)
 - make 80 column stuff optional
-- fix SCREEN to return proper screen size
+- fix SCREEN/SCRORG to return proper screen size
+- function keys
+- scnkey
 
 About
 =====
 
 This is a port of commodore 128 screen editor to commodore 64. 
 It is intended to be used in c64 mode on a commodore 128.
-VDC chip which provides 80 column support is perfectly accesible in c64 mode
+VDC chip which provides 80 column support is quite accesible in c64 mode
 so basically the same code should run, with some adaptations.
 
 Why do this? So you can run c64 programs in 80 columns!
