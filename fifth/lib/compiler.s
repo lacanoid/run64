@@ -184,6 +184,7 @@
   .proc parse_string
     lda #bytecode::tSTR
     jsr write
+
     Stash IP
     IAddB IP,2
     jsr advance_pointer ; consume start quote
@@ -255,8 +256,7 @@
   .endproc
 
   .proc write
-    PokeA writer
-    IInc writer
+    WriteA writer
     rts
   .endproc  
 
@@ -281,56 +281,100 @@
   .endproc
 
   .proc write_if
-    lda #bytecode::tIF
+    lda #bytecode::tIF    
     jsr write
     lda #bytecode::tIF
-    jsr cpush
+    jsr ref_forward
     rts
   .endproc
 
   .proc write_else
     lda #bytecode::tELSE
     jsr write
+
+    ; TODO: check if tIF
     lda #2
-    jsr cresolve
+    jsr resolve_forward
     jsr cdrop
-    lda #bytecode::tELSE
-    jsr cpush
+
+    lda #bytecode::tIF 
+    jsr ref_forward
     rts
   .endproc
 
   .proc write_then
+    
+    ; TODO: check if tIF
     lda #0
-    jsr cresolve
+    jsr resolve_forward
     jsr cdrop
+
     lda #bytecode::tTHEN
     jsr write
     rts
   .endproc
 
+  .proc write_begin
+    lda #bytecode::tBEGIN
+    jsr write
 
-  .proc cpush
-    ldx csp 
-    inx
-    inx
-    inx
-    stx csp
-    jmp cset
+    lda #bytecode::tBEGIN
+    jsr ref_back
+    rts
   .endproc
 
-  .proc cset
+  .proc write_while
+    lda #bytecode::tWHILE
+    jsr write
+    lda #bytecode::tWHILE
+    jsr ref_back
+    rts
+  .endproc
+
+  .proc write_repeat
+    lda #bytecode::tREPEAT
+    jsr write
+    Begin
+      ldx csp
+      lda cstack-3,x
+      IfEq #bytecode::tBEGIN
+        lda #2
+        jsr resolve_forward
+        jsr cdrop
+        IAddB IP, 2
+        rts
+      EndIf
+      IfEq #bytecode::tWHILE
+        lda #0
+        jsr resolve_back
+        Continue
+      EndIf 
+      jmp rmismatch
+    Repeat
+  .endproc
+
+  .proc ref_forward
+    jsr ref_back
+    IAddB IP,2
+    rts 
+  .endproc
+
+  .proc ref_back
     ldx csp 
+    inx
+    inx
+    inx
     sta cstack-3,x
     lda IP
     sta cstack-2,x
     lda IP+1
     sta cstack-1,x
     stx csp
-    IAddB IP,2
     rts 
   .endproc
 
-  .proc cresolve
+
+  .proc resolve_forward
     pha
     ldx csp
     txa
@@ -351,6 +395,21 @@
     adc IP+1
     sta (cursor),y 
     
+    rts 
+    catch:
+    jmp lmismatch
+  .endproc
+
+  .proc resolve_back
+    pha
+    ldx csp
+    txa
+    beq catch
+
+    lda cstack-2, x
+    jsr write
+    lda cstack-1, x
+    jsr write
     rts 
     catch:
     jmp lmismatch

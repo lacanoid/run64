@@ -17,6 +17,22 @@ CMD cIF,"IF"
   rts
 END
 
+CMD cBEGIN,"BEGIN"
+  ;jmp compiler::write_begin
+  rts
+END
+
+CMD cWHILE,"WHILE"
+  ;jmp compiler::write_while
+  rts
+END
+
+CMD cREPEAT,"REPEAT"
+  ;jmp compiler::write_if
+  rts
+END
+
+
 PROC VLIST
   jsr vocab::reset_cursor
   print_entry:
@@ -38,6 +54,6 @@ END
 
 PROC QUIT
   next=0
-  inc f_quit
+  inc rpl::f_quit
   rts 
 END

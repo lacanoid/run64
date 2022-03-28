@@ -1,3 +1,4 @@
+.include "ifelse.s"
 .include "helpers.s"
 .include "print.s"
 .include "stack.s"

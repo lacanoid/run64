@@ -1,57 +1,77 @@
 .scope rpl 
-  skip_depth:.byte 0 
+  f_quit:     .byte 0
+  skip_depth: .byte 0
+  .proc new_line
+    sec
+    jsr $e50a
+    tya
+    IfTrue
+      NewLine
+    EndIf
+    rts
+  .endproc 
   .proc do_debug
     ISet runtime::IP, HEAP_START
     ;ISet print::arg, HEAP_START
     ;jsr print::dump_hex
     Begin
-      line:
+      CMov skip_depth, rstack::SP
+      inc skip_depth
       ColorPush 3
-      jsr runtime::print_IP
+      jsr debug::print_IP
       CClear runtime::ended
       PrintChr ' '
       ColorPop
       lda rstack::SP
+      clc
+      ror
       jsr print::print_hex_digits
       PrintChr ' '
-      jsr runtime::describe_token
-      PrintChr ' '
-
-      jsr getinput
-      CSet skip_depth, 127
-      lda BUF
-      and #$7F
-      BraEq #'Q', break
-      IfEq #'O'
-        CMov skip_depth, rstack::SP
+      jsr debug::describe_token
+      Peek runtime::IP
+      IfTrue
+        CSet $CC, 0
+        wait: jsr GETIN
+        beq wait
+        and #$7F
+        pha
+        CSet $CC, 1
+        PrintChr ' '
+        pla 
+        BraEq #'Q', break
+        IfEq #'O'
+          dec skip_depth
+        EndIf
+        IfEq #'P'
+          inc skip_depth
+        EndIf
+        IfEq #'R'
+          CClear skip_depth
+        EndIf
+        IfEq #'S'
+          jsr new_line
+          ColorPush 1
+          PrintChr 'S'
+          jsr PRINT_STACK
+          ColorPop
+          jsr new_line
+          jmp next_line
+        EndIf
       EndIf
-      IfEq #'P'
-        CMov skip_depth, rstack::SP
-        dec skip_depth
-      EndIf
-      IfEq #'R'
-        CClear skip_depth
-      EndIf
-      IfEq #'S'
-        NewLine
-        ColorPush 1
-        jsr PRINT_STACK
-        ColorPop
-        jmp next_line
-      EndIf
+      jsr new_line
       Begin
         jsr runtime::exec
         BraTrue runtime::ended, exit
-        lda rstack::SP
-        BraLt skip_depth, break
+        lda skip_depth
+        BraGe rstack::SP, break
       Repeat
-      PrintChr '<'
       BraTrue runtime::ended, exit
       next_line:
-      NewLine
+      CMov skip_depth, rstack::SP
+      jsr new_line
     Repeat
     exit:
-    NewLine
+      jsr new_line
     rts
   .endproc
 
@@ -108,7 +128,8 @@
       ; Run DEC
       NewLine
       BraTrue f_quit, break
-    Repeat  
+    Repeat
+    PrintString "BYE."
     rts
     tmp_color: .byte 14
   .endproc 

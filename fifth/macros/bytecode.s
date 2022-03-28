@@ -92,11 +92,11 @@
   tSTR
   tRUN
   tIF
-  tSKIP
+  tNOP
   tCTL = 15
   tELSE = tPTR + 16
-  tTHEN = tSKIP + 16
-  tBEGIN = tSKIP + 32
+  tTHEN = tNOP + 16
+  tBEGIN = tNOP + 32
   tWHILE = tIF + 32
   tREPEAT = tPTR + 32
   tPROC = $4C

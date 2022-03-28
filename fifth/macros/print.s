@@ -47,3 +47,19 @@
   lda arg1
   jsr print::print_hex_digits
 .endmacro
+
+.macro WPrintHex arg1
+  lda #>(arg1)
+  jsr print::print_hex_digits
+  lda #<(arg1)
+  jsr print::print_hex_digits
+.endmacro
+
+.macro PrintZ arg1, offset
+  .ifnblank offset
+    ISet print::arg, {arg1+offset}
+  .else
+    ISet print::arg, {arg1}
+  .endif
+  jsr print::print_z
+.endmacro
