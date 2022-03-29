@@ -16,15 +16,15 @@
 .endmacro
 
 .macro rEntry name, label
-  GenericEntry bytecode::tPTR, name, label, bytecode::tRUN
+  GenericEntry bytecode::GTO, name, label, bytecode::RUN
 .endmacro
 
 .macro jEntry name, label
-  GenericEntry bytecode::tPROC, name, label, bytecode::tPROC
+  GenericEntry bytecode::NAT, name, label, bytecode::NAT
 .endmacro
 
 .macro cEntry name, label
-  GenericEntry bytecode::tPROC, name, label, bytecode::tCTL
+  GenericEntry bytecode::NAT, name, label, bytecode::CTL
 .endmacro
 
 .scope vocab 

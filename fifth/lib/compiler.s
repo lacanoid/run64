@@ -11,9 +11,11 @@
   error:
     .byte 0
   cstack:
-    .res 128
+    .res 72
   csp:
-    .byte 0  
+    .byte 0 
+  ctop:
+    .byte 3
 
   .proc advance_pointer
     inc pointer
@@ -182,7 +184,7 @@
 
 
   .proc parse_string
-    lda #bytecode::tSTR
+    lda #bytecode::STR
     jsr write
 
     Stash IP
@@ -246,7 +248,7 @@
       IMov result, cursor
       ldy #vocab::token_offset
       lda (cursor),y
-      BraEq #bytecode::tCTL, write_ctl
+      BraEq #bytecode::CTL, write_ctl
       jmp write_run
   .endproc ; parse_entry
 
@@ -261,13 +263,13 @@
   .endproc  
 
   .proc write_int
-    lda #bytecode::tINT
+    lda #bytecode::INT
     jsr write
     jmp write_result
   .endproc
 
   .proc write_run
-    lda #bytecode::tRUN
+    lda #bytecode::RUN
     jsr write
     jmp write_result
   .endproc
@@ -281,27 +283,27 @@
   .endproc
 
   .proc write_if
-    lda #bytecode::tIF    
+    lda #bytecode::IF0    
     jsr write
-    lda #bytecode::tIF
+    lda #bytecode::IF0
     jsr write_hope
     rts
   .endproc
 
   .proc write_else
-    lda #bytecode::tELSE
+    lda #bytecode::ELS
     jsr write
 
-    ; TODO: check if tIF
+    ; TODO: check if IF
 
-    lda #bytecode::tIF
+    lda #bytecode::IF0
     ldy #2
     jsr resolve_hope
     bcs catch
 
     jsr cdrop
 
-    lda #bytecode::tIF 
+    lda #bytecode::IF0 
     jsr write_hope
     rts
     catch:
@@ -310,14 +312,14 @@
 
   .proc write_then
     
-    lda #bytecode::tIF
+    lda #bytecode::IF0
     ldy #0
     jsr resolve_hope
     bcs catch
 
     jsr cdrop
 
-    lda #bytecode::tTHEN
+    lda #bytecode::THN
     jsr write
     rts
     catch:
@@ -326,27 +328,27 @@
   .endproc
 
   .proc write_begin
-    lda #bytecode::tBEGIN
+    lda #bytecode::BGN
     jsr write
 
-    lda #bytecode::tBEGIN
+    lda #bytecode::BGN
     jsr store_ref
     rts
   .endproc
 
   .proc write_while
-    lda #bytecode::tWHILE
+    lda #bytecode::WHL
     jsr write
-    lda #bytecode::tWHILE
+    lda #bytecode::WHL
     jsr write_hope
     rts
   .endproc
 
   .proc write_again
-    lda #bytecode::tAGAIN
+    lda #bytecode::AGN
     jsr write
     loop:
-      lda #bytecode::tWHILE
+      lda #bytecode::WHL
       ldy #2
       jsr resolve_hope
       bcs not_while
@@ -355,7 +357,7 @@
 
       not_while:
       
-      lda #bytecode::tBEGIN
+      lda #bytecode::BGN
       jsr write_ref
       jsr cdrop
       bcs catch
@@ -418,6 +420,7 @@
 
     lda cstack-2, x
     jsr write
+    ldx csp
     lda cstack-1, x
     jsr write
     clc
@@ -464,7 +467,7 @@
     jsr parse_word
     BraTrue error, catch
   Again
-  lda #bytecode::tRET
+  lda #bytecode::RET
   jsr write
   lda #$12
   jsr write

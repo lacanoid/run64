@@ -121,16 +121,16 @@
     IMov ptr, IP
     ldy #0
     lda (ptr),y
-    JmpEq #bytecode::tPROC, doProc
+    JmpEq #bytecode::NAT, doProc
     and #15
-    JmpEq #bytecode::tPTR, doPtr
-    JmpEq #bytecode::tNOP, doNop
-    JmpEq #bytecode::tRET, doRet
-    JmpEq #bytecode::tINT, doInt
-    JmpEq #bytecode::tSTR, doStr
-    JmpEq #bytecode::tRUN, doRun
-    JmpEq #bytecode::tIF, doIf
-    JmpEq #bytecode::tIF, doUnless
+    JmpEq #bytecode::GTO, doPtr
+    JmpEq #bytecode::NOP, doNop
+    JmpEq #bytecode::RET, doRet
+    JmpEq #bytecode::INT, doInt
+    JmpEq #bytecode::STR, doStr
+    JmpEq #bytecode::RUN, doRun
+    JmpEq #bytecode::IF0, doIf
+    JmpEq #bytecode::IF0, doUnless
   .endproc
 
 .proc doStr
@@ -166,8 +166,6 @@
     IAddB IP,3
     RPush
     jsr load_ip
-    ;jsr run
-    ;RPop
     clc
     rts
   .endproc 
@@ -191,14 +189,24 @@
     rts
   .endproc 
   ended: .byte 0
-  .proc run 
+
+
+  .proc start
     CClear ended
+    CClear rstack::SP
+    rts
+  .endproc
+
+  .proc run
+    jsr start
+  .endproc 
+  .proc run_to_end
     Begin
-      jsr exec
       BraTrue ended, break
+      jsr exec
     Again
     rts
   .endproc
 
-
+  
 .endscope

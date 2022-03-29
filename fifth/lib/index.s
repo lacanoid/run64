@@ -2,6 +2,8 @@
 .include "print.s"
 .include "vocab.s"
 .include "runtime.s"
+;.include "codegen.s"
+;.include "parser.s"
 .include "compiler.s"
 .include "debug.s"
 .include "rpl.s"

@@ -37,6 +37,10 @@
   PrintChr 13
 .endmacro
 
+.macro NewLineSoft
+  jsr print::new_line_soft
+.endmacro
+
 .macro ClearScreen 
   PrintChr 147
 .endmacro

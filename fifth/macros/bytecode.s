@@ -11,19 +11,19 @@
 
 
 .macro rPtr arg
-  .byte bytecode::tPTR
+  .byte bytecode::GTO
   .word arg
 .endmacro
 
 .macro rInt arg
-  .byte bytecode::tINT
+  .byte bytecode::INT
   .word arg
 .endmacro
 
 .macro rStr arg
   .scope 
-    .byte bytecode::tSTR
-    .word next
+    .byte bytecode::STR
+    .addr next
     .asciiz arg
     next:
   .endscope
@@ -31,12 +31,12 @@
 
 
 .macro rRun arg
-  .byte bytecode::tRUN
-  .word arg
+  .byte bytecode::RUN
+  .addr arg
 .endmacro
 
 .macro rRet
-  .byte bytecode::tRET
+  .byte bytecode::RET
 .endmacro
 
 .macro _ arg
@@ -89,12 +89,12 @@
 
 .macro IF 
   .scope
-  .byte bytecode::tIF
+  .byte bytecode::IF0
   .word else
 .endmacro
 
 .macro ELSE 
-  .byte bytecode::tELSE
+  .byte bytecode::ELS
   .word endif
   else:
 .endmacro
@@ -109,17 +109,17 @@
 
 .macro BEGIN
   .scope
-    .byte bytecode::tBEGIN
+    .byte bytecode::BGN
     begin:
 .endmacro
 
 .macro WHILE
-    .byte bytecode::tWHILE
+    .byte bytecode::WHL
     .word break
 .endmacro
 
 .macro AGAIN
-    .byte bytecode::tAGAIN
+    .byte bytecode::AGN
     .word begin
     break:
   .endscope
@@ -127,19 +127,19 @@
 
 
 .enum bytecode 
-  tPTR 
-  tRET 
-  tINT 
-  tSTR
-  tRUN
-  tIF
-  tUNLESS
-  tNOP
-  tCTL = 15
-  tELSE = tPTR + 16
-  tTHEN = tNOP + 16
-  tBEGIN = tNOP + 32
-  tWHILE = tIF + 32
-  tAGAIN = tPTR + 32
-  tPROC = $4C
+  GTO 
+  RET 
+  INT 
+  STR
+  RUN
+  IF0
+  IF1
+  NOP
+  CTL = 15
+  ELS = GTO + 16
+  THN = NOP + 16
+  BGN = NOP + 32
+  WHL = IF0 + 32
+  AGN = GTO + 32
+  NAT = $4C
 .endenum

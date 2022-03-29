@@ -1,3 +1,8 @@
+.macro bra arg
+  clv 
+  bvc arg
+.endmacro
+
 .macro sub arg1
   sec
   sbc arg1
@@ -169,4 +174,5 @@
   inc arg1+1
   skip:
 .endmacro
+
 

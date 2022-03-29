@@ -1,90 +1,11 @@
 .scope rpl 
   f_quit:     .byte 0
   skip_depth: .byte 0
-  .proc new_line
-    sec
-    jsr $e50a
-    tya
-    IfTrue
-      NewLine
-    EndIf
-    rts
-  .endproc 
+
   .proc do_debug
     ISet runtime::IP, HEAP_START
-    ;ISet print::arg, HEAP_START
-    ;jsr print::dump_hex
-    Begin
-      CMov skip_depth, rstack::SP
-      inc skip_depth
-      ColorPush 3
-      jsr debug::print_IP
-      CClear runtime::ended
-      PrintChr ' '
-      ColorPop
-      lda rstack::SP
-      clc
-      ror
-      jsr print::print_hex_digits
-      PrintChr ' '
-      jsr debug::describe_token
-      Peek runtime::IP
-      IfTrue
-        CSet $CC, 0
-        wait: jsr GETIN
-        beq wait
-        and #$7F
-        pha
-        CSet $CC, 1
-        PrintChr ' '
-        pla 
-        IfEq #'Q'
-          jmp exit
-        EndIf
-        IfEq #'O'
-          dec skip_depth
-          jmp exec_line
-        EndIf
-        IfEq #'P'
-          inc skip_depth
-          jmp exec_line
-        EndIf
-        IfEq #'R'
-          CClear skip_depth
-          jmp exec_line
-        EndIf
-        IfEq #'S'
-          jsr new_line
-          ColorPush 1
-          PrintChr 'S'
-          jsr PRINT_STACK
-          ColorPop
-          jsr new_line
-          jmp next_line
-        EndIf
-        IfEq #'D'
-          IMov print::arg, runtime::IP 
-          jsr print::dump_hex
-          jsr new_line
-          jmp next_line
-        EndIf
-      EndIf
-      exec_line:
-      jsr new_line
-      Begin
-        jsr runtime::exec
-        BraTrue runtime::ended, exit
-        lda skip_depth
-        BraGe rstack::SP, break
-      Again
-      BraTrue runtime::ended, exit
-      next_line:
-      CMov skip_depth, rstack::SP
-      jsr new_line
-    Again
-    exit:
-      jsr new_line
-    rts
+    jsr runtime::start
+    jmp debug::do_debug
   .endproc
 
   .proc do_line
@@ -166,3 +87,4 @@
   .endproc 
 
 .endscope
+

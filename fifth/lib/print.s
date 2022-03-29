@@ -180,4 +180,16 @@
       NewLine
       rts
   .endproc
+
+  .proc new_line_soft
+    ; prints a new line only if cursor column > 0
+    ; used to avoid printing blank lines
+    sec
+    jsr $e50a
+    tya
+    IfTrue
+      NewLine
+    EndIf
+    rts
+  .endproc 
 .endscope
