@@ -27,11 +27,6 @@
   STACK: .res 128
   ::RP: .byte 0
   .proc push
-    pha
-    
-    ;PrintChr '>'
-    pla 
-    
     clc 
     ldx RP
     add IP
@@ -41,13 +36,9 @@
     sta STACK+1,x
     inc RP
     inc RP
-    
     rts 
   .endproc
   .proc pop
-    pha
-    ;PrintChr '<'
-    pla 
     dec RP
     dec RP
     ldx RP
@@ -65,23 +56,14 @@
   IP = rstack::IP
 
   .proc exec
-    ReadA IP
-    jmp doRun
-    JmpEq #bytecode::CTL, doCtl
-    JmpEq #bytecode::RUN, doRun
-    ;JmpEq #bytecode::NAT, doNat
-    ;JmpEq #bytecode::GTO, doPtr
-    PrintString "ERROR AT "
-    ISubB IP, 1
-    IPrintHex IP
-    inc ended
-    rts
+    ;ReadA IP
+    jmp gosub_from_ip
   .endproc
 
   .proc list_entry
-    PeekA IP,1
+    PeekA IP,0
     sta vocab::arg
-    PeekA IP,2
+    PeekA IP,1
     sta vocab::arg+1
     jmp vocab::print_name
   .endproc
@@ -105,18 +87,6 @@
     rts
   .endproc
 
-  doCtl:
-  .proc doRun
-    jmp gosub_from_ip
-  .endproc 
-  
-  .proc doPtr
-    jmp goto_from_ip
-  .endproc
-
-  .proc doNat  ; only jump and return
-    jmp jmp_from_ip
-  .endproc
 
   .proc doRet
     IfFalse RP
@@ -143,15 +113,9 @@
     sta tmp
     ReadA IP
     sta tmp+1
-    ;IPrintHex tmp
-    ;PrintChr ' '
     PeekA tmp
 
     IfEq #bytecode::NAT
-      ;pha
-      ;  jsr print::print_hex_digits
-      ;pla 
-      ;PrintChr 'X'
       jmp (tmp) 
     EndIf
     RPush
@@ -163,14 +127,6 @@
     tmp:
       .word 0
   .endproc
-
-  .proc jmp_from_ip  ; only jump and return
-    IMov rewrite+1, IP
-    RPop
-    rewrite:
-    jmp ($FEDA)
-  .endproc
-
   .proc goto_from_ip
     ReadA IP
     pha

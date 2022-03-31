@@ -10,14 +10,14 @@
 .endmacro
 
 .macro rInt arg
-  .byte bytecode::CTL
+;  .byte bytecode::CTL
   .addr cINT
   .word arg
 .endmacro
 
 .macro rStr arg
   .scope 
-    .byte bytecode::CTL
+ ;   .byte bytecode::CTL
     .addr cSTR
     .addr cont
     .asciiz arg
@@ -27,12 +27,12 @@
 
 
 .macro rRun arg
-  .byte bytecode::RUN
+;  .byte bytecode::RUN
   .addr arg
 .endmacro
 
 .macro rRet
-  .byte bytecode::CTL
+;  .byte bytecode::CTL
   .addr cRET
 .endmacro
 
@@ -50,20 +50,20 @@
 
 .macro IF 
   .scope
-  .byte bytecode::CTL
+  ;.byte bytecode::CTL
   .addr cIF
   .word else
 .endmacro
 
 .macro ELSE 
-  .byte bytecode::CTL
+  ;.byte bytecode::CTL
   .addr cELSE
   .word endif
   else:
 .endmacro
 
 .macro THEN
-  .byte bytecode::CTL
+  ;.byte bytecode::CTL
   .addr cTHEN
   .ifndef else
     else:
@@ -74,7 +74,7 @@
 
 .macro BEGIN
   .scope
-    .byte bytecode::CTL
+    ;.byte bytecode::CTL
     .addr cBEGIN
     begin:
 .endmacro
@@ -84,13 +84,13 @@
 .endmacro
 
 .macro WHILE
-    .byte bytecode::CTL
+    ;.byte bytecode::CTL
     .addr cWHILE
     .word break
 .endmacro
 
 .macro AGAIN
-    .byte bytecode::CTL
+    ;.byte bytecode::CTL
     .addr cAGAIN
     .word begin
     break:

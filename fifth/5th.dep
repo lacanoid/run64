@@ -1,4 +1,4 @@
-5th.o:	5th.s ../defs64.inc .././defs.inc macros/index.s macros/ifelse.s macros/helpers.s macros/print.s macros/stack.s macros/bytecode.s macros/vocab.s lib/index.s lib/stack.s lib/print.s lib/vocab.s lib/runtime.s lib/compiler.s lib/debug.s lib/rpl.s vocab/index.s vocab/dev.s vocab/flow.s vocab/math.s vocab/stack.s
+5th.o:	5th.s ../defs64.inc .././defs.inc macros/index.s macros/ifelse.s macros/helpers.s macros/pointers.s macros/print.s macros/stack.s macros/bytecode.s macros/vocab.s lib/index.s lib/stack.s lib/print.s lib/vocab.s lib/runtime.s lib/compiler.s lib/debug.s lib/rpl.s vocab/index.s vocab/dev.s vocab/flow.s vocab/math.s vocab/stack.s
 
-5th.s ../defs64.inc .././defs.inc macros/index.s macros/ifelse.s macros/helpers.s macros/print.s macros/stack.s macros/bytecode.s macros/vocab.s lib/index.s lib/stack.s lib/print.s lib/vocab.s lib/runtime.s lib/compiler.s lib/debug.s lib/rpl.s vocab/index.s vocab/dev.s vocab/flow.s vocab/math.s vocab/stack.s:
+5th.s ../defs64.inc .././defs.inc macros/index.s macros/ifelse.s macros/helpers.s macros/pointers.s macros/print.s macros/stack.s macros/bytecode.s macros/vocab.s lib/index.s lib/stack.s lib/print.s lib/vocab.s lib/runtime.s lib/compiler.s lib/debug.s lib/rpl.s vocab/index.s vocab/dev.s vocab/flow.s vocab/math.s vocab/stack.s:
 

@@ -1,23 +1,23 @@
-CMD cINT, "int"
+CMD cINT, "#RES",2
   jmp runtime::doInt
 COMPILE
   rts
 LIST
-  PeekA LP,3
+  PeekA LP,2
   sta print::arg
-  PeekA LP,4
+  PeekA LP,3
   sta print::arg+1
   jmp print::print_dec
 END
 
-CMD cSTR, "str"
+CMD cSTR, "#RES",2
   jmp runtime::doStr
 COMPILE
   rts
 LIST
   PrintChr '"'
   IMov print::arg, LP
-  IAddB print::arg, 5
+  IAddB print::arg, 4
   jsr print::print_z
   PrintChr '"'
   rts
@@ -31,7 +31,7 @@ CMD cRET,"RET"
 END
 
 
-CMD cIF,"IF"
+CMD cIF,"IF",2
   jmp runtime::doIf
 COMPILE
   cWriteCtl
@@ -39,8 +39,8 @@ COMPILE
   rts
 END
 
-CMD cELSE,"ELSE"
-  jmp runtime::doPtr
+CMD cELSE,"ELSE",2
+  jmp runtime::goto_from_ip
 COMPILE
   cWriteCtl
   cResolveHope IF0, 2
@@ -73,7 +73,7 @@ COMPILE
   rts
 END
 
-CMD cWHILE,"WHILE"
+CMD cWHILE,"WHILE",2
   jmp runtime::doIf
 COMPILE
   cWriteCtl
@@ -81,8 +81,8 @@ COMPILE
   rts
 END
 
-CMD cAGAIN,"AGAIN"
-  jmp runtime::doPtr
+CMD cAGAIN,"AGAIN",2
+  jmp runtime::goto_from_ip
 COMPILE
   cWriteCtl
   loop:

@@ -6,15 +6,7 @@
 PROC VLIST
   jsr vocab::reset_cursor
   print_entry:
-    ldy #vocab::name_offset
-    print_char:
-      lda (vocab::cursor),y
-      jsr CHROUT
-      cmp #33
-      bcc chars_done
-      iny 
-      bne print_char
-    chars_done:
+    jsr vocab::print_name_at_cursor
     PrintChr ' '
     jsr vocab::advance_cursor
     bne print_entry

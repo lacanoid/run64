@@ -1,5 +1,6 @@
 .include "ifelse.s"
 .include "helpers.s"
+.include "pointers.s"
 .include "print.s"
 .include "stack.s"
 .include "bytecode.s"

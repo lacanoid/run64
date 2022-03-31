@@ -22,11 +22,8 @@
     PrintChr ' '
     jsr print_depth
     PrintChr ' '
-    jsr token_code
-    ColorSet cID
-    jsr token_id
-    jsr token_payload
-    PrintChr ' '
+    jsr token_bytes
+    jsr print_indent
     jsr token_source
     rts
   .endproc
@@ -35,13 +32,16 @@
     jsr print_IP
     PrintChr ' '
     jsr print_indent
+    jsr print_indent
     jsr token_source
     rts
   .endproc
 
   .proc print_IP
     ColorSet cIP
+    PrintChr '['
     IPrintHex IP
+    PrintChr ']'
     rts
   .endproc
 
@@ -65,160 +65,48 @@
     rts
   .endproc
 
-  .proc token_code
-    ColorSet cBYTES
-    PeekA IP
-    jmp print::print_hex_digits
-  .endproc 
-
-  .proc token_id
-    ColorSet cID
-    PeekA IP
-    and #15
-    tax
-    lda table,x
-    jmp CHROUT
-    table:
-      .asciiz "PRISWTFN????X???"
-  .endproc 
 
   .proc token_bytes
     ColorSet cBYTES
+    PeekX IP,1
+    sta tmp+1
+    jsr print::print_hex_digits
+    
     PeekA IP
-    pha
+    sta tmp
     jsr print::print_hex_digits
-    pla
-
-    BraEq #bytecode::RET, no_payload
-    BraEq #bytecode::NOP, no_payload
-
-    PrintChr ':'
-    PeekA IP,1
-    sta print::arg
-    jsr print::print_hex_digits
-    PrintChr ':'
-    PeekA IP,2
-    sta print::arg+1
-    jmp print::print_hex_digits
-    no_payload:
-      lda #' '
-      jsr CHROUT
-      jsr CHROUT
-      jsr CHROUT
-      jsr CHROUT
-      jsr CHROUT
-      jmp CHROUT
-  .endproc 
-
-  .proc token_payload
-    ColorSet cBYTES
-    PeekA IP
-    and #15
-    BraEq #bytecode::RET, no_payload
-    BraEq #bytecode::NOP, no_payload
-
-    PeekA IP,2
-    sta print::arg
-    jsr print::print_hex_digits
-    PeekA IP,1
-    jsr print::print_hex_digits
+    PeekX tmp,vocab::token_offset
+    beq skip
+    tay
+    ldx #2
+    loop:
+      PrintChr ':'
+      inx
+      PeekX IP
+      jsr print::print_hex_digits
+      dex
+      PeekX IP
+      jsr print::print_hex_digits
+      inx
+      dey
+      dey
+    bne loop
     rts
-
-    no_payload:
-      lda #' '
-      jsr CHROUT
-      jsr CHROUT
-      jsr CHROUT
-      jmp CHROUT
+    skip:
+      PrintString "     "
+    rts
+    tmp:.word 2
   .endproc 
-  
+
   .proc token_source
     ColorSet cSOURCE
-    ;jsr runtime::list_entry
-    ;IPrintHex result
     PeekA IP
-    BraEq #bytecode::RUN, ok
-    BraEq #bytecode::CTL, ok
-    PrintChr $7b
-    rts
-    ok:
-    PeekA IP, 1 
     sta rewrite+1
-    PeekA IP, 2
+    PeekA IP, 1
     sta rewrite+2
     IAddB rewrite+1, vocab::list_offset
-    ;IPrintHex rewrite+1
     rewrite:
     jmp ($FEDA)
-
-    PeekA IP
-    ;and #15
-    IfEq #bytecode::INT
-      PeekA IP,1
-      sta print::arg
-      PeekA IP,2
-      sta print::arg+1
-      jsr print::print_dec
-      rts
-    EndIf
-    IfEq #bytecode::STR
-      PrintChr '"' 
-      IMov print::arg, IP
-      IAddB print::arg, 3
-      jsr print::print_z
-      PrintChr '"' 
-      rts
-    EndIf
-    IfEq #bytecode::CTL
-      PeekA IP,1
-      sta print::arg
-      PeekA IP,2
-      sta print::arg+1
-      IAddB print::arg, vocab::name_offset
-      jsr print::print_z
-      rts
-    EndIf
-    IfEq #bytecode::RUN
-      PeekA IP,1
-      sta print::arg
-      PeekA IP,2
-      sta print::arg+1
-      IAddB print::arg, vocab::name_offset
-      jsr print::print_z
-      rts
-    EndIf
-    IfEq #bytecode::IF0
-      PrintZ cIF, vocab::name_offset
-      rts
-    EndIf
-    IfEq #bytecode::THN
-      PrintZ cTHEN, vocab::name_offset
-      rts
-    EndIf
-    IfEq #bytecode::BGN
-      PrintZ cBEGIN, vocab::name_offset
-      rts
-    EndIf
-    IfEq #bytecode::AGN
-      PrintZ cAGAIN, vocab::name_offset
-      rts
-    EndIf
-    IfEq #bytecode::WHL
-      PrintZ cWHILE, vocab::name_offset
-      rts
-    EndIf
-    IfEq #bytecode::ELS
-      PrintZ cELSE, vocab::name_offset
-      rts
-    EndIf
-    IfEq #bytecode::RET
-      PrintChr 'R'
-      PrintChr 'E'
-      PrintChr 'T'
-      rts
-    EndIf
-
-    rts
   .endproc
 
 

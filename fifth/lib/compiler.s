@@ -2,10 +2,6 @@
   jsr compiler::write_ctl
 .endmacro
 
-.macro cWriteRun
-  jsr compiler::write_run
-.endmacro
-
 .macro cWriteHope arg
   lda #bytecode::arg 
   jsr compiler::write_hope
@@ -36,11 +32,9 @@
   jsr compiler::write_ref
 .endmacro
 
-  writer: .word  HEAP_END
-
   .scope compiler
-  pointer = $FD
-  CP = writer
+  INPUT: .word BUF
+  CP: .word  HEAP_END
   offset:
     .word 0
   eof:
@@ -56,22 +50,22 @@
   result: .word 0
 
   .proc advance_pointer
-    inc pointer
+    inc INPUT
     BraTrue skip
-    inc pointer+1
+    inc INPUT+1
     skip:
     rts
   .endproc
 
   .proc advance_offset
     ;IMov offset, input::ptr
-    IMov offset, pointer
+    IMov offset, INPUT
     rts
   .endproc
 
   .proc reset_pointer
     ;IMov offset, input::ptr
-    IMov pointer,offset
+    IMov INPUT,offset
     rts
   .endproc
 
@@ -81,7 +75,7 @@
     ldx #0
     loop:
     ;jsr input::read
-    lda (pointer,x)
+    PeekX INPUT
     BraFalse stop
     BraEq #13, stop
     BraGe #33, done
@@ -101,7 +95,7 @@
     ldx #0
     Begin
     ;jsr input:read
-    lda (pointer,x)
+    PeekX INPUT
     BraLt #33, break
     jsr CHROUT
     jsr advance_pointer
@@ -113,8 +107,7 @@
   .proc parse_word
     jsr reset_pointer
     ;jsr input::read
-    ldx #0
-    lda (pointer,x)
+    PeekA INPUT
     JmpEq #34, parse_string
     JmpEq #'$', parse_hex
     BraLt #'0', not_dec
@@ -133,7 +126,7 @@
     ldx #0
     hex_digit:
     ; jsr input::read
-    lda (pointer,x)
+    PeekX INPUT
     and #$7f
 
     cmp #33
@@ -178,7 +171,7 @@
     dec_digit:
     
       ; jsr input::read
-      lda (pointer,x)
+      PeekX INPUT
       and #$7f
       
       BraLt #33, dec_done
@@ -194,15 +187,11 @@
 
       IShiftLeft result
       IShiftLeft result
-      
       pha
         IAdd result, temp
       pla
-
       IShiftLeft result
-
       BCS dec_error
-      
       IAddA result 
       jsr advance_pointer
       jmp dec_digit
@@ -218,8 +207,8 @@
   .endproc ; parse_dec
 
   .proc parse_string
-    lda #bytecode::CTL
-    jsr write
+    ;lda #bytecode::CTL
+    ;jsr write
     lda #<cSTR
     jsr write
     lda #>cSTR
@@ -229,7 +218,7 @@
     ldx #0
     Begin
     ; jsr input::read
-    lda (pointer,x)
+    PeekX INPUT
     BraLt #32, catch
     BraEq #34, break
     jsr write
@@ -247,45 +236,22 @@
   .endproc  
 
   .proc parse_entry
-    jsr vocab::reset_cursor
-    match_entry:
-      ldy #vocab::name_offset
-      jsr reset_pointer
-      ldx #0
-
-    next_char:
-      lda (vocab::cursor),y
-      beq end_entry     ; possible match, branch if zero terminator
-      ; jsr input::read
-    
-      cmp (pointer,x)
-      bne next_entry    ; no match
-      jsr advance_pointer
-      iny
-      bne next_char
-
-    next_entry: 
-      jsr vocab::advance_cursor
-      bne match_entry
-
-    not_found:
+    IMov vocab::arg, offset
+    jsr vocab::find_entry
+    bcc found
       jmp die
-
-    end_entry:
-      lda (pointer,x)
-      BraGe #33, next_entry
-      jsr advance_offset 
-      IMov result, cursor
-      ldy #vocab::token_offset
-      lda (cursor),y
-      jmp write_entry
+    found:
+    txa
+    IAddA offset
+    IMov result,vocab::cursor
+    jmp write_entry
   .endproc ; parse_entry
 
   .proc write_entry
     ;IPrintHex result
-    PeekA result, vocab::compile_offset
+    PeekX result, vocab::compile_offset
     sta rewrite+1
-    PeekA result, 1+vocab::compile_offset
+    PeekX result, 1+vocab::compile_offset
     sta rewrite+2
     rewrite:
     jmp $FEDA
@@ -297,8 +263,8 @@
   .endproc  
 
   .proc write_int
-    lda #bytecode::CTL
-    jsr write
+    ;lda #bytecode::CTL
+    ;jsr write
     lda #<cINT
     jsr write
     lda #>cINT
@@ -307,14 +273,12 @@
   .endproc
 
   .proc write_run
-    lda #bytecode::RUN
-    jsr write
+    ;lda #bytecode::RUN
+    ;jsr write
     jmp write_result
   .endproc
 
   .proc write_ctl
-    lda #bytecode::CTL
-    jsr write
     jmp write_result
   .endproc
 
@@ -406,10 +370,7 @@
   .endproc
   
   .proc compile_skip_first
-    ISet offset, BUF
-    jsr reset_pointer
-    jsr advance_pointer
-    jsr advance_offset
+    ISet offset, BUF+1
     jmp do_compile
   .endproc
 
@@ -429,8 +390,8 @@
     jsr parse_word
     BraTrue error, catch
   Again
-  lda #bytecode::CTL
-  jsr write
+  ;lda #bytecode::CTL
+  ;jsr write
   lda #<cRET
   jsr write
   lda #>cRET

@@ -1,10 +1,10 @@
 .scope print
-  pointer = $FD
+  PP: .word 0
   arg: .word 0
   .proc print_dec 
       ; Print a 16 bit unsigned binary integer from stack in base 10
       ; Leading zeros are omitted
-      ; expects a pointer to stack element in x
+      ; expects a PP to stack element in x
 
       PRINT_UINT16:
         LDA      #0                  ; terminator for digits on stack
@@ -71,18 +71,14 @@
   .endproc
 
   .proc print_z
-    Stash pointer
-    IMov pointer, arg
-    ldx #0
+    IMov PP, arg
     loop:
-      lda (pointer,x)
+      PeekA PP
       BraFalse exit
       jsr CHROUT
-      IInc pointer
-      clc
-      bcc loop
+      IInc PP
+      bra loop
     exit:
-      Unstash pointer
       rts
   .endproc
   
@@ -95,29 +91,28 @@
       pla
       rts
     regular_char:
-    pla
+    pla ; pha from before
     jsr CHROUT
     rts
   .endproc 
 
   .proc dump_text
-    Stash pointer
-    IMov pointer, arg
+    IMov PP, arg
     ldy #0
     ldx #0
     print_line:
       NewLine
-      lda pointer+1
+      lda PP+1
       jsr print_hex_digits
-      lda pointer
+      lda PP
       jsr print_hex_digits
       PrintChr ' '
       PrintChr ' '
       .scope print_chars
         loop:
-          lda (pointer,x)
+          PeekA PP
           jsr dump_char
-          IInc pointer
+          IInc PP
           dey
           tya
           and #31
@@ -128,21 +123,19 @@
     tya
     BraTrue print_line
     exit:
-      Unstash pointer
       NewLine
       rts
   .endproc
 
   .proc dump_hex
-    Stash pointer
-    IMov pointer, arg
+    IMov PP, arg
     ldy #128
     ldx #0
     print_line:
       NewLine
-      lda pointer+1
+      lda PP+1
       jsr print_hex_digits
-      lda pointer
+      lda PP
       jsr print_hex_digits
       PrintChr ' '
       .scope print_bytes
@@ -155,24 +148,24 @@
         colon:
           PrintChr ':'
         space:        
-        lda (pointer,x)
+        PeekX PP
         jsr print_hex_digits
-        IInc pointer
+        IInc PP
         dey
         tya
         and #7
         bne loop
         break:
       .endscope
-      ISubB pointer, 8
+      ISubB PP, 8
       
       PrintChr ' '
       PrintChr ' '
       .scope print_chars
         loop:
-          lda (pointer,x)
+          PeekX PP
           jsr dump_char
-          IInc pointer
+          IInc PP
           dey
           tya
           and #7
@@ -181,9 +174,9 @@
     .endscope
     next_line:
     tya
-    BraTrue print_line
+    BraFalse exit
+    jmp print_line
     exit:
-      Unstash pointer
       NewLine
       rts
   .endproc

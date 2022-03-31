@@ -1,11 +1,15 @@
-.macro GenericEntry id, name, label, token
+.macro GenericEntry id, name, label, payload
   .scope
     ::.ident (.string(name))=entry 
     entry:
       .byte id
       .addr __runtime__ 
       .addr __next_entry__
-      .byte token
+      .ifblank payload 
+        .byte payload $0
+      .else
+        .byte payload
+      .endif
       .addr __compile__
       .addr __list__
       .ifblank label
@@ -18,22 +22,22 @@
 .endmacro
 
 .macro rEntry name, label
-  GenericEntry bytecode::GTO, name, label, bytecode::RUN
+  GenericEntry bytecode::GTO, name, label,0
 .endmacro
 
-.macro jEntry name, label
-  GenericEntry bytecode::NAT, name, label, bytecode::NAT
+.macro jEntry name, label, payload
+  GenericEntry bytecode::NAT, name, label,0
 .endmacro
 
-.macro cEntry name, label
-  GenericEntry bytecode::NAT, name, label, bytecode::CTL
+.macro cEntry name, label,payload
+  GenericEntry bytecode::NAT, name, label, payload
 .endmacro
 
 
-.macro CMD name, label
+.macro CMD name, label,payload
   .scope
     DEF_CMD = 1
-    cEntry name, label
+    cEntry name, label,payload
 .endmacro
 
 .macro PROC name, label
