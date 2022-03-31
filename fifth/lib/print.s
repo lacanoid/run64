@@ -147,7 +147,14 @@
       PrintChr ' '
       .scope print_bytes
         loop:
-        PrintChr ' '
+        tya
+        and #1
+        bne colon
+          PrintChr ' '
+          bra space
+        colon:
+          PrintChr ':'
+        space:        
         lda (pointer,x)
         jsr print_hex_digits
         IInc pointer

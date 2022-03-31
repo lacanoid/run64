@@ -1,9 +1,46 @@
-  PrintString "HOW THE"
+.macro cWriteCtl
+  jsr compiler::write_ctl
+.endmacro
+
+.macro cWriteRun
+  jsr compiler::write_run
+.endmacro
+
+.macro cWriteHope arg
+  lda #bytecode::arg 
+  jsr compiler::write_hope
+.endmacro
+
+.macro cResolveHope arg, offset
+  .ifblank offset
+    ldy #0
+  .else   
+    ldy #offset
+  .endif
+  lda #bytecode::arg 
+  jsr compiler::resolve_hope
+.endmacro
+
+.macro cDrop
+  jsr compiler::cdrop
+.endmacro
+
+
+.macro cStoreRef arg
+  lda #bytecode::arg
+  jsr compiler::store_ref
+.endmacro
+
+.macro cWriteRef arg
+  lda #bytecode::arg
+  jsr compiler::write_ref
+.endmacro
+
   writer: .word  HEAP_END
 
   .scope compiler
   pointer = $FD
-  IP = writer
+  CP = writer
   offset:
     .word 0
   eof:
@@ -16,6 +53,7 @@
     .byte 0 
   ctop:
     .byte 3
+  result: .word 0
 
   .proc advance_pointer
     inc pointer
@@ -87,7 +125,6 @@
     entry:
     jmp parse_entry
   .endproc
-  result: .word 0
 
   .proc parse_hex
     IClear result
@@ -180,15 +217,14 @@
     temp: .word 0
   .endproc ; parse_dec
 
-  
-
-
   .proc parse_string
-    lda #bytecode::STR
+    lda #bytecode::CTL
     jsr write
-
-    Stash IP
-    IAddB IP,2
+    lda #<cSTR
+    jsr write
+    lda #>cSTR
+    jsr write
+    cWriteHope STR
     jsr advance_pointer ; consume start quote
     ldx #0
     Begin
@@ -203,14 +239,8 @@
     jsr advance_offset  
     lda #0
     jsr write       ; write terminating zero
-
-    Unstash cursor    ; write 
-    ldy #0
-    lda IP
-    sta (cursor),y
-    iny
-    lda IP+1
-    sta (cursor),y
+    cResolveHope STR
+    cDrop
     rts
     catch:
     jmp die
@@ -248,28 +278,42 @@
       IMov result, cursor
       ldy #vocab::token_offset
       lda (cursor),y
-      BraEq #bytecode::CTL, write_ctl
-      jmp write_run
+      jmp write_entry
   .endproc ; parse_entry
 
-  .proc write_ctl
-    RunFrom result
-    rts
+  .proc write_entry
+    ;IPrintHex result
+    PeekA result, vocab::compile_offset
+    sta rewrite+1
+    PeekA result, 1+vocab::compile_offset
+    sta rewrite+2
+    rewrite:
+    jmp $FEDA
   .endproc
 
   .proc write
-    WriteA writer
+    WriteA CP
     rts
   .endproc  
 
   .proc write_int
-    lda #bytecode::INT
+    lda #bytecode::CTL
+    jsr write
+    lda #<cINT
+    jsr write
+    lda #>cINT
     jsr write
     jmp write_result
   .endproc
 
   .proc write_run
     lda #bytecode::RUN
+    jsr write
+    jmp write_result
+  .endproc
+
+  .proc write_ctl
+    lda #bytecode::CTL
     jsr write
     jmp write_result
   .endproc
@@ -282,93 +326,9 @@
     rts 
   .endproc
 
-  .proc write_if
-    lda #bytecode::IF0    
-    jsr write
-    lda #bytecode::IF0
-    jsr write_hope
-    rts
-  .endproc
-
-  .proc write_else
-    lda #bytecode::ELS
-    jsr write
-
-    ; TODO: check if IF
-
-    lda #bytecode::IF0
-    ldy #2
-    jsr resolve_hope
-    bcs catch
-
-    jsr cdrop
-
-    lda #bytecode::IF0 
-    jsr write_hope
-    rts
-    catch:
-      jmp rmismatch
-  .endproc
-
-  .proc write_then
-    
-    lda #bytecode::IF0
-    ldy #0
-    jsr resolve_hope
-    bcs catch
-
-    jsr cdrop
-
-    lda #bytecode::THN
-    jsr write
-    rts
-    catch:
-      PrintName cTHEN
-      jmp rmismatch
-  .endproc
-
-  .proc write_begin
-    lda #bytecode::BGN
-    jsr write
-
-    lda #bytecode::BGN
-    jsr store_ref
-    rts
-  .endproc
-
-  .proc write_while
-    lda #bytecode::WHL
-    jsr write
-    lda #bytecode::WHL
-    jsr write_hope
-    rts
-  .endproc
-
-  .proc write_again
-    lda #bytecode::AGN
-    jsr write
-    loop:
-      lda #bytecode::WHL
-      ldy #2
-      jsr resolve_hope
-      bcs not_while
-      jsr cdrop
-      jmp loop
-
-      not_while:
-      
-      lda #bytecode::BGN
-      jsr write_ref
-      jsr cdrop
-      bcs catch
-    rts
-    catch:
-      jmp rmismatch
-  .endproc
-
   .proc write_hope
     jsr store_ref
-    IAddB IP,2
+    IAddB CP,2
     rts 
   .endproc
 
@@ -378,11 +338,12 @@
     inx
     inx
     sta cstack-3,x
-    lda IP
+    lda CP
     sta cstack-2,x
-    lda IP+1
+    lda CP+1
     sta cstack-1,x
     stx csp
+    ;PrintChr '+'
     rts 
   .endproc
 
@@ -394,16 +355,16 @@
     cmp cstack-3, x
     bne catch
 
-    IMov temp, IP
+    IMov temp, CP
     tya 
     IAddA temp
-    Stash IP
-      IMovIx IP, cstack-2,csp
+    Stash CP
+      IMovIx CP, cstack-2,csp
       lda temp
       jsr write
       lda temp+1
       jsr write
-    Unstash IP
+    Unstash CP
     clc
     rts
     catch:
@@ -438,6 +399,7 @@
     dex
     dex
     stx csp
+    ;PrintChr '-'
     rts 
     catch:
     jmp lmismatch
@@ -456,7 +418,7 @@
   .endproc  
 
   .proc do_compile
-  ISet IP, HEAP_START
+  ISet CP, HEAP_START
   CClear eof
   CClear error
   CClear csp
@@ -467,11 +429,11 @@
     jsr parse_word
     BraTrue error, catch
   Again
-  lda #bytecode::RET
+  lda #bytecode::CTL
   jsr write
-  lda #$12
+  lda #<cRET
   jsr write
-  lda #$34
+  lda #>cRET
   jsr write
   
   lda csp
@@ -490,8 +452,9 @@
   .endproc 
 
   .proc lmismatch
-    PrintChr ' '
     ColorSet 2
+    PrintChr '?'
+    PrintName result
     lda csp
     jsr print::print_hex_digits
     PrintChr '('
@@ -500,8 +463,8 @@
   .endproc
 
   .proc rmismatch
-    PrintChr ' '
     ColorSet 2
+    PrintChr '?'
     lda csp
     jsr print::print_hex_digits
     PrintChr ')'

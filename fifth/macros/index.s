@@ -3,3 +3,4 @@
 .include "print.s"
 .include "stack.s"
 .include "bytecode.s"
+.include "vocab.s"

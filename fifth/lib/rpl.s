@@ -54,7 +54,7 @@
       CMov tmp_color, COLOR
       
       ColorSet 3
-      Run PRINT_STACK
+      jsr PRINT_STACK
       PrintChr ' '
       ColorSet 4      
       ; Run HSIZE

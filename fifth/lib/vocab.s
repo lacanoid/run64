@@ -1,37 +1,12 @@
-.macro GenericEntry id, name, label, token
-  .scope
-    ::.ident (.string(name))=entry 
-    entry:
-      .byte id
-      .word code 
-      .word next
-      .byte token
-      .ifblank label
-        .asciiz .string(name)
-      .else
-        .asciiz label
-      .endif
-    code:
-  .endscope
-.endmacro
-
-.macro rEntry name, label
-  GenericEntry bytecode::GTO, name, label, bytecode::RUN
-.endmacro
-
-.macro jEntry name, label
-  GenericEntry bytecode::NAT, name, label, bytecode::NAT
-.endmacro
-
-.macro cEntry name, label
-  GenericEntry bytecode::NAT, name, label, bytecode::CTL
-.endmacro
-
 .scope vocab 
-  name_offset = 6
+  next_offset = 3
   token_offset = 5
+  compile_offset = 6
+  list_offset = 8
+  name_offset = 10
   cursor = $FB
-  bottom: .word VOCAB_START
+  bottom: .addr VOCAB_START
+  arg: .addr 0
 
   .proc reset_cursor
     IMov cursor, bottom
@@ -39,7 +14,7 @@
   .endproc ; vocab::reset_cursor
 
   .proc advance_cursor ; leaves high byte of cursor address in a
-    ldy #3
+    ldy #next_offset
     lda (cursor),y
     tax 
     iny 
@@ -49,4 +24,11 @@
     sta cursor+1
     rts
   .endproc ; vocab::advance_cursor
+
+  .proc print_name
+    IMov print::arg, arg
+    IAddB print::arg, name_offset
+    jsr print::print_z
+    rts
+  .endproc
 .endscope

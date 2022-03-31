@@ -1,6 +1,7 @@
+
 .scope debug
   IP = runtime::IP
-  RSP = rstack::SP
+  ::LP = IP
 
   cIP = 5
   cSOURCE = 7
@@ -46,7 +47,7 @@
 
   .proc print_depth
     ColorSet cOTHER
-    lda rstack::SP
+    lda RP
     clc
     ror
     jsr print::print_hex_digits
@@ -54,7 +55,7 @@
   .endproc
 
   .proc print_indent
-    ldx rstack::SP
+    ldx RP
     inx
     loop:
       PrintChr ' '
@@ -66,13 +67,13 @@
 
   .proc token_code
     ColorSet cBYTES
-    Peek IP
+    PeekA IP
     jmp print::print_hex_digits
   .endproc 
 
   .proc token_id
     ColorSet cID
-    Peek IP
+    PeekA IP
     and #15
     tax
     lda table,x
@@ -83,7 +84,7 @@
 
   .proc token_bytes
     ColorSet cBYTES
-    Peek IP
+    PeekA IP
     pha
     jsr print::print_hex_digits
     pla
@@ -92,11 +93,11 @@
     BraEq #bytecode::NOP, no_payload
 
     PrintChr ':'
-    Peek IP,1
+    PeekA IP,1
     sta print::arg
     jsr print::print_hex_digits
     PrintChr ':'
-    Peek IP,2
+    PeekA IP,2
     sta print::arg+1
     jmp print::print_hex_digits
     no_payload:
@@ -111,15 +112,15 @@
 
   .proc token_payload
     ColorSet cBYTES
-    Peek IP
+    PeekA IP
     and #15
     BraEq #bytecode::RET, no_payload
     BraEq #bytecode::NOP, no_payload
 
-    Peek IP,2
+    PeekA IP,2
     sta print::arg
     jsr print::print_hex_digits
-    Peek IP,1
+    PeekA IP,1
     jsr print::print_hex_digits
     rts
 
@@ -133,12 +134,28 @@
   
   .proc token_source
     ColorSet cSOURCE
-    Peek IP
+    ;jsr runtime::list_entry
+    ;IPrintHex result
+    PeekA IP
+    BraEq #bytecode::RUN, ok
+    BraEq #bytecode::CTL, ok
+    rts
+    ok:
+    PeekA IP, 1 
+    sta rewrite+1
+    PeekA IP, 2
+    sta rewrite+2
+    IAddB rewrite+1, vocab::list_offset
+    ;IPrintHex rewrite+1
+    rewrite:
+    jmp ($FEDA)
+
+    PeekA IP
     ;and #15
     IfEq #bytecode::INT
-      Peek IP,1
+      PeekA IP,1
       sta print::arg
-      Peek IP,2
+      PeekA IP,2
       sta print::arg+1
       jsr print::print_dec
       rts
@@ -151,10 +168,19 @@
       PrintChr '"' 
       rts
     EndIf
-    IfEq #bytecode::RUN
-      Peek IP,1
+    IfEq #bytecode::CTL
+      PeekA IP,1
       sta print::arg
-      Peek IP,2
+      PeekA IP,2
+      sta print::arg+1
+      IAddB print::arg, vocab::name_offset
+      jsr print::print_z
+      rts
+    EndIf
+    IfEq #bytecode::RUN
+      PeekA IP,1
+      sta print::arg
+      PeekA IP,2
       sta print::arg+1
       IAddB print::arg, vocab::name_offset
       jsr print::print_z
@@ -230,7 +256,7 @@
     IfEq #'Q'
       rts
     EndIf
-    IfEq #'R'
+    IfEq #'I'
       NewLineSoft
       jmp runtime::run_to_end
     EndIf
@@ -271,37 +297,44 @@
       NewLineSoft
       rts
     EndIf
+    IfEq #'R'
+      ISet print::arg, rstack::STACK
+      jsr print::dump_hex
+      NewLineSoft
+      rts
+    EndIf
     inc debug_state 
+    rts
   .endproc
 
   .proc step_into
     BraTrue runtime::ended, break
     jsr runtime::exec
-    CMov skip_depth, RSP
+    CMov skip_depth, RP
     break:
     rts
   .endproc
 
   .proc step_over
-    CMov skip_depth, RSP
+    CMov skip_depth, RP
     loop:
       BraTrue runtime::ended, break
       jsr runtime::exec
-      BraLt skip_depth, RSP, loop
+      BraLt skip_depth, RP, loop
     break:
     rts
   .endproc
 
   .proc step_out
-    CMov skip_depth, RSP
+    CMov skip_depth, RP
     loop:
       BraTrue runtime::ended, break
       jsr runtime::exec
-      lda RSP
+      lda RP
       cmp skip_depth
       bcc loop         ; current depth is larger than skip depth
       bne break        ; current depth is smaller than skip depth
-      Peek IP
+      PeekA IP
       cmp bytecode::RET
       bne loop         ; it's not a RET token  
     break:

@@ -42,13 +42,6 @@ PROC CLEAR
   rts
 END
 
-PROC CNT, "#"
-  
-  PushByteFrom f_SP
-  Push 2
-  Run DIV
-  rts
-END
 
 PROC PRINT_STACK, "??"
   ldx f_SP
@@ -85,7 +78,6 @@ PROC DEC, "."
   SpDec
   PrintChr ' '
   rts
-  next:   
 END
 
 PROC LOOK, "?"
@@ -95,7 +87,6 @@ PROC LOOK, "?"
 END
 
 PROC SYS
-  
   PopTo rewrite+1
   rewrite:
   jsr $DEF

@@ -9,23 +9,19 @@
   jsr runtime::run
 .endmacro
 
-
-.macro rPtr arg
-  .byte bytecode::GTO
-  .word arg
-.endmacro
-
 .macro rInt arg
-  .byte bytecode::INT
+  .byte bytecode::CTL
+  .addr cINT
   .word arg
 .endmacro
 
 .macro rStr arg
   .scope 
-    .byte bytecode::STR
-    .addr next
+    .byte bytecode::CTL
+    .addr cSTR
+    .addr cont
     .asciiz arg
-    next:
+    cont:
   .endscope
 .endmacro
 
@@ -36,7 +32,8 @@
 .endmacro
 
 .macro rRet
-  .byte bytecode::RET
+  .byte bytecode::CTL
+  .addr cRET
 .endmacro
 
 .macro _ arg
@@ -51,55 +48,23 @@
   .endif
 .endmacro
 
-.macro CMD name, label
-  .scope
-    DEF_CMD = 1
-    cEntry name, label
-.endmacro
-
-.macro PROC name, label
-  .scope
-    DEF_PROC = 1
-    jEntry name, label
-.endmacro
-
-.macro DEF name, label
-  .scope
-    DEF_RUN = 1
-    rEntry name, label
-.endmacro
-
-.macro DATA
-  rRet
-  data:
-.endmacro
-
-.macro END name, label
-    .ifdef DEF_RUN 
-      .ifndef data 
-        rRet
-      .endif
-    .elseif .def (DEF_PROC)
-    .endif
-    .ifndef next
-      next:
-    .endif
-  .endScope
-.endmacro
-
 .macro IF 
   .scope
-  .byte bytecode::IF0
+  .byte bytecode::CTL
+  .addr cIF
   .word else
 .endmacro
 
 .macro ELSE 
-  .byte bytecode::ELS
+  .byte bytecode::CTL
+  .addr cELSE
   .word endif
   else:
 .endmacro
 
-.macro ENDIF
+.macro THEN
+  .byte bytecode::CTL
+  .addr cTHEN
   .ifndef else
     else:
   .endif
@@ -109,22 +74,28 @@
 
 .macro BEGIN
   .scope
-    .byte bytecode::BGN
+    .byte bytecode::CTL
+    .addr cBEGIN
     begin:
 .endmacro
 
+.macro RETURN
+  rRet
+.endmacro
+
 .macro WHILE
-    .byte bytecode::WHL
+    .byte bytecode::CTL
+    .addr cWHILE
     .word break
 .endmacro
 
 .macro AGAIN
-    .byte bytecode::AGN
+    .byte bytecode::CTL
+    .addr cAGAIN
     .word begin
     break:
   .endscope
 .endmacro
-
 
 .enum bytecode 
   GTO 

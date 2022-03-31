@@ -1,3 +1,10 @@
+.scope indirect
+  op: .byte 0
+  address: .addr 0
+  rts
+.endscope
+
+
 .align 2 
 STACK: .res 64
 f_SP: .byte 0
