@@ -23,14 +23,12 @@ PROC ROT
 END
 
 PROC OVER
-  
   Copy 2,0
   SpInc
   rts 
 END
 
-PROC DUP
-  
+PROC DUP, "DUP"
   Copy 1,0
   SpInc
   rts 

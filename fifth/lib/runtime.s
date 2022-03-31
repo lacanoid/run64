@@ -66,16 +66,16 @@
 
   .proc exec
     ReadA IP
+    jmp doRun
     JmpEq #bytecode::CTL, doCtl
-    JmpEq #bytecode::NAT, doNat
     JmpEq #bytecode::RUN, doRun
-    JmpEq #bytecode::GTO, doPtr
+    ;JmpEq #bytecode::NAT, doNat
+    ;JmpEq #bytecode::GTO, doPtr
     PrintString "ERROR AT "
     ISubB IP, 1
     IPrintHex IP
     inc ended
     rts
-    
   .endproc
 
   .proc list_entry
@@ -107,8 +107,7 @@
 
   doCtl:
   .proc doRun
-    RPush 2
-    jmp goto_from_ip
+    jmp gosub_from_ip
   .endproc 
   
   .proc doPtr
@@ -137,6 +136,32 @@
     IAddB IP, 2   ; otherwise jump over the pointer?
     clc
     rts
+  .endproc
+
+.proc gosub_from_ip  ; only jump and return
+    ReadA IP
+    sta tmp
+    ReadA IP
+    sta tmp+1
+    ;IPrintHex tmp
+    ;PrintChr ' '
+    PeekA tmp
+
+    IfEq #bytecode::NAT
+      ;pha
+      ;  jsr print::print_hex_digits
+      ;pla 
+      ;PrintChr 'X'
+      jmp (tmp) 
+    EndIf
+    RPush
+    PeekA tmp,1
+    sta IP
+    PeekA tmp,2
+    sta IP+1
+    rts
+    tmp:
+      .word 0
   .endproc
 
   .proc jmp_from_ip  ; only jump and return

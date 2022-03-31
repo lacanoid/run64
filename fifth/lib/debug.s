@@ -139,6 +139,7 @@
     PeekA IP
     BraEq #bytecode::RUN, ok
     BraEq #bytecode::CTL, ok
+    PrintChr $7b
     rts
     ok:
     PeekA IP, 1 
