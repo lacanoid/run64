@@ -54,7 +54,6 @@ PROC DIV, "/"
       dex
       stx f_SP 
       rts
-    next:
 END
 
 PROC MUL, "*"
@@ -94,6 +93,7 @@ PROC MUL, "*"
 END 
 
 PROC ADD, "+"
+  PrintChr '+'
   ldx f_SP
   clc
   lda STACK-4,x

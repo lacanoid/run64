@@ -1,6 +1,7 @@
+
 .scope debug
   IP = runtime::IP
-  RSP = rstack::SP
+  ::LP = IP
 
   cIP = 5
   cSOURCE = 7
@@ -21,11 +22,8 @@
     PrintChr ' '
     jsr print_depth
     PrintChr ' '
-    jsr token_code
-    ColorSet cID
-    jsr token_id
-    jsr token_payload
-    PrintChr ' '
+    jsr token_bytes
+    jsr print_indent
     jsr token_source
     rts
   .endproc
@@ -34,19 +32,22 @@
     jsr print_IP
     PrintChr ' '
     jsr print_indent
+    jsr print_indent
     jsr token_source
     rts
   .endproc
 
   .proc print_IP
     ColorSet cIP
+    PrintChr '['
     IPrintHex IP
+    PrintChr ']'
     rts
   .endproc
 
   .proc print_depth
     ColorSet cOTHER
-    lda rstack::SP
+    lda RP
     clc
     ror
     jsr print::print_hex_digits
@@ -54,7 +55,7 @@
   .endproc
 
   .proc print_indent
-    ldx rstack::SP
+    ldx RP
     inx
     loop:
       PrintChr ' '
@@ -64,134 +65,49 @@
     rts
   .endproc
 
-  .proc token_code
-    ColorSet cBYTES
-    Peek IP
-    jmp print::print_hex_digits
-  .endproc 
-
-  .proc token_id
-    ColorSet cID
-    Peek IP
-    and #15
-    tax
-    lda table,x
-    jmp CHROUT
-    table:
-      .asciiz "PRISWTFN????X???"
-  .endproc 
 
   .proc token_bytes
     ColorSet cBYTES
-    Peek IP
-    pha
+    PeekX IP,1
+    sta tmp+1
     jsr print::print_hex_digits
-    pla
-
-    BraEq #bytecode::RET, no_payload
-    BraEq #bytecode::NOP, no_payload
-
-    PrintChr ':'
-    Peek IP,1
-    sta print::arg
+    
+    PeekA IP
+    sta tmp
     jsr print::print_hex_digits
-    PrintChr ':'
-    Peek IP,2
-    sta print::arg+1
-    jmp print::print_hex_digits
-    no_payload:
-      lda #' '
-      jsr CHROUT
-      jsr CHROUT
-      jsr CHROUT
-      jsr CHROUT
-      jsr CHROUT
-      jmp CHROUT
-  .endproc 
-
-  .proc token_payload
-    ColorSet cBYTES
-    Peek IP
-    and #15
-    BraEq #bytecode::RET, no_payload
-    BraEq #bytecode::NOP, no_payload
-
-    Peek IP,2
-    sta print::arg
-    jsr print::print_hex_digits
-    Peek IP,1
-    jsr print::print_hex_digits
+    PeekX tmp,vocab::token_offset
+    beq skip
+    tay
+    ldx #2
+    loop:
+      PrintChr ':'
+      inx
+      PeekX IP
+      jsr print::print_hex_digits
+      dex
+      PeekX IP
+      jsr print::print_hex_digits
+      inx
+      dey
+      dey
+    bne loop
     rts
-
-    no_payload:
-      lda #' '
-      jsr CHROUT
-      jsr CHROUT
-      jsr CHROUT
-      jmp CHROUT
+    skip:
+      PrintString "     "
+    rts
+    tmp:.word 2
   .endproc 
-  
+
   .proc token_source
-    ColorSet cSOURCE
-    Peek IP
-    ;and #15
-    IfEq #bytecode::INT
-      Peek IP,1
-      sta print::arg
-      Peek IP,2
-      sta print::arg+1
-      jsr print::print_dec
-      rts
-    EndIf
-    IfEq #bytecode::STR
-      PrintChr '"' 
-      IMov print::arg, IP
-      IAddB print::arg, 3
-      jsr print::print_z
-      PrintChr '"' 
-      rts
-    EndIf
-    IfEq #bytecode::RUN
-      Peek IP,1
-      sta print::arg
-      Peek IP,2
-      sta print::arg+1
-      IAddB print::arg, vocab::name_offset
-      jsr print::print_z
-      rts
-    EndIf
-    IfEq #bytecode::IF0
-      PrintZ cIF, vocab::name_offset
-      rts
-    EndIf
-    IfEq #bytecode::THN
-      PrintZ cTHEN, vocab::name_offset
-      rts
-    EndIf
-    IfEq #bytecode::BGN
-      PrintZ cBEGIN, vocab::name_offset
-      rts
-    EndIf
-    IfEq #bytecode::AGN
-      PrintZ cAGAIN, vocab::name_offset
-      rts
-    EndIf
-    IfEq #bytecode::WHL
-      PrintZ cWHILE, vocab::name_offset
-      rts
-    EndIf
-    IfEq #bytecode::ELS
-      PrintZ cELSE, vocab::name_offset
-      rts
-    EndIf
-    IfEq #bytecode::RET
-      PrintChr 'R'
-      PrintChr 'E'
-      PrintChr 'T'
-      rts
-    EndIf
-
     rts
+    ColorSet cSOURCE
+    PeekA IP
+    sta rewrite+1
+    PeekA IP, 1
+    sta rewrite+2
+    IAddB rewrite+1, vocab::list_offset
+    rewrite:
+    jmp ($FEDA)
   .endproc
 
 
@@ -230,7 +146,7 @@
     IfEq #'Q'
       rts
     EndIf
-    IfEq #'R'
+    IfEq #'I'
       NewLineSoft
       jmp runtime::run_to_end
     EndIf
@@ -271,41 +187,88 @@
       NewLineSoft
       rts
     EndIf
+    IfEq #'R'
+      ISet print::arg, rstack::STACK
+      jsr print::dump_hex
+      NewLineSoft
+      rts
+    EndIf
     inc debug_state 
+    rts
   .endproc
 
   .proc step_into
     BraTrue runtime::ended, break
     jsr runtime::exec
-    CMov skip_depth, RSP
+    CMov skip_depth, RP
     break:
     rts
   .endproc
 
   .proc step_over
-    CMov skip_depth, RSP
+    CMov skip_depth, RP
     loop:
       BraTrue runtime::ended, break
       jsr runtime::exec
-      BraLt skip_depth, RSP, loop
+      BraLt skip_depth, RP, loop
     break:
     rts
   .endproc
 
   .proc step_out
-    CMov skip_depth, RSP
+    CMov skip_depth, RP
     loop:
       BraTrue runtime::ended, break
       jsr runtime::exec
-      lda RSP
+      lda RP
       cmp skip_depth
       bcc loop         ; current depth is larger than skip depth
       bne break        ; current depth is smaller than skip depth
-      Peek IP
+      PeekA IP
       cmp bytecode::RET
       bne loop         ; it's not a RET token  
     break:
     rts
   .endproc
 
+  .proc idump
+    loop:
+      jsr print::dump_hex
+
+      CSet $CC, 0
+      wait: 
+        jsr GETIN
+      beq wait
+      
+      and #$7F
+
+      BraEq #13,exit
+      IfEq #'W'
+        dec print::arg+1
+        bra next
+      EndIf
+      IfEq #'S'
+        inc print::arg+1
+        bra next
+      EndIf
+      IfEq #'A'
+        ISubB print::arg,1
+        bra next
+      EndIf
+      IfEq #'D'
+        IAddB print::arg,1
+        bra next
+      EndIf
+      bra wait
+    next:
+      ldx #16
+    go_up:
+      PrintChr $91
+      dex
+      bne go_up
+      bra loop
+    exit:
+      CSet $CC, 1
+    rts
+  .endproc
 .endscope

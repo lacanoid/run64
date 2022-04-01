@@ -1,33 +1,10 @@
-.scope rstack
-  .align 2 
-  IP: .word 0
-  STACK: .res 128
-  SP: .byte 0
-  .proc push
-    ;PrintChr '<'
-    ldx SP
-    lda IP
-    sta STACK,x
-    lda IP+1
-    sta STACK+1,x
-    inc SP
-    inc SP
-    rts 
-  .endproc
-  .proc pop
-    ;PrintChr '>'
-    dec SP
-    dec SP
-    ldx SP
-    lda STACK,x
-    sta IP
-    lda STACK+1,x
-    sta IP+1
-    rts 
-  .endproc
-.endscope
 
-.macro RPush 
+.macro RPush offset
+  .ifblank offset
+    lda #0
+  .else 
+    lda #offset
+  .endif
   jsr rstack::push
 .endmacro
 
@@ -35,143 +12,83 @@
   jsr rstack::pop
 .endmacro
 
-.macro Peek address, offset
-  IMov TMP, address
-  .ifnblank offset
-    IAddB TMP, offset
+.macro RReset offset
+  .ifblank offset
+    lda #0
+  .else 
+    lda #offset
   .endif
-  ldx #0
-  lda (TMP,x)
+  jsr rstack::reset
 .endmacro
 
-.macro Read address
-  Peek address
-  tax
-  IInc address
-  txa 
-.endmacro
-
-.macro WriteA address
-  PokeA {address}
-  IInc {address}
-.endmacro
-
-.macro PokeA address, offset
-  pha
-  IMov TMP, address
-  .ifnblank offset
-    IAddB TMP, offset
-  .endif
-  ldx #0
-  pla
-  sta (TMP,x)
-.endmacro
-
-.macro Poke addr1, addr2
-  .scope
-    pha
-    IMov rewrite+1, address
-    pla
-    rewrite:
-    sta $FEDA
-  .endscope
-.endmacro
-
-
-
-.scope runtime
-  ptr = cursor
-  IP = rstack::IP
-
-  .proc doPtr
-    jsr load_ip
-    clc
-    rts
-  .endproc
-
-  .proc doIf
-    SpDec
-    IsTrue 0
-    IfFalse
-      jmp doPtr     ; if false move IP to else
-    EndIf
-    IAddB IP, 3   ; otherwise continue
-    clc
-    rts
-  .endproc
-  
-  .proc doUnless
-    SpDec
-    IsTrue 0
-    IfTrue
-      jmp doPtr     ; if false move IP to else
-    EndIf
-    IAddB IP, 3   ; otherwise continue
-    clc
-    rts
-  .endproc
-
-  .proc doNop
-    IInc IP
-    clc
+.scope rstack
+  .align 2 
+  IP: .word 0
+  STACK: .res 128
+  ::RP: .byte 0
+  .proc push
+    clc 
+    ldx RP
+    add IP
+    sta STACK,x
+    lda #0
+    adc IP+1
+    sta STACK+1,x
+    inc RP
+    inc RP
     rts 
   .endproc
+  .proc pop
+    dec RP
+    dec RP
+    ldx RP
+    lda STACK,x
+    sta IP
+    lda STACK+1,x
+    sta IP+1
+    lda STACK,x
+    rts 
+  .endproc
+.endscope
+
+.scope runtime
+  IP = rstack::IP
 
   .proc exec
-    IMov ptr, IP
-    ldy #0
-    lda (ptr),y
-    JmpEq #bytecode::NAT, doProc
-    and #15
-    JmpEq #bytecode::GTO, doPtr
-    JmpEq #bytecode::NOP, doNop
-    JmpEq #bytecode::RET, doRet
-    JmpEq #bytecode::INT, doInt
-    JmpEq #bytecode::STR, doStr
-    JmpEq #bytecode::RUN, doRun
-    JmpEq #bytecode::IF0, doIf
-    JmpEq #bytecode::IF0, doUnless
+    ;ReadA IP
+    jmp gosub_from_ip
   .endproc
 
-.proc doStr
-  IAddB IP, 3
-  
-  PushFrom IP
-  jmp doPtr
-.endproc
+  .proc list_entry
+    PeekA IP,0
+    sta vocab::arg
+    PeekA IP,1
+    sta vocab::arg+1
+    jmp vocab::print_name
+  .endproc
 
-.proc doInt
+
+  .proc doStr
+    IAddB IP, 2
+    PushFrom IP
+    ISubB IP, 2
+    jmp goto_from_ip
+  .endproc
+
+  .proc doInt
+    ;PrintString "INT"
     SpInc
-    Peek IP,1
+    ReadA IP
     SetLo 1
-    Peek IP,2
+    ReadA IP
     SetHi 1
-    IAddB IP,3
-
     clc
     rts
   .endproc
 
-  .proc doProc  ; only jump and return
-    Peek IP,1
-    sta rewrite+1
-    Peek IP,2
-    sta rewrite+2
-    rewrite:
-    jsr $FEDA
-    jmp doRet
-  .endproc
-
-  .proc doRun
-    IAddB IP,3
-    RPush
-    jsr load_ip
-    clc
-    rts
-  .endproc 
 
   .proc doRet
-    IfFalse rstack::SP
+    IfFalse RP
       inc ended 
     Else 
       RPop
@@ -179,13 +96,44 @@
     rts
   .endproc
 
-  .proc load_ip
-    iny
-    lda (ptr),y
+  .proc doIf
+    SpDec
+    IsTrue 0
+    IfFalse
+      jmp goto_from_ip     ; if false move IP to else
+    EndIf
+    IAddB IP, 2   ; otherwise jump over the pointer?
+    clc
+    rts
+  .endproc
+
+.proc gosub_from_ip  ; only jump and return
+    ReadA IP
+    sta tmp
+    ReadA IP
+    sta tmp+1
+    PeekA tmp
+
+    IfEq #bytecode::NAT
+      jmp (tmp) 
+    EndIf
+    RPush
+    PeekA tmp,1
     sta IP
-    iny 
-    lda (ptr),y
+    PeekA tmp,2
     sta IP+1
+    rts
+    tmp:
+      .word 0
+  .endproc
+  .proc goto_from_ip
+    ReadA IP
+    pha
+    ReadA IP
+    sta IP+1
+    pla
+    sta IP
+    clc
     rts
   .endproc 
   ended: .byte 0
@@ -193,7 +141,7 @@
 
   .proc start
     CClear ended
-    CClear rstack::SP
+    CClear RP
     rts
   .endproc
 

@@ -1,9 +1,44 @@
-  PrintString "HOW THE"
-  writer: .word  HEAP_END
+.macro cWriteCtl
+  jsr compiler::write_ctl
+.endmacro
+
+.macro cWriteHope arg
+  lda #bytecode::arg 
+  jsr compiler::write_hope
+.endmacro
+
+.macro cResolveHope arg, offset
+  .ifblank offset
+    ldy #0
+  .else   
+    ldy #offset
+  .endif
+  lda #bytecode::arg 
+  jsr compiler::resolve_hope
+.endmacro
+
+.macro cDrop
+  jsr compiler::cdrop
+.endmacro
+
+
+.macro cStoreRef arg
+  lda #bytecode::arg
+  jsr compiler::store_ref
+.endmacro
+
+.macro cWriteRef arg
+  lda #bytecode::arg
+  jsr compiler::write_ref
+.endmacro
 
   .scope compiler
-  pointer = $FD
-  IP = writer
+  BUFFER: .res 256
+  INPUT: .word BUF
+  CP: 
+    .word BUFFER
+  creating: 
+    .byte 0
   offset:
     .word 0
   eof:
@@ -16,24 +51,26 @@
     .byte 0 
   ctop:
     .byte 3
+  result: 
+    .word 0
 
   .proc advance_pointer
-    inc pointer
+    inc INPUT
     BraTrue skip
-    inc pointer+1
+    inc INPUT+1
     skip:
     rts
   .endproc
 
   .proc advance_offset
     ;IMov offset, input::ptr
-    IMov offset, pointer
+    IMov offset, INPUT
     rts
   .endproc
 
   .proc reset_pointer
     ;IMov offset, input::ptr
-    IMov pointer,offset
+    IMov INPUT,offset
     rts
   .endproc
 
@@ -43,7 +80,7 @@
     ldx #0
     loop:
     ;jsr input::read
-    lda (pointer,x)
+    PeekX INPUT
     BraFalse stop
     BraEq #13, stop
     BraGe #33, done
@@ -51,9 +88,11 @@
     jmp loop
     done:
     jsr advance_offset
+    clc
     rts 
     stop:
     jsr advance_offset
+    sec
     inc eof
     rts 
   .endproc
@@ -63,7 +102,7 @@
     ldx #0
     Begin
     ;jsr input:read
-    lda (pointer,x)
+    PeekX INPUT
     BraLt #33, break
     jsr CHROUT
     jsr advance_pointer
@@ -75,8 +114,7 @@
   .proc parse_word
     jsr reset_pointer
     ;jsr input::read
-    ldx #0
-    lda (pointer,x)
+    PeekA INPUT
     JmpEq #34, parse_string
     JmpEq #'$', parse_hex
     BraLt #'0', not_dec
@@ -87,7 +125,6 @@
     entry:
     jmp parse_entry
   .endproc
-  result: .word 0
 
   .proc parse_hex
     IClear result
@@ -96,7 +133,7 @@
     ldx #0
     hex_digit:
     ; jsr input::read
-    lda (pointer,x)
+    PeekX INPUT
     and #$7f
 
     cmp #33
@@ -141,7 +178,7 @@
     dec_digit:
     
       ; jsr input::read
-      lda (pointer,x)
+      PeekX INPUT
       and #$7f
       
       BraLt #33, dec_done
@@ -157,15 +194,11 @@
 
       IShiftLeft result
       IShiftLeft result
-      
       pha
         IAdd result, temp
       pla
-
       IShiftLeft result
-
       BCS dec_error
-      
       IAddA result 
       jsr advance_pointer
       jmp dec_digit
@@ -180,20 +213,19 @@
     temp: .word 0
   .endproc ; parse_dec
 
-  
-
-
   .proc parse_string
-    lda #bytecode::STR
+    ;lda #bytecode::CTL
+    ;jsr write
+    lda #<cSTR
     jsr write
-
-    Stash IP
-    IAddB IP,2
+    lda #>cSTR
+    jsr write
+    cWriteHope STR
     jsr advance_pointer ; consume start quote
     ldx #0
     Begin
     ; jsr input::read
-    lda (pointer,x)
+    PeekX INPUT
     BraLt #32, catch
     BraEq #34, break
     jsr write
@@ -203,74 +235,65 @@
     jsr advance_offset  
     lda #0
     jsr write       ; write terminating zero
-
-    Unstash cursor    ; write 
-    ldy #0
-    lda IP
-    sta (cursor),y
-    iny
-    lda IP+1
-    sta (cursor),y
+    cResolveHope STR
+    cDrop
     rts
     catch:
     jmp die
   .endproc  
 
   .proc parse_entry
-    jsr vocab::reset_cursor
-    match_entry:
-      ldy #vocab::name_offset
-      jsr reset_pointer
-      ldx #0
-
-    next_char:
-      lda (vocab::cursor),y
-      beq end_entry     ; possible match, branch if zero terminator
-      ; jsr input::read
-    
-      cmp (pointer,x)
-      bne next_entry    ; no match
-      jsr advance_pointer
-      iny
-      bne next_char
-
-    next_entry: 
-      jsr vocab::advance_cursor
-      bne match_entry
-
-    not_found:
+    IMov vocab::arg, offset
+    jsr vocab::find_entry
+    bcc found
       jmp die
-
-    end_entry:
-      lda (pointer,x)
-      BraGe #33, next_entry
-      jsr advance_offset 
-      IMov result, cursor
-      ldy #vocab::token_offset
-      lda (cursor),y
-      BraEq #bytecode::CTL, write_ctl
-      jmp write_run
+    found:
+    txa
+    IAddA offset
+    IMov result,vocab::cursor
+    jmp write_entry
   .endproc ; parse_entry
 
-  .proc write_ctl
-    RunFrom result
-    rts
+  .proc write_entry
+    ;IPrintHex result
+    PeekX result, vocab::compile_offset
+    sta rewrite+1
+    PeekX result, 1+vocab::compile_offset
+    sta rewrite+2
+    rewrite:
+    jmp $FEDA
   .endproc
 
   .proc write
-    WriteA writer
-    rts
+    pha
+    lda creating
+    beq nope
+      pla
+      WriteA HERE_PTR
+      rts
+    nope:
+      pla
+      WriteA CP
+      rts
   .endproc  
 
   .proc write_int
-    lda #bytecode::INT
+    ;lda #bytecode::CTL
+    ;jsr write
+    lda #<cINT
+    jsr write
+    lda #>cINT
     jsr write
     jmp write_result
   .endproc
 
   .proc write_run
-    lda #bytecode::RUN
-    jsr write
+    ;lda #bytecode::RUN
+    ;jsr write
+    jmp write_result
+  .endproc
+
+  .proc write_ctl
     jmp write_result
   .endproc
 
@@ -282,93 +305,9 @@
     rts 
   .endproc
 
-  .proc write_if
-    lda #bytecode::IF0    
-    jsr write
-    lda #bytecode::IF0
-    jsr write_hope
-    rts
-  .endproc
-
-  .proc write_else
-    lda #bytecode::ELS
-    jsr write
-
-    ; TODO: check if IF
-
-    lda #bytecode::IF0
-    ldy #2
-    jsr resolve_hope
-    bcs catch
-
-    jsr cdrop
-
-    lda #bytecode::IF0 
-    jsr write_hope
-    rts
-    catch:
-      jmp rmismatch
-  .endproc
-
-  .proc write_then
-    
-    lda #bytecode::IF0
-    ldy #0
-    jsr resolve_hope
-    bcs catch
-
-    jsr cdrop
-
-    lda #bytecode::THN
-    jsr write
-    rts
-    catch:
-      PrintName cTHEN
-      jmp rmismatch
-  .endproc
-
-  .proc write_begin
-    lda #bytecode::BGN
-    jsr write
-
-    lda #bytecode::BGN
-    jsr store_ref
-    rts
-  .endproc
-
-  .proc write_while
-    lda #bytecode::WHL
-    jsr write
-    lda #bytecode::WHL
-    jsr write_hope
-    rts
-  .endproc
-
-  .proc write_again
-    lda #bytecode::AGN
-    jsr write
-    loop:
-      lda #bytecode::WHL
-      ldy #2
-      jsr resolve_hope
-      bcs not_while
-      jsr cdrop
-      jmp loop
-
-      not_while:
-      
-      lda #bytecode::BGN
-      jsr write_ref
-      jsr cdrop
-      bcs catch
-    rts
-    catch:
-      jmp rmismatch
-  .endproc
-
   .proc write_hope
     jsr store_ref
-    IAddB IP,2
+    IAddB CP,2
     rts 
   .endproc
 
@@ -378,11 +317,12 @@
     inx
     inx
     sta cstack-3,x
-    lda IP
+    lda CP
     sta cstack-2,x
-    lda IP+1
+    lda CP+1
     sta cstack-1,x
     stx csp
+    ;PrintChr '+'
     rts 
   .endproc
 
@@ -394,16 +334,16 @@
     cmp cstack-3, x
     bne catch
 
-    IMov temp, IP
+    IMov temp, CP
     tya 
     IAddA temp
-    Stash IP
-      IMovIx IP, cstack-2,csp
+    Stash CP
+      IMovIx CP, cstack-2,csp
       lda temp
       jsr write
       lda temp+1
       jsr write
-    Unstash IP
+    Unstash CP
     clc
     rts
     catch:
@@ -438,16 +378,14 @@
     dex
     dex
     stx csp
+    ;PrintChr '-'
     rts 
     catch:
     jmp lmismatch
   .endproc
   
   .proc compile_skip_first
-    ISet offset, BUF
-    jsr reset_pointer
-    jsr advance_pointer
-    jsr advance_offset
+    ISet offset, BUF+1
     jmp do_compile
   .endproc
 
@@ -456,7 +394,8 @@
   .endproc  
 
   .proc do_compile
-  ISet IP, HEAP_START
+  ISet CP, BUFFER
+  CClear creating
   CClear eof
   CClear error
   CClear csp
@@ -467,11 +406,12 @@
     jsr parse_word
     BraTrue error, catch
   Again
-  lda #bytecode::RET
+  ;lda #bytecode::CTL
+  ;jsr write
+  CClear creating
+  lda #<cRET
   jsr write
-  lda #$12
-  jsr write
-  lda #$34
+  lda #>cRET
   jsr write
   
   lda csp
@@ -490,8 +430,9 @@
   .endproc 
 
   .proc lmismatch
-    PrintChr ' '
     ColorSet 2
+    PrintChr '?'
+    PrintName result
     lda csp
     jsr print::print_hex_digits
     PrintChr '('
@@ -500,8 +441,8 @@
   .endproc
 
   .proc rmismatch
-    PrintChr ' '
     ColorSet 2
+    PrintChr '?'
     lda csp
     jsr print::print_hex_digits
     PrintChr ')'

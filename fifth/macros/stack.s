@@ -127,7 +127,6 @@
   SpDec 
 .endmacro
 
-
 .macro OutputDec
   CopyTo 1, print::arg
   jsr print::print_dec
@@ -137,4 +136,3 @@
   CopyTo 1, print::arg
   jsr print::print_hex
 .endmacro
-

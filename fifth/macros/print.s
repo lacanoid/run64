@@ -29,7 +29,9 @@
 .endmacro
 
 .macro PrintChr c
-  lda #c
+  .ifnblank c
+    lda #c
+  .endif
   jsr CHROUT
 .endmacro
 
