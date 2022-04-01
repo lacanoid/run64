@@ -1,4 +1,4 @@
-raster.o:	raster.s ../defs64.inc .././defs.inc ../macros.inc
+raster.o:	raster.s ../defs64.inc ../defs.inc ../macros.inc
 
-raster.s ../defs64.inc .././defs.inc ../macros.inc:
+raster.s ../defs64.inc ../defs.inc ../macros.inc:
 

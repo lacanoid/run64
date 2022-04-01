@@ -1,10 +1,13 @@
 ; Automated test for C64 autostart (use with VICE -debugcart and -limitcycles 
 ; options).
 
+.ifdef __C128__
+.include "defs128.inc"
+.else
 .include "defs64.inc"
-.include "macros.inc"
-
 .forceimport __EXEHDR__
+.endif
+.include "macros.inc"
 
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.
@@ -12,6 +15,7 @@
         pipfhi = 2
         pipfho = 3
 
+; .segment "STARTUP"
 start:
         jmp main
 
@@ -30,7 +34,7 @@ FNLEN2: .byte 0
 ; -----------------------------------------------------------------------------
 ; message table; last character has high bit set
 MSGBAS  =*
-MSG0:   .BYTE "PIP 0.3",13+$80
+MSG0:   .BYTE "PIP 0.4 ",$80
 MSG1:   .BYTE "COPYING ",$80
 MSG2:   .BYTE "ERROR ",$80
 MSG3:   .BYTE " BYTES.",13+$80
@@ -40,6 +44,8 @@ MSG3:   .BYTE " BYTES.",13+$80
 main:
         lda BUF      ; if run from shell or basic
         bpl main1    ; check if basic token
+        lda #0
+        sta init_state
         jmp main2    ; we were run from BASIC with "run"
 
 main1:  lda COUNT    ; we were run from shell
@@ -195,16 +201,59 @@ done:
         inx
         cpx #80
         bne @l3
-main2:
+
+init_state:
+        .byte 0
+
+main2:  ; interactive mode
+        lda init_state
+        bne @ml0
+        inc init_state
+
         LDY #MSG0-MSGBAS    ; display
         JSR SNDMSG
-        ; interactive mode here,,,
 
-;        jsr DOS_DIRECT
-;        rts
+        ; interactive mode here,,,
+        ; print free memory
+        clc
+        lda FRETOP
+        sbc STREND
+        tax
+        lda FRETOP+1
+        sbc STREND+1
+        jsr LINPRT
+
+        LDY #MSG3-MSGBAS    ; display
+        JSR SNDMSG
+
+@ml0:   ; prompt
+        lda #'*'
+        jsr CHROUT
+
+@ml1:   ; read a line
+        jsr CHRIN
+        cmp #13
+        beq @ml2        ; if return
+        sta BUF,X
+        beq @ml2        ; if null char
+        inx
+        cpx #ENDIN-BUF
+        bcs @ml1
+
+@ml2:
+        jsr CHROUT
+        lda #0
+        sta BUF,x
+
+        lda #0
+        sta COUNT
 
         rts
 
+@ml3:   ; go and run command
+        jmp main1
+
+;----------------------------------------------
 finish:
         jsr CLRCHN
         lda #pipfhi
@@ -290,3 +339,5 @@ print_name:
         tay
         pla
         rts
+
+.segment "INIT"

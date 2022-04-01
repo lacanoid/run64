@@ -1,4 +1,4 @@
-.include "./defs.inc"
+.include "defs.inc"
 
 KEYD   = $0277  ; start of keyboard buffer for C64 screen editor
 NDX    = $C6    ; keyboard buffer count for C64 screen editor
@@ -77,7 +77,7 @@ STXTPT  = $A68E ; reset text pointer
 LIST    = $A69C ; perform LIST
 RUN     = $A871 ; perform RUN
 NEWSTT  = $A7AE ;
-LINPRT  = $BDCD ; print XA as unsigned integer
+LINPRT  = $BDCD ; print unsigned integer .a = high .x = low
 
 ; kernal magic api
 

@@ -145,11 +145,15 @@ SNCLP:  LDA #$20            ; output space character
 
 ; -----------------------------------------------------------------------------
 ; display message from table
-SNDMSG: LDA MSGBAS,Y        ; Y contains offset in msg table
+SNDMSG:
+        LDA MSGBAS,Y        ; Y contains offset in msg table
         PHP
         AND #$7F            ; strip high bit before output
         JSR CHOUT
         INY
         PLP
         BPL SNDMSG          ; loop until high bit is set
+.ifdef __C128__
+        brk
+.endif
         RTS

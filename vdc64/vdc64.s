@@ -17,10 +17,7 @@ feature_irq_tapemotor=0      ; raster tape motor stuff
 
 vdc_colors=1       ; use new vdc colors
 
-org = $C000
-
-UDTIM     = $FFEA
-SCNKEY    = $FF9F
+org = $8000
 
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.
@@ -161,12 +158,6 @@ msg:    .byte 7
         .byte 0
 
 ; --------------------------
-data:
-        .org org
-main:
-        jmp configure
-
-; --------------------------
 
 vicchr	= $d000	        ;vic character rom
 vicreg  = $d000         ;vic registers
@@ -189,24 +180,30 @@ rows    = cia1+1
 cia2    = $dd00
 d2pra   = cia2
 
+; --------------------------
+data:
+        .org org
 EDITOR:
+main:
+
+JCINT:          jmp configure
 ;////////////////   E D I T O R     J U M P     T A B L E   \\\\\\\\\\\\\\\\\
-;	jmp cint	;00 initialize editor & screen
-	jmp disply	;01 display character in .a, color in .x
-	jmp lp2		;02 get a key from irq buffer into .a
-	jmp loop5	;03 get a chr from screen line into .a
-	jmp print	;04 print character in .a
-	jmp scrorg	;05 get size of current window (rows,cols) in .x, .y
-	jmp scnkey	;06 scan keyboard subroutine
-	jmp repeat	;07 repeat key logic & 'ckit2' to store decoded key
-	jmp plot	;08 read or set (.c) cursor position in .x, .y
-	jmp cursor	;09 move 8563 cursor subroutine
-	jmp escape	;10 execute escape function using chr in .a
-	jmp keyset	;11 redefine a programmable function key
-	jmp irq		;12 irq entry
-	jmp init80	;13 initialize 80-column character set
-	jmp swapper	;14 swap editor local variables (40/80 mode change)
-	jmp window	;15 set top left or bottom right (.c) of window
+;JCINT:	        jmp cint	;00 initialize editor & screen
+JDISPLY:        jmp disply	;01 display character in .a, color in .x
+JKEYIN:	        jmp lp2		;02 get a key from irq buffer into .a
+JGETSCRN:	jmp loop5	;03 get a chr from screen line into .a
+JPRINT: 	jmp print	;04 print character in .a
+JSCRORG:	jmp scrorg	;05 get size of current window (rows,cols) in .x, .y
+JSCNKEY:	jmp scnkey	;06 scan keyboard subroutine
+JREPEAT:	jmp repeat	;07 repeat key logic & 'ckit2' to store decoded key
+JPLOT:  	jmp plot	;08 read or set (.c) cursor position in .x, .y
+JCRSR80:	jmp cursor	;09 move 8563 cursor subroutine
+JESCAPE:	jmp escape	;10 execute escape function using chr in .a
+JKEYSET:	jmp keyset	;11 redefine a programmable function key
+JSCNIRQ:	jmp irq		;12 irq entry
+JINIT80:	jmp init80	;13 initialize 80-column character set
+JSWAPPER:	jmp swapper	;14 swap editor local variables (40/80 mode change)
+JWINDOW:	jmp window	;15 set top left or bottom right (.c) of window
 
 _spare:	.byte $ff,$ff,$ff
 

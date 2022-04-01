@@ -1,4 +1,4 @@
-autostart64.o:	autostart64.s ../config.inc ../defs64.inc .././defs.inc ../macros.inc boot.inc
+autostart64.o:	autostart64.s ../config.inc ../defs64.inc ../defs.inc ../macros.inc boot.inc
 
-autostart64.s ../config.inc ../defs64.inc .././defs.inc ../macros.inc boot.inc:
+autostart64.s ../config.inc ../defs64.inc ../defs.inc ../macros.inc boot.inc:
 

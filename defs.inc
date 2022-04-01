@@ -1,26 +1,35 @@
-VIC2      = $D000   ; VIC-II register base
+VICREG    = $D000   ; VIC-II register base
 COLORAM   = $D800   ; color memory
 
 ; -----------------------------------------------------------------------------
 ; VIC2 registers
-SCROLY  = VIC2+$11
-RASTER  = VIC2+$12
-SPRITEN = VIC2+$15
-SCROLX  = VIC2+$16
-VICIRQ  = VIC2+$19  ; VIC Interrupt Flag Register
-IRQMASK = VIC2+$1A  ; VIC IRQ Mask Register
-EXTCOL  = VIC2+$20  ; border color
-BGCOL0  = VIC2+$21  ; background color
-BGCOL1  = VIC2+$22
-BGCOL2  = VIC2+$23
+SCROLY  = VICREG+$11
+RASTER  = VICREG+$12
+SPRITEN = VICREG+$15
+SCROLX  = VICREG+$16
+VICIRQ  = VICREG+$19  ; VIC Interrupt Flag Register
+IRQMASK = VICREG+$1A  ; VIC IRQ Mask Register
+EXTCOL  = VICREG+$20  ; border color
+BGCOL0  = VICREG+$21  ; background color
+BGCOL1  = VICREG+$22
+BGCOL2  = VICREG+$23
 
 
 ; -----------------------------------------------------------------------------
 ; kernal entry points
+; irq
+UDTIM     = $FFEA
+SCNKEY    = $FF9F
+; config
 MEMTOP    = $FF99
 MEMBOT    = $FF9C 
 
 SETMSG    = $FF90   ; set kernel message control flag
+STOP      = $FFE1   ; check for stop key
+
+SCREEN    = $FFED   ; Return screen format
+PLOT      = $FFF0   ; Set cursor location
+; serial
 SECOND    = $FF93   ; set secondary address after LISTEN
 TKSA      = $FF96   ; send secondary address after TALK
 LISTEN    = $FFB1   ; command serial bus device to LISTEN
@@ -29,22 +38,23 @@ ACPTR     = $FFA5   ; input byte from serial bus
 CIOUT     = $FFA8   ; output byte to serial bus
 UNTLK     = $FFAB   ; command serial bus device to UNTALK
 UNLSN     = $FFAE   ; command serial bus device to UNLISTEN
+; files
+SETLFS    = $FFBA   ; Set file parameters
+SETNAM    = $FFBD   ; Set file name parameters
+
 OPEN      = $FFC0   ; Open a logical file
 CLOSE     = $FFC3   ; Close a logical file
 CHKIN     = $FFC6   ; define input channel
 CHKOUT    = $FFC9   ; define output channel
 CLRCHN    = $FFCC   ; restore default devices
-CHRIN     = $FFCF   ; input a line of characters
+CHRIN     = $FFCF   ; input a line of characters 
+GETIN     = $FFE4   ; get a character
 CHROUT    = $FFD2   ; output character
 READST    = $FFB7   ; Read status 
-SETLFS    = $FFBA   ; Set file parameters
-SETNAM    = $FFBD   ; Set file name parameters
+
 LOAD      = $FFD5   ; load from device
 SAVE      = $FFD8   ; save to device
-STOP      = $FFE1   ; check for stop key
-GETIN     = $FFE4   ; get a character
-SCREEN    = $FFED   ; Return screen format
-PLOT      = $FFF0   ; Set cursor location
+
 
 ; -----------------------------------------------------------------------------
 ; kernal variables

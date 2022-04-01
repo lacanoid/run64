@@ -8,8 +8,10 @@ c1541 $DISKIMG -write tools/pip
 c1541 $DISKIMG -write tools/patch64
 c1541 $DISKIMG -write vdc64/vdc64
 c1541 $DISKIMG -write tools/patch128
+c1541 $DISKIMG -write vdc64/vdc128
 c1541 $DISKIMG -write c/smon
 c1541 $DISKIMG -write fifth/5th
+c1541 $DISKIMG -write tools/pip.128
 c1541 $DISKIMG -write s/empty '================'
 c1541 $DISKIMG -write s/startup,s
 c1541 $DISKIMG -write s/issue,s
