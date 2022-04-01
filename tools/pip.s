@@ -35,9 +35,9 @@ FNLEN2: .byte 0
 ; message table; last character has high bit set
 MSGBAS  =*
 MSG0:   .BYTE "PIP 0.4 ",$80
-MSG1:   .BYTE "COPYING ",$80
-MSG2:   .BYTE "ERROR ",$80
-MSG3:   .BYTE " BYTES.",13+$80
+MSG1:   .BYTE "COPYING ",$80,0
+MSG2:   .BYTE "ERROR ",$80,0
+MSG3:   .BYTE " BYTES.",13+$80,0
 
 ; -----------------------------------------------------------------------------
 ; main program
