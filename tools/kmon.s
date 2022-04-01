@@ -36,17 +36,21 @@ SUPER:  LDY #MSG4-MSGBAS    ; display "..SYS "
         LDX #6
         LDY #3
         JSR NMPRNT          ; print entry point address
-;        JSR CRLF
-        LDA LINKAD          ; set BRK vector
-        STA CBINV
-        LDA LINKAD+1
-        STA CBINV+1
 
         LDA #$80            ; disable kernel control messages
         JSR SETMSG          ; and enable error messages
 
         ldxy IERROR
         stxy ON_ERR_SAV
+
+        jsr CRLF
+        jmp kmon
+
+;        JSR CRLF
+        LDA LINKAD          ; set BRK vector
+        STA CBINV
+        LDA LINKAD+1
+        STA CBINV+1
 
         BRK
 
@@ -81,6 +85,11 @@ kmon:
         LDY #MSG0-MSGBAS    ; display "?" to indicate error and go to new line
         JSR SNDMSG
 
+; -----------------------------------------------------------------------------
+; redirect input
+        lda #1
+        jsr CHKIN
+        jsr WRTWO
 ; -----------------------------------------------------------------------------
 ; main loop
 STRT:   jsr CRLF
@@ -792,7 +801,7 @@ DREXIT: JSR UNTLK           ; command device to untalk
 
 MSGBAS  =*
 MSG0:   .BYTE 14
-        .BYTE "KMON 0.",'7'+$80
+        .BYTE "KMON 0.7",' '+$80
 MSG1:   .BYTE $0D               ; header for registers
         .BYTE "*ERR",'*'+$80
 MSG2:   .BYTE $0D               ; header for registers
