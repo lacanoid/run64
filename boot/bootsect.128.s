@@ -34,6 +34,13 @@ bootexc:.byte 11      ; border color
 ; actual bootloader
 .segment "BOOT128"
 boot128:
+        ; clear $800 area so that running a C64 program will trigger BRK
+        ldx #0
+        txa
+@b1:    sta $800,X
+        dex
+        bne @b1
+
         jsr STOP            ; check for stop
         beq boot128done
 ;        lda SHFLAG          ; check for shift
