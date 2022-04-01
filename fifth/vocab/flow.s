@@ -1,4 +1,68 @@
-CMD cINT, "#RES",2
+
+CMD cCREATE, "CREATE"
+COMPILE
+  jsr compiler::skip_space
+  bcc not_eof
+    jmp compiler::die
+  not_eof:
+  WriteYB HERE_PTR, bytecode::GTO, 0 ; id, it's a regulae word
+  IWriteY HERE_PTR, HERE_PTR
+  
+  WriteYW HERE_PTR, DEFAULT_COMPILER, vocab::compile_offset
+  WriteYW HERE_PTR, DEFAULT_LISTER
+  ldx #0
+  loop: 
+    ReadX compiler::offset
+    cmp #33
+    bcc break
+    pha 
+    PrintChr
+    pla
+    WriteY HERE_PTR
+    bra loop
+  break:
+  WriteYB HERE_PTR, 0
+  txa
+  IAddA compiler::offset
+  tya
+  tax
+  WriteYW HERE_PTR, cINT
+  IWriteY HERE_PTR, HERE_PTR 
+  WriteYW HERE_PTR, cRET
+  IMov TEMP_PTR, HERE_PTR
+  txa
+  IAddA TEMP_PTR
+  IWriteX HERE_PTR,TEMP_PTR,vocab::exec_offset
+  IMov TEMP_PTR, VP
+  IWriteX HERE_PTR,TEMP_PTR,vocab::next_offset
+  IMov VP, HERE_PTR
+  tya
+  IAddA HERE_PTR
+  PushFrom VP
+  rts
+  TEMP_PTR: .word 0
+  catch:
+    jmp compiler::die
+END
+
+CMD cDOES, "DOES"
+rts
+COMPILE
+  ISubB HERE_PTR, 6
+  CSet compiler::creating,$FF
+  rts
+END
+
+CMD cEND, ";"
+rts
+COMPILE
+  WriteXW HERE_PTR,cRET,0
+  IAddB HERE_PTR,2
+  CClear compiler::creating
+  rts
+END
+
+CMD cINT, "#INT",2
   jmp runtime::doInt
 COMPILE
   rts
@@ -10,7 +74,7 @@ LIST
   jmp print::print_dec
 END
 
-CMD cSTR, "#RES",2
+CMD cSTR, "#STR",2
   jmp runtime::doStr
 COMPILE
   rts

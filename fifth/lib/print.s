@@ -86,13 +86,17 @@
     pha
     and #$7f
     BraGe #32, regular_char
-      lda #'.'
-      jsr CHROUT
+      PrintChr $12
       pla
+      ora #$40
+      jsr CHROUT
+      ;PrintChr '.'
+      PrintChr $92
       rts
     regular_char:
     pla ; pha from before
     jsr CHROUT
+    CClear QTSW
     rts
   .endproc 
 
@@ -129,10 +133,10 @@
 
   .proc dump_hex
     IMov PP, arg
-    ldy #128
+    ldy #0
     ldx #0
     print_line:
-      NewLine
+      ;NewLine
       lda PP+1
       jsr print_hex_digits
       lda PP
@@ -160,9 +164,14 @@
       ISubB PP, 8
       
       PrintChr ' '
-      PrintChr ' '
+      
       .scope print_chars
         loop:
+          tya
+          and #3
+          bne skip
+            PrintChr ' '
+          skip: 
           PeekX PP
           jsr dump_char
           IInc PP
@@ -177,7 +186,6 @@
     BraFalse exit
     jmp print_line
     exit:
-      NewLine
       rts
   .endproc
 

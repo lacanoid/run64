@@ -1,14 +1,14 @@
-.macro Pointer label, arg
-  .ifblank arg
+.macro Pointer label, argp
+  .ifblank argp
     label: .addr 0
   .else
-    label: .addr arg
+    label: .addr argp
   .endif
 .endmacro
 
-.macro PeekA pointer, offset
+.macro PeekA argp, offset
   .local rewrite
-  IMov rewrite+1, pointer
+  IMov rewrite+1, argp
   .ifnblank offset
     IAddB rewrite+1, offset
   .endif
@@ -16,10 +16,10 @@
   lda $DEFA
 .endmacro
 
-.macro PokeA pointer, offset
+.macro PokeA argp, offset
   .local rewrite
   pha
-  IMov rewrite+1, pointer
+  IMov rewrite+1, argp
   .ifnblank offset
     IAddB rewrite+1, offset
   .endif
@@ -61,9 +61,9 @@
 .endmacro
 
 
-.macro PeekX pointer, offset
+.macro PeekX argp, offset
   .local rewrite
-  IMov rewrite+1, pointer
+  IMov rewrite+1, argp
   .ifnblank offset
     ldx #offset
   .endif
@@ -71,9 +71,9 @@
   lda $DEFA,x 
 .endmacro
 
-.macro PeekY pointer, offset
+.macro PeekY argp, offset
   .local rewrite
-  IMov rewrite+1, pointer
+  IMov rewrite+1, argp
   .ifnblank offset
     ldy #offset
   .endif
@@ -81,9 +81,11 @@
   lda $DEFA,y 
 .endmacro
 
-.macro PokeX pointer, offset
+.macro PokeX argp, offset
   .local rewrite
-  IMov rewrite+1, pointer
+  pha
+  IMov rewrite+1, argp
+  pla
   .ifnblank offset
     ldx #offset
   .endif
@@ -91,12 +93,72 @@
   sta $DEFA,x 
 .endmacro
 
-.macro PokeY pointer, offset
+.macro PokeY argp, offset
   .local rewrite
-  IMov rewrite+1, pointer
+  pha 
+  IMov rewrite+1, argp
+  pla
   .ifnblank offset
     ldy #offset
   .endif
   rewrite:
   sta $DEFA,y 
+.endmacro
+
+.macro ReadX argp, offset
+  PeekX argp, offset
+  inx
+.endmacro
+
+.macro ReadY argp, offset
+  PeekY argp, offset
+  iny
+.endmacro
+
+.macro WriteX argp, offset
+  PokeX argp, offset
+  inx
+.endmacro
+
+.macro IWriteX argp, address, offset
+  lda address
+  PokeX argp, offset
+  inx
+  lda address+1
+  PokeX argp
+  inx
+.endmacro
+
+.macro WriteY argp, offset
+  PokeY argp, offset
+  iny
+.endmacro
+
+.macro IWriteY argp, address, offset
+  lda address
+  WriteY argp, offset
+  lda address+1
+  WriteY argp
+.endmacro
+
+.macro WriteXB argp, value, offset
+  lda #value
+  PokeX argp, offset
+  inx
+.endmacro
+
+.macro WriteXW argp, value, offset
+  WriteXB argp, <(value), offset
+  WriteXB argp, >(value)
+.endmacro
+
+.macro WriteYB argp, value, offset
+  lda #value
+  PokeY argp, offset
+  iny
+.endmacro
+
+.macro WriteYW argp, value, offset
+  WriteYB argp, <(value), offset
+  WriteYB argp, >(value)
 .endmacro

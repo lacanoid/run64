@@ -52,7 +52,6 @@
 .endscope
 
 .scope runtime
-  ptr = cursor
   IP = rstack::IP
 
   .proc exec

@@ -1,21 +1,4 @@
 
-DEF TS2
-  _ #3
-END
-
-DEF TS1
-  _ #1
-  _ TS2
-  _ PRINT
-END
-
-
-DEF HDUMP
-  _ HSTART
-  _ DUMP
-  _ DROP
-END
-
 DEF INCR, "INC"
   _ #1
   _ ADD
@@ -42,6 +25,15 @@ _ #print::arg
 _ CALL1
 _ #64
 _ ADD
+END
+
+DEF IDUMP
+_ DUP
+_ #debug::idump
+_ #print::arg
+_ CALL1
+_ #print::arg
+_ GET
 END
 
 DEF TDUMP
@@ -71,7 +63,7 @@ DEF CALL1
 END
 
 DEF VOCAB
-  _ #vocab::bottom
+  _ #VP
   _ GET
 END
 
@@ -83,30 +75,12 @@ DEF PEND
   _ #PROG_END
 END 
 
-
-DEF HSTART
-  _ #HEAP_START
-END
-
-DEF HEND
-  _ #HEAP_END
+DEF HERE
+  _ #HERE_PTR
   _ GET
 END
 
-DEF HSIZE
-  _ HEND
-  _ HSTART
-  _ SUB
-END
-
-DEF HCLEAR
-  _ HEND
-  _ HSTART
-  _ SET
-END 
-
 PROC POKE
-  
   CopyTo 2,TMP
   GetLo 1
   SpDec

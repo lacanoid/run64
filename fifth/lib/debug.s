@@ -99,6 +99,7 @@
   .endproc 
 
   .proc token_source
+    rts
     ColorSet cSOURCE
     PeekA IP
     sta rewrite+1
@@ -230,4 +231,44 @@
     rts
   .endproc
 
+  .proc idump
+    loop:
+      jsr print::dump_hex
+
+      CSet $CC, 0
+      wait: 
+        jsr GETIN
+      beq wait
+      
+      and #$7F
+
+      BraEq #13,exit
+      IfEq #'W'
+        dec print::arg+1
+        bra next
+      EndIf
+      IfEq #'S'
+        inc print::arg+1
+        bra next
+      EndIf
+      IfEq #'A'
+        ISubB print::arg,1
+        bra next
+      EndIf
+      IfEq #'D'
+        IAddB print::arg,1
+        bra next
+      EndIf
+      bra wait
+    next:
+      ldx #16
+    go_up:
+      PrintChr $91
+      dex
+      bne go_up
+      bra loop
+    exit:
+      CSet $CC, 1
+    rts
+  .endproc
 .endscope

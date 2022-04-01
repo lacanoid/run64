@@ -1,15 +1,16 @@
-.scope vocab 
-  next_offset = 3
-  token_offset = 5
+.scope vocab
+  exec_offset = 1
+  token_offset = 3
+  next_offset = 4
   compile_offset = 6
   list_offset = 8
   name_offset = 10
   cursor: .word 0
-  bottom: .addr VOCAB_START
+  ::VP: .addr VOCAB_START
   arg: .addr 0
 
   .proc reset_cursor
-    IMov cursor, bottom
+    IMov cursor, VP
     rts 
   .endproc ; vocab::reset_cursor
 

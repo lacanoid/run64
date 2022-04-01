@@ -3,7 +3,7 @@
   skip_depth: .byte 0
 
   .proc do_debug
-    ISet runtime::IP, HEAP_START
+    ISet runtime::IP, compiler::BUFFER
     jsr runtime::start
     jmp debug::do_debug
   .endproc
@@ -18,7 +18,7 @@
       jsr compiler::compile
       BraTrue compiler::error, catch 
       NewLine
-      Run HEAP_START
+      Run compiler::BUFFER
     EndIf
     ColorPush 3
     PrintChr 'O'

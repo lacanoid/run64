@@ -33,8 +33,12 @@
 .endmacro
 
   .scope compiler
+  BUFFER: .res 256
   INPUT: .word BUF
-  CP: .word  HEAP_END
+  CP: 
+    .word BUFFER
+  creating: 
+    .byte 0
   offset:
     .word 0
   eof:
@@ -47,7 +51,8 @@
     .byte 0 
   ctop:
     .byte 3
-  result: .word 0
+  result: 
+    .word 0
 
   .proc advance_pointer
     inc INPUT
@@ -83,9 +88,11 @@
     jmp loop
     done:
     jsr advance_offset
+    clc
     rts 
     stop:
     jsr advance_offset
+    sec
     inc eof
     rts 
   .endproc
@@ -258,8 +265,16 @@
   .endproc
 
   .proc write
-    WriteA CP
-    rts
+    pha
+    lda creating
+    beq nope
+      pla
+      WriteA HERE_PTR
+      rts
+    nope:
+      pla
+      WriteA CP
+      rts
   .endproc  
 
   .proc write_int
@@ -379,7 +394,8 @@
   .endproc  
 
   .proc do_compile
-  ISet CP, HEAP_START
+  ISet CP, BUFFER
+  CClear creating
   CClear eof
   CClear error
   CClear csp
@@ -392,6 +408,7 @@
   Again
   ;lda #bytecode::CTL
   ;jsr write
+  CClear creating
   lda #<cRET
   jsr write
   lda #>cRET

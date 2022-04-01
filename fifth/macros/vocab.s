@@ -4,12 +4,12 @@
     entry:
       .byte id
       .addr __runtime__ 
-      .addr __next_entry__
       .ifblank payload 
         .byte payload $0
       .else
         .byte payload
       .endif
+      .addr __next_entry__
       .addr __compile__
       .addr __list__
       .ifblank label
@@ -83,13 +83,14 @@
     .elseif .def (DEF_PROC)
     .endif
     .ifndef __compile__
-      __compile__ = compiler::write_run ; default compiler
+      __compile__ = DEFAULT_COMPILER ; default compiler
     .endif
     .ifndef __list__
-      __list__ = runtime::list_entry ; default lister
+      __list__ = DEFAULT_LISTER ; default lister
     .endif
     .ifndef __next_entry__
       __next_entry__:
     .endif
   .endScope
 .endmacro
+
