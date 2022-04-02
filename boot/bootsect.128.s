@@ -40,19 +40,18 @@ boot128:
         txa
 @b1:    sta $800,X
         dex
-        bne @b1
+        bne @b1        
         ; set BRK vector
         lda #<AS64
         sta IBRK
         lda #>AS64
         sta IBRK+1
-
         ; check for abort
         jsr STOP            ; check for stop
         beq boot128done
+
 ;        lda SHFLAG          ; check for shift
 ;        bne boot128done
-
         lda bootfgc
         bmi cfg1
         sta COLOR
@@ -184,7 +183,11 @@ cmds:
         .byte 27,"T"   ; fix the screen top
 ;        .byte 14       ; lowercase
         .byte CR,CR
-        .byte "DLOAD", DQUOTE, FILE, DQUOTE
+        .byte "DLOAD", DQUOTE
+fnadr:
+        .byte FILE
+fnadr9:
+        .byte DQUOTE
         .byte CR, CR, CR, CR, CR
 ;        .byte 151     ; hide
         .byte "SYS3072"

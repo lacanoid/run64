@@ -241,13 +241,18 @@ main2:  ; interactive mode
         bcs @ml1
 
 @ml2:
-        jsr CHROUT
         lda #0
         sta BUF,x
+
+        lda #13
+        jsr CHROUT
 
         lda #0
         sta COUNT
 
+        txa
+        bne @ml3
+        ; no command, exit program
         rts
 
 @ml3:   ; go and run command

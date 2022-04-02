@@ -26,7 +26,7 @@ clean:
 zap: clean
 	rm -rf *.dep
 
-bootsect.128: LDFLAGS += -C autostart.cfg
+bootsect.128: LDFLAGS += -C autostart.cfg --verbose --debug --debug-info
 bootsect.128: bootsect.128.o autostart64.128.o autostart64.o
 
 autostart64.128: LDFLAGS += -C autostart.cfg

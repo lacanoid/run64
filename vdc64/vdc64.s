@@ -17,7 +17,7 @@ feature_irq_tapemotor=0      ; raster tape motor stuff
 
 vdc_colors=1       ; use new vdc colors
 
-org = $8000
+org = $c000
 
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.

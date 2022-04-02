@@ -75,8 +75,9 @@ GETCHR: STX SAVX
         BEQ NOCHAR
         CMP #'?'
 NOCHAR: PHP
+;        BEQ @nc1
         INC CHRPNT          ; next char
-        LDX SAVX
+@nc1:   LDX SAVX
         PLP                 ; Z flag will signal last character
         RTS
 
