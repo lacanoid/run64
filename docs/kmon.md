@@ -1,4 +1,4 @@
-# Kmon
+# kmon
 
 Kmon is a command line interpreter (shell) for the commodore 64. It aims to runs with standard and compatible ROMs.
 It is intented to provide similar functions as are available on other systems, such as configuring and running programs.
