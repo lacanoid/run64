@@ -12,8 +12,9 @@
 ; test-result register exposed by VICE debugging 'cartridge'. Writing to this
 ; will cause VICE to exit, with the exit result set to the written value.
 
-        pipfhi = 2
-        pipfho = 3
+pipfhi = 2
+pipfho = 3
+debug  = 1
 
 ; .segment "STARTUP"
 start:
@@ -60,12 +61,26 @@ main1:  lda COUNT    ; we were run from shell
         jmp main2    ; no arguments
 
 args:
+        jsr GETOPT      ; get leading options
         jsr GETFNADR
         bne @l2
         rts
 @l2:
         jsr SETNAMX
 
+        jsr GETOPT      ; get trailing options
+
+.if debug=1
+;        lda CLIOPT+3
+;        jsr WRTWO
+;        lda CLIOPT+2
+;        jsr WRTWO
+        lda CLIOPT+1
+        jsr WRTWO
+        lda CLIOPT
+        jsr WRTWO
+        jsr CRLF
+.endif
         ldy #0
 @l31:
         lda (FNADR),Y
@@ -165,7 +180,7 @@ copy_loop:
         sta QTSW
 
         txa
-        jsr CHROUT
+        jsr PUTCHR
         jsr READST
         bne feof
 
@@ -223,6 +238,8 @@ main2:  ; interactive mode
         LDY #MSG4-MSGBAS    ; display "bytes."
         JSR SNDMSG
 
+        jsr chartable
+
 main3:   ; prompt
         lda #'*'
         jsr CHROUT
@@ -260,15 +277,17 @@ main3:   ; prompt
         jmp main1           ; run input
 
 ;----------------------------------------------
-finish:
+.proc finish
         jsr CLRCHN
         lda #pipfhi
         jsr CLOSE
         lda #pipfho
         jsr CLOSE
         rts
+.endproc
+;----------------------------------------------
 
-error:
+.proc error
         jsr finish
         jsr print_name
         LDY #MSG2-MSGBAS    ; display
@@ -278,55 +297,192 @@ error:
         jsr CRLF
         jsr DOS_INSTAT
         rts
+.endproc
+
+.proc chartable
+        jsr CRLF
+
+        lda #$20
+        sta T0
+
+        ldx #6
+        ldy #0
+@l1:
+        tya
+        clc
+        adc T0   
+        jsr PUTCHR
+        lda #' '
+        jsr CHROUT
+
+        iny
+        tya
+        and #$0f
+        bne @l1
+        jsr CRLF
+
+        dex
+        bne @l1
+
+        jsr CRLF
+        rts
+
+T0:     .byte 0
+.endproc
+
+; -----------------------------------------------------------------------------
+; output a character
+
+.proc PUTCHR
+        jsr CONVERT
+        jmp CHROUT
+        rts
+
+        pha
+        lda CLIOPT
+        ora #2
+        beq @l11
+        pla
+        jsr CONVERT    ; convert ANSI to PETSCII
+        nop2
+@l11:
+        pla
+        jmp CHROUT
+.endproc
+
+; -----------------------------------------------------------------------------
+; convert ANSI to PETSCII
+.proc CONVERT
+        cmp #10
+        bne c1
+        lda #13
+        rts
+c1:
+        cmp #$41
+        bcc crts
+        cmp #$5b
+        bcs c10
+        clc
+        adc #$20   ; change case
+        rts
+c10:
+        cmp #$5c   ; '\'
+        bne c11
+        lda #191
+        rts
+c11:
+        cmp #$5f   ; '_'
+        bne c2
+        lda #164
+        rts
+c2:
+        cmp #$61
+        bcc crts
+        cmp #$7b        
+        bcs c3
+        clc
+        sbc #$20   ; change case
+        rts
+
+c3:
+        cmp #$7b   ; '{'
+        bne c31
+        lda #179
+        rts
+c31:
+        cmp #$7c   ; '|'
+        bne c32
+        lda #221
+        rts
+c32:
+        cmp #$7d   ; '}'
+        bne crts
+        lda #171
+crts:
+        rts
+.endproc
 
 ; -----------------------------------------------------------------------------
 ; set filename and optional device number 
-SETNAMX:
+CLIOPT:    .byte 0,0,0,0
+.proc GETOPT 
+        jsr GETSPC
+        cmp #'/'
+        bne done
+        jsr GETCHR
+        beq done
+        ; decode option
+        and #$1f
+        ldx #0
+        tay
+@l3:    lda #1
+        clc
+@l1:    asl
+        bcc @l2
+        inx
+        bne @l3
+        BRK     ; 
+@l2:    dey
+        bne @l1
+        ora CLIOPT,x
+        sta CLIOPT,x
+        ; next option
+        jmp GETOPT
+done:
+        dec CHRPNT
+        rts
+.endproc
+
+; -----------------------------------------------------------------------------
+; set filename and optional device number 
+.proc SETNAMX
         jsr SETNAM
         ldy #1
         lda (FNADR),Y
         cmp #':'
         bne @done
-        DEY
-        lda (FNADR),y
-        jsr SETDEV
-        beq @done
-        clc
-        lda FNADR
-        adc #2
-        sta FNADR
-        lda FNADR+1
-        adc #0
-        sta FNADR+1
-        dec FNLEN
-        dec FNLEN
-@done:
+                DEY
+                lda (FNADR),y
+                jsr SETDEV
+                beq @done
+                        clc
+                        lda FNADR
+                        adc #2
+                        sta FNADR
+                        lda FNADR+1
+                        adc #0
+                        sta FNADR+1
+                        dec FNLEN
+                        dec FNLEN
+        @done:
         rts
+.endproc
 
 ; -----------------------------------------------------------------------------
 ; set device in .a
-SETDEV:
+.proc SETDEV
         cmp #'0'
         bcc @sde
         cmp #64
         bcs @sd2
         sbc #'0'-1
         bpl @sdx
-@sd2:
-        sbc #64-9
-        bpl @sdx
-@sde:
-        lda 0
-        rts
-@sdx:
+        @sd2:
+                sbc #64-9
+                bpl @sdx
+        @sde:
+                lda 0
+                rts
+        @sdx:
         sta FA
         rts
+.endproc
 
 .include "dos.inc"
 
 ; -----------------------------------------------------------------------------
 ; main program
-print_name:
+.proc print_name
         pha
         tya
         pha
@@ -346,5 +502,6 @@ print_name:
         tay
         pla
         rts
+.endproc
 
 .segment "INIT"

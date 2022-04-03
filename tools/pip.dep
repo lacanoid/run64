@@ -1,0 +1,4 @@
+pip.o:	pip.s ../defs64.inc ../defs.inc ../macros.inc ../utils.s ../dos.inc
+
+pip.s ../defs64.inc ../defs.inc ../macros.inc ../utils.s ../dos.inc:
+
