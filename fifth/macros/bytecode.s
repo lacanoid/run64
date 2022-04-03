@@ -9,6 +9,10 @@
   jsr runtime::run
 .endmacro
 
+.macro RunStepOver
+  jsr run_step_over 
+.endmacro
+
 .macro rInt arg
 ;  .byte bytecode::CTL
   .addr cINT
@@ -33,7 +37,7 @@
 
 .macro rRet
 ;  .byte bytecode::CTL
-  .addr cRET
+  .addr EXIT
 .endmacro
 
 .macro _ arg
@@ -114,3 +118,24 @@
   AGN = GTO + 32
   NAT = $4C
 .endenum
+
+.macro ThrowError msg, code
+  .scope 
+    .pushseg
+    .data
+      .ifblank msg
+        _msg_: .asciiz "ERROR"
+      .else 
+        _msg_: .asciiz msg
+      .endif
+    .popseg
+    ISet ERROR_MSG, _msg_
+    .ifblank code
+      CSet ERROR_CODE, 1
+    .else 
+      CSet ERROR_CODE, code
+    .endif
+    sec
+    rts
+  .endscope
+.endmacro

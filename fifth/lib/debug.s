@@ -1,6 +1,5 @@
 
 .scope debug
-  IP = runtime::IP
   ::LP = IP
 
   cIP = 5
@@ -9,15 +8,37 @@
   cID = 3
   cOTHER = 14
 
-  long_status: .byte 0
+  long_listing: .byte 0
 
+  ::print_status:
   .proc print_status
-    lda long_status
-    bne print_long_status
-    jmp print_short_status
+    rts
+    sec
+    jsr PLOT
+    stx tx
+    sty ty
+    ldx #0
+    ldy #0
+    clc
+    jsr PLOT
+    jsr print_IP
+    ldx tx
+    ldy ty
+    clc
+    jsr PLOT
+    PrintChr '!'
+    rts
+    tx: .byte 0
+    ty: .byte 0
+  .endproc
+
+  .proc print_listing
+    lda long_listing
+    bne print_long_listing
+    jmp print_short_listing
   .endproc
   
-  .proc print_long_status
+  .proc print_long_listing
     jsr print_IP
     PrintChr ' '
     jsr print_depth
@@ -28,7 +49,7 @@
     rts
   .endproc
 
-  .proc print_short_status
+  .proc print_short_listing
     jsr print_IP
     PrintChr ' '
     jsr print_indent
@@ -37,6 +58,7 @@
     rts
   .endproc
 
+  ::print_IP:
   .proc print_IP
     ColorSet cIP
     PrintChr '['
@@ -45,6 +67,7 @@
     rts
   .endproc
 
+  ::print_depth:
   .proc print_depth
     ColorSet cOTHER
     lda RP
@@ -120,13 +143,13 @@
       BraTrue runtime::ended, exit
       lda debug_state
       bmi exit
-      bne skip_status
+      bne skip_listing
 
       NewLineSoft
       ColorPush 5
-      jsr debug::print_status
+      jsr debug::print_listing
       ColorPop
-      skip_status: 
+      skip_listing: 
 
       CSet $CC, 0
       wait: jsr GETIN
@@ -155,21 +178,21 @@
 
     IfEq #13
       NewLineSoft
-      jmp debug::step_over
+      jmp debug::run_step_over
     EndIf
     IfEq #'P'
       NewLineSoft
-      jmp debug::step_into
+      jmp debug::run_step_into
     EndIf
     IfEq #'O'
       NewLineSoft
-      jmp debug::step_out
+      jmp debug::run_step_out
     EndIf
 
     IfEq #'L'
       lda #$FF
-      eor long_status
-      sta long_status
+      eor long_listing
+      sta long_listing
       rts
     EndIf
     IfEq #'S'
@@ -182,7 +205,7 @@
       rts
     EndIf
     IfEq #'D'
-      IMov print::arg, runtime::IP 
+      IMov print::arg, IP 
       jsr print::dump_hex
       NewLineSoft
       rts
@@ -196,8 +219,9 @@
     inc debug_state 
     rts
   .endproc
-
-  .proc step_into
+  
+  ::run_step_into:
+  .proc run_step_into
     BraTrue runtime::ended, break
     jsr runtime::exec
     CMov skip_depth, RP
@@ -205,17 +229,23 @@
     rts
   .endproc
 
-  .proc step_over
-    CMov skip_depth, RP
+  ::run_step_over:
+  .proc run_step_over
+    ;jsr print_IP
+    ;CMov skip_depth, RP
+    jsr print_depth
+    jsr print_IP
     loop:
       BraTrue runtime::ended, break
       jsr runtime::exec
       BraLt skip_depth, RP, loop
     break:
+    NewLine
     rts
   .endproc
-
-  .proc step_out
+  
+  ::run_step_out:
+  .proc run_step_out
     CMov skip_depth, RP
     loop:
       BraTrue runtime::ended, break

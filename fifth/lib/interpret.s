@@ -22,6 +22,7 @@
 
 .proc print_error
   ColorPush 10
+  
   PrintChr '?'
   jsr parse::print_next_word
   ColorPop

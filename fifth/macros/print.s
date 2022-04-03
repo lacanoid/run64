@@ -18,15 +18,25 @@
 
 .macro PrintString str
   .scope
+    ;clc
+    ;bcc exit
+    .data
+      data: 
+      .asciiz str
+    .code 
     ISet print::arg, data
     jsr print::print_z 
-    clc
-    bcc exit
-    data: 
-      .asciiz str
-    exit:
   .endscope
 .endmacro
+
+.macro GetKey str
+  .scope
+    wait:
+      jsr GETIN
+    beq wait
+  .endscope
+.endmacro
+
 
 .macro PrintChr c
   .ifnblank c

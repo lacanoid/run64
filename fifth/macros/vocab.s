@@ -1,4 +1,4 @@
-.macro GenericEntry id, name, label, payload
+.macro GenericEntry id, name, label, payload, q 
   .scope
     ::.ident (.string(name))=entry 
     entry:
@@ -12,44 +12,49 @@
       .addr __next_entry__
       .addr __compile__
       .addr __list__
-      .ifblank label
-        .asciiz .string(name)
-      .else
-        .asciiz label
+      .ifnblank q
+        .byte label, q, 0;
+      .else 
+        .ifblank label
+          .asciiz .string(name)
+        .else
+          .asciiz label
+        .endif
       .endif
     __runtime__:
   .endscope
 .endmacro
 
-.macro rEntry name, label
-  GenericEntry bytecode::GTO, name, label,0
+.macro rEntry name, label, q
+  GenericEntry bytecode::NAT, name, label,0,q
 .endmacro
 
-.macro jEntry name, label, payload
-  GenericEntry bytecode::NAT, name, label,0
+.macro jEntry name, label, q
+  GenericEntry bytecode::NAT, name, label,0,q
 .endmacro
 
-.macro cEntry name, label,payload
-  GenericEntry bytecode::NAT, name, label, payload
+.macro cEntry name, label,q
+  GenericEntry bytecode::NAT, name, label, 1, q
 .endmacro
 
 
-.macro CMD name, label,payload
+.macro CMD name, label, q
   .scope
     DEF_CMD = 1
-    cEntry name, label,payload
+    cEntry name, label,q
 .endmacro
 
-.macro PROC name, label
+.macro PROC name, label, q
   .scope
     DEF_PROC = 1
-    jEntry name, label
+    jEntry name, label, q
 .endmacro
 
-.macro DEF name, label
+.macro DEF name, label, q
   .scope
     DEF_RUN = 1
-    rEntry name, label
+    rEntry name, label, q
+    DOCOL
 .endmacro
 
 .macro COMPILE
@@ -66,21 +71,12 @@
   __list__:
 .endmacro
 
-.macro DATA
-  .ifdef DEF_RUN
-    rRet
-  .endif
-  data:
-.endmacro
-
 .macro END name, label
     .ifdef DEF_RUN 
-      .ifndef data
-        .ifndef __compile__
-          rRet
-        .endif
-      .endif
+      _ EXIT
+      rts
     .elseif .def (DEF_PROC)
+      NEXT
     .endif
     .ifndef __compile__
       __compile__ = DEFAULT_COMPILER ; default compiler

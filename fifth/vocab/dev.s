@@ -1,3 +1,10 @@
+DEF ONE, "ONE"
+  _ #1
+END
+
+DEF TWO, "TWO"
+  _ DUP
+END
 
 DEF INCR, "INC"
   _ #1
@@ -75,8 +82,8 @@ DEF PEND
   _ #PROG_END
 END 
 
-DEF HERE
-  _ #HERE_PTR
+DEF cHERE, "HERE"
+  _ #HERE
   _ GET
 END
 

@@ -12,21 +12,15 @@
   jsr rstack::pop
 .endmacro
 
-.macro RReset offset
-  .ifblank offset
-    lda #0
-  .else 
-    lda #offset
-  .endif
-  jsr rstack::reset
-.endmacro
-
 .scope rstack
   .align 2 
-  IP: .word 0
+  ::IP: .word 0
   STACK: .res 128
   ::RP: .byte 0
   .proc push
+    ;pha 
+    ;  PrintChr'>'
+    ;pla 
     clc 
     ldx RP
     add IP
@@ -39,6 +33,9 @@
     rts 
   .endproc
   .proc pop
+    ;pha 
+    ;  PrintChr'<'
+    ;pla 
     dec RP
     dec RP
     ldx RP
@@ -51,12 +48,18 @@
   .endproc
 .endscope
 
+
 .scope runtime
-  IP = rstack::IP
+  IP = ::IP
 
   .proc exec
-    ;ReadA IP
-    jmp gosub_from_ip
+    IfTrue ended 
+      PrintString "ALREADY ENDED"
+      rts
+    EndIf
+    jsr gosub_from_ip
+    ;jsr print_IP
+    rts
   .endproc
 
   .proc list_entry
@@ -88,12 +91,7 @@
 
 
   .proc doRet
-    IfFalse RP
-      inc ended 
-    Else 
-      RPop
-    EndIf
-    rts
+    jmp EXIT
   .endproc
 
   .proc doIf
@@ -113,19 +111,20 @@
     ReadA IP
     sta tmp+1
     PeekA tmp
-
-    IfEq #bytecode::NAT
-      jmp (tmp) 
+    IfNe #bytecode::NAT 
+      inc runtime::ended
+      PrintString "MALFORM"
+      rts
     EndIf
-    RPush
-    PeekA tmp,1
-    sta IP
-    PeekA tmp,2
-    sta IP+1
-    rts
+    IfTrue creating
+      PrintString "COMPILE"
+      IAddB tmp, vocab::compile_offset
+    EndIf 
+    jmp (tmp) 
     tmp:
       .word 0
   .endproc
+
   .proc goto_from_ip
     ReadA IP
     pha
@@ -136,18 +135,20 @@
     clc
     rts
   .endproc 
-  ended: .byte 0
+  ended: .byte 1
 
 
-  .proc start
+  .proc reset
     CClear ended
     CClear RP
     rts
   .endproc
 
   .proc run
-    jsr start
-  .endproc 
+    jsr reset
+  .endproc
+
+  ::run_to_end:
   .proc run_to_end
     Begin
       BraTrue ended, break

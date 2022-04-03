@@ -162,3 +162,20 @@
   WriteYB argp, <(value), offset
   WriteYB argp, >(value)
 .endmacro
+
+.macro AdvanceX argp, offset
+  .ifnblank offset
+    ldx #offset
+  .endif
+  txa
+  IAddA argp
+.endmacro
+
+.macro AdvanceY argp, offset
+  .ifnblank offset
+    ldy #offset
+  .endif
+  tya
+  IAddA argp
+.endmacro
+

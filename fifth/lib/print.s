@@ -132,11 +132,11 @@
   .endproc
 
   .proc dump_hex
+    NewLineSoft
     IMov PP, arg
-    ldy #0
+    ldy #128
     ldx #0
     print_line:
-      ;NewLine
       lda PP+1
       jsr print_hex_digits
       lda PP
