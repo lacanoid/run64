@@ -83,17 +83,17 @@ raster_setup:
         ldy #0
         ldx #0
 
-@in1:   sta VIC2,x      ; x position
+@in1:   sta VICREG,x      ; x position
         inx
         clc
         adc #24
         pha
 
         lda #20
-        sta VIC2,X      ; y position
+        sta VICREG,X      ; y position
         inx
         lda #1
-        sta VIC2+39,Y   ; color
+        sta VICREG+39,Y   ; color
         tya
         sta 2040,y
 

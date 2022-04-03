@@ -36,17 +36,21 @@ SUPER:  LDY #MSG4-MSGBAS    ; display "..SYS "
         LDX #6
         LDY #3
         JSR NMPRNT          ; print entry point address
-;        JSR CRLF
-        LDA LINKAD          ; set BRK vector
-        STA CBINV
-        LDA LINKAD+1
-        STA CBINV+1
 
         LDA #$80            ; disable kernel control messages
         JSR SETMSG          ; and enable error messages
 
         ldxy IERROR
         stxy ON_ERR_SAV
+
+        jsr CRLF
+        jmp kmon
+
+;        JSR CRLF
+        LDA LINKAD          ; set BRK vector
+        STA CBINV
+        LDA LINKAD+1
+        STA CBINV+1
 
         BRK
 
@@ -78,8 +82,17 @@ BSTACK: PLA                 ; order:Y,X,A,SR,PCL,PCH
 ; -----------------------------------------------------------------------------
 ; kmon init
 kmon:
+        TSX                 ; store stack pointer in memory 
+        STX SP
+
         LDY #MSG0-MSGBAS    ; display "?" to indicate error and go to new line
         JSR SNDMSG
+
+; -----------------------------------------------------------------------------
+; redirect input
+        lda #1
+        jsr CHKIN
+        jsr WRTWO
 
 ; -----------------------------------------------------------------------------
 ; main loop
@@ -394,7 +407,8 @@ CMDNEW: JSR GETPAR
 
 ; -----------------------------------------------------------------------------
 ; alter memory [>]
-ALTM:   BCS ALTMX           ; exit if no parameter provided
+ALTM:   JSR GETPAR
+        BCS ALTMX           ; exit if no parameter provided
         JSR COPY12          ; copy parameter to start address
         LDY #0
 ALTM1:  JSR GETPAR          ; get value for next byte of memory
@@ -411,7 +425,8 @@ ALTMX:  LDA #$91            ; move cursor up
 
 ; -----------------------------------------------------------------------------
 ; goto (run) [G]
-GOTO:   LDX SP              ; load stack pointer from memory
+GOTO:   JSR GETPAR
+        LDX SP              ; load stack pointer from memory
         TXS                 ; save in SP register
 GOTO2:  JSR COPY1P          ; copy provided address to PC
         SEI                 ; disable interrupts
@@ -427,7 +442,8 @@ GOTO2:  JSR COPY1P          ; copy provided address to PC
         RTI                 ; return from interrupt (pops PC and SR)
 
 ; jump to subroutine [J]
-JSUB:   LDX SP              ; load stack pointer from memory
+JSUB:   JSR GETPAR
+        LDX SP              ; load stack pointer from memory
         TXS                 ; save value in SP register
         JSR GOTO2           ; same as goto command
         STY YR              ; save Y to memory
@@ -792,7 +808,7 @@ DREXIT: JSR UNTLK           ; command device to untalk
 
 MSGBAS  =*
 MSG0:   .BYTE 14
-        .BYTE "KMON 0.",'7'+$80
+        .BYTE "KMON 0.7",' '+$80
 MSG1:   .BYTE $0D               ; header for registers
         .BYTE "*ERR",'*'+$80
 MSG2:   .BYTE $0D               ; header for registers
@@ -1287,7 +1303,7 @@ run_mon:
         sta FA
         ldy #0
         nop3
-; run a different program, must call setnam
+; run a different program, must call setnam beforhand
 run_prg:
         ldy #1
         sty loadflags
@@ -1333,6 +1349,10 @@ TBSTART1:
         rts
 
 IERROR_GO:
+        lda NDX           ; number of keystrokes
+        beq @ieg1
+        jmp $A483         ; run basic MAIN if keys pressed
+@ieg1:
         jsr IERROR_CLR
 ;        LDY #MSG2_2-MSGBAS2    ; display "?" to indicate error and go to new line
 ;        JSR SNDMSG2
@@ -1369,7 +1389,7 @@ IERROR_NEW:
 SNDMSG2: 
         LDA MSGBAS2,Y        ; Y contains offset in msg table
         PHP
-        JSR CHOUT
+        JSR CHROUT
         INY
         PLP
         BPL SNDMSG2          ; loop until high bit is set
@@ -1380,7 +1400,7 @@ MSG2_0:   .BYTE $0d,".RUN",$0D+$80
 MSG2_1:   .BYTE $0d,"?IO",$20+$80
 TB_FNLEN: .byte 4
 TB_FN:    .byte "KMON"
-          .res  12
+          .res  10
 
 .segment "CARTHDR"
         ; cartridge header

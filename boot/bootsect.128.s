@@ -11,11 +11,12 @@
 .import __CARTHDR_SIZE__, __CARTHDR_LOAD__
 
 C64DEST = $0801
+AS64    = $0C00
 
 .segment "DISKHDR"
 magic:  .byte "CBM"     ; magic number for boot sector
 
-addr:   .addr $0C00     ; address to load chained blocks to
+addr:   .addr AS64      ; address to load chained blocks to
 bank:   .byte $00       ; bank to load chained blocks to
 nblks:  .byte $01       ; number of chained blocks to load
 
@@ -34,11 +35,23 @@ bootexc:.byte 11      ; border color
 ; actual bootloader
 .segment "BOOT128"
 boot128:
+        ; clear $800 area so that running a C64 program will trigger BRK
+        ldx #0
+        txa
+@b1:    sta $800,X
+        dex
+        bne @b1        
+        ; set BRK vector
+        lda #<AS64
+        sta IBRK
+        lda #>AS64
+        sta IBRK+1
+        ; check for abort
         jsr STOP            ; check for stop
         beq boot128done
+
 ;        lda SHFLAG          ; check for shift
 ;        bne boot128done
-
         lda bootfgc
         bmi cfg1
         sta COLOR
@@ -50,7 +63,7 @@ cfg2:   lda bootexc
         sta EXTCOL
 cfg3:
 
-cmds128:
+cmds128:                ; print commands to execute
         leaxy cmds
         jsr print
         jsr colors
@@ -62,7 +75,7 @@ kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
         INC NDX
         INX
         BNE @loop
-boot128done:
+boot128done:    ; return to BASIC
         rts
 
 ; print xy = null terminated string
@@ -99,9 +112,9 @@ colors:
 ; this is called from $0C00, which is the user entry point
 .segment "RUN64"
 run64:
-        jsr STOP
-        bne run65
-        rts             ; stop was presseed, do nothing
+;        jsr STOP
+;        bne run65
+;        rts             ; stop was presseed, do nothing
 run65:
         leaxy banner
         jsr print
@@ -170,7 +183,11 @@ cmds:
         .byte 27,"T"   ; fix the screen top
 ;        .byte 14       ; lowercase
         .byte CR,CR
-        .byte "DLOAD", DQUOTE, FILE, DQUOTE
+        .byte "DLOAD", DQUOTE
+fnadr:
+        .byte FILE
+fnadr9:
+        .byte DQUOTE
         .byte CR, CR, CR, CR, CR
 ;        .byte 151     ; hide
         .byte "SYS3072"

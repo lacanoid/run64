@@ -1,10 +1,10 @@
-# Kmon
+# kmon
 
 Kmon is a command line interpreter (shell) for the commodore 64. It aims to runs with standard and compatible ROMs.
 It is intented to provide similar functions as are available on other systems, such as configuring and running programs.
 It is especially focused on running transient programs, that is programs which return control to the system when they are finished.
 
-It has been influenced by systems like kmon on RT-11, shell on unix, ccp on CP/M and command.com on MS-DOS.
+It has been influenced by systems like kmon on RT-11, shell on unix, ccp on CP/M, Amiga CLI and command.com on MS-DOS.
 It aims to be useful while remaining small.
 
 It is somewhat of a combination of machine language monitor and a shell for running programs.

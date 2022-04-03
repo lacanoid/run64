@@ -75,8 +75,9 @@ GETCHR: STX SAVX
         BEQ NOCHAR
         CMP #'?'
 NOCHAR: PHP
+;        BEQ @nc1
         INC CHRPNT          ; next char
-        LDX SAVX
+@nc1:   LDX SAVX
         PLP                 ; Z flag will signal last character
         RTS
 
@@ -145,11 +146,30 @@ SNCLP:  LDA #$20            ; output space character
 
 ; -----------------------------------------------------------------------------
 ; display message from table
-SNDMSG: LDA MSGBAS,Y        ; Y contains offset in msg table
+SNDMSG:
+        LDA MSGBAS,Y        ; Y contains offset in msg table
+.ifdef __C128__
+@s2:    lda MSGBAS,Y
+        and #$7f
+        beq @s1
+        jsr CHROUT
+        iny
+        bne @s2
+@s1:    rts
+
+        PHP
+        AND #$7F            ; strip high bit before output
+        JSR CHROUT
+        INY
+        PLP
+        BPL SNDMSG          ; loop until high bit is set
+@l1:    rts
+.else
         PHP
         AND #$7F            ; strip high bit before output
         JSR CHOUT
         INY
         PLP
         BPL SNDMSG          ; loop until high bit is set
+.endif
         RTS
