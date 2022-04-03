@@ -12,6 +12,7 @@ They include:
 # To do
 1. kmon run batch files
 1. kmon startup batch file 
+1. kmon n(ew) command
 1. kmon o(ld) command
 1. kmon m(emory) command
 1. pip CLI options
@@ -27,4 +28,5 @@ They include:
         * bootsect.128 init $800 area for BRK
         * kmon j(ump) and g(o) commands work better
         * kmon memory command > works
+        * pip has interactive mode
 

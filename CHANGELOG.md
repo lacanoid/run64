@@ -6,6 +6,7 @@ Version 0.7
 - convert from to trigrams in kmon (#)
 - boot parameters increased to 8 bytes
 - improved directory layout and build process
+- pip interactive mode
 
 Version 0.6
 ===========
