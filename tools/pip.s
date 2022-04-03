@@ -14,7 +14,7 @@
 
 pipfhi = 2
 pipfho = 3
-debug  = 1
+debug  = 0
 
 ; .segment "STARTUP"
 start:
@@ -217,7 +217,7 @@ main2:  ; interactive mode
 
         ; interactive mode here,,,
         ; print free memory
-        clc
+        sec
         lda FRETOP
         sbc STREND
         tax
@@ -371,12 +371,11 @@ c2:
         bcc crts
         cmp #$7b        
         bcs c3
-        clc
-        sbc #$1f   ; change case
+        sec
+        sbc #$20   ; change case
         rts
 
 c3:
-        rts
         cmp #$7b   ; '{'
         bne c31
         lda #179
