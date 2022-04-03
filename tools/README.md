@@ -22,11 +22,14 @@ They include:
 
 ## Changelog
 
+### 2022-04-02: pip 0.4 et al
+        * pip has interactive mode
+        * pip can convert from ASCII/ANSI (use /a option)
+
 ### 2022-04-01: pip 0.4 et al
         * build c128 binary pip.128
         * kmon no longer installs BRK handler by default
         * bootsect.128 init $800 area for BRK
         * kmon j(ump) and g(o) commands work better
         * kmon memory command > works
-        * pip has interactive mode
 

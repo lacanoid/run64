@@ -70,17 +70,6 @@ args:
 
         jsr GETOPT      ; get trailing options
 
-.if debug=1
-;        lda CLIOPT+3
-;        jsr WRTWO
-;        lda CLIOPT+2
-;        jsr WRTWO
-        lda CLIOPT+1
-        jsr WRTWO
-        lda CLIOPT
-        jsr WRTWO
-        jsr CRLF
-.endif
         ldy #0
 @l31:
         lda (FNADR),Y
@@ -180,6 +169,7 @@ copy_loop:
         sta QTSW
 
         txa
+;        jsr CHROUT
         jsr PUTCHR
         jsr READST
         bne feof
@@ -238,7 +228,7 @@ main2:  ; interactive mode
         LDY #MSG4-MSGBAS    ; display "bytes."
         JSR SNDMSG
 
-        jsr chartable
+;        jsr chartable
 
 main3:   ; prompt
         lda #'*'
@@ -334,13 +324,13 @@ T0:     .byte 0
 ; output a character
 
 .proc PUTCHR
-        jsr CONVERT
-        jmp CHROUT
-        rts
+;        jsr CONVERT
+;        jmp CHROUT
+;        rts
 
         pha
         lda CLIOPT
-        ora #2
+        and #$02
         beq @l11
         pla
         jsr CONVERT    ; convert ANSI to PETSCII
@@ -348,10 +338,11 @@ T0:     .byte 0
 @l11:
         pla
         jmp CHROUT
+        rts
 .endproc
 
 ; -----------------------------------------------------------------------------
-; convert ANSI to PETSCII
+; convert .a ASCII/ANSI to PETSCII
 .proc CONVERT
         cmp #10
         bne c1
@@ -381,10 +372,11 @@ c2:
         cmp #$7b        
         bcs c3
         clc
-        sbc #$20   ; change case
+        sbc #$1f   ; change case
         rts
 
 c3:
+        rts
         cmp #$7b   ; '{'
         bne c31
         lda #179
@@ -403,8 +395,9 @@ crts:
 .endproc
 
 ; -----------------------------------------------------------------------------
-; set filename and optional device number 
+; parse command line options 
 CLIOPT:    .byte 0,0,0,0
+
 .proc GETOPT 
         jsr GETSPC
         cmp #'/'
@@ -430,6 +423,19 @@ CLIOPT:    .byte 0,0,0,0
         jmp GETOPT
 done:
         dec CHRPNT
+
+.if 1
+;        lda CLIOPT+3
+;        jsr WRTWO
+;        lda CLIOPT+2
+;        jsr WRTWO
+;        lda CLIOPT+1
+;        jsr WRTWO
+        lda CLIOPT
+        jsr WRTWO
+        jsr CRLF
+.endif
+
         rts
 .endproc
 
