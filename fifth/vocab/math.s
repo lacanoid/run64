@@ -8,10 +8,10 @@ PROC EQ, "=="
   CmpLo 1
   bne false
   Insert 1, 1
-  rts  
+  NEXT  
   false:
   Insert 1, 0
-  rts
+  NEXT
 END
 
 PROC DIV, "/"
@@ -53,7 +53,7 @@ PROC DIV, "/"
       dex
       dex
       stx f_SP 
-      rts
+      NEXT
 END
 
 PROC MUL, "*"
@@ -89,11 +89,10 @@ PROC MUL, "*"
     lda product+1,x
     sta multiplier+1,x
     SpDec
-    rts
+    NEXT
 END 
 
 PROC ADD, "+"
-  PrintChr '+'
   ldx f_SP
   clc
   lda STACK-4,x
@@ -104,7 +103,7 @@ PROC ADD, "+"
   adc STACK-1,x
   sta STACK-3,x
   SpDec
-  rts
+  NEXT
 END
 
 PROC SUB, "-"
@@ -118,5 +117,5 @@ PROC SUB, "-"
   sbc STACK-1,x
   sta STACK-3,x
   SpDec
-  rts
+  NEXT
 END

@@ -29,6 +29,7 @@
     ; expects pointer to input in arg
     ; returns sec on failure
     ; otherwise clc and the length matched in x
+    clc
     jsr reset_cursor
     loop:
       jsr match_entry
@@ -38,7 +39,7 @@
       sec
       rts
     found:
-    clc
+      clc
       rts
   .endproc 
 
@@ -62,6 +63,7 @@
       PeekX arg
       cmp #33           ; check if the word has ended in the source
       bcs failed
+      txa
       clc
       rts
   .endproc 

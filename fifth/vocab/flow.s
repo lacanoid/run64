@@ -1,66 +1,140 @@
+PROC cQUOT, "", '"'
+  PushFrom HEAP_END 
+  loop:
+    lda eof
+    bne catch
+    jsr read_char
+    cmp #'"'
+    beq break
+    WriteA HEAP_END
+  bra loop
+  break:
+  lda #0
+  WriteA HEAP_END
+  rts
+  catch:
+    ThrowError "UNCLOSED STRING"
+END 
 
-CMD cCREATE, "CREATE"
-COMPILE
+PROC cEXIT, "EXIT"
+  inc runtime::ended
+  rts
+END
+
+PROC KEY
+  SpInc
+  ReadA compiler::POS
+  PushA
+  rts
+END
+
+PROC WORD
+  PrintString "WORD"
   jsr compiler::skip_space
+  PushFrom compiler::POS
   bcc not_eof
-    jmp compiler::die
+    cError "EOF"
   not_eof:
-  WriteYB HERE_PTR, bytecode::GTO, 0 ; id, it's a regulae word
-  IWriteY HERE_PTR, HERE_PTR
-  
-  WriteYW HERE_PTR, DEFAULT_COMPILER, vocab::compile_offset
-  WriteYW HERE_PTR, DEFAULT_LISTER
   ldx #0
   loop: 
-    ReadX compiler::offset
-    cmp #33
-    bcc break
-    pha 
+    ReadX compiler::POS
+    pha
     PrintChr
     pla
-    WriteY HERE_PTR
+    cmp #33
+    bcc break
     bra loop
   break:
-  WriteYB HERE_PTR, 0
+  dex
+  AdvanceX compiler::POS
   txa
-  IAddA compiler::offset
+  PushA
+  rts
+END
+
+CMD cCREATE, "CREATE"
+  jsr mode_compile
+  PrintString "CREATING"
+  jsr compiler::skip_space
+  bcc not_eof
+    cError "EOF"
+  not_eof:
+  WriteYB HERE, bytecode::NAT, 0
+  IWriteY HERE, HERE
+  
+  WriteYW HERE, DEFAULT_COMPILER, vocab::compile_offset
+  WriteYW HERE, DEFAULT_LISTER
+  ldx #0
+  loop: 
+    ReadX compiler::POS
+    cmp #33
+    bcc break
+    WriteY HERE
+    bra loop
+  break:
+  WriteYB HERE, 0
+  AdvanceX compiler::POS
+  jsr compiler::advance_offset
   tya
   tax
-  WriteYW HERE_PTR, cINT
-  IWriteY HERE_PTR, HERE_PTR 
-  WriteYW HERE_PTR, cRET
-  IMov TEMP_PTR, HERE_PTR
+  WriteYB HERE, DOCOL0
+  WriteYB HERE, DOCOL1
+  WriteYB HERE, DOCOL2
+  WriteYW HERE, cINT
+  IWriteY HERE, HERE 
+  WriteYW HERE, cRET
+  IMov TEMP_PTR, HERE
   txa
   IAddA TEMP_PTR
-  IWriteX HERE_PTR,TEMP_PTR,vocab::exec_offset
+  IWriteX HERE,TEMP_PTR,vocab::exec_offset
   IMov TEMP_PTR, VP
-  IWriteX HERE_PTR,TEMP_PTR,vocab::next_offset
-  IMov VP, HERE_PTR
+  IWriteX HERE,TEMP_PTR,vocab::next_offset
+  IMov VP, HERE
   tya
-  IAddA HERE_PTR
+  IAddA HERE
   PushFrom VP
+  PrintString "CREATED"
+  jsr mode_compile
   rts
   TEMP_PTR: .word 0
-  catch:
-    jmp compiler::die
 END
 
-CMD cDOES, "DOES"
-rts
-COMPILE
-  ISubB HERE_PTR, 6
-  CSet compiler::creating,$FF
+CMD cSEMI, ";"
+  cError "ONLY IN COMPILER MODE"
   rts
-END
-
-CMD cEND, ";"
-rts
 COMPILE
-  WriteXW HERE_PTR,cRET,0
-  IAddB HERE_PTR,2
+  PrintString "SHOULD BE DONE"
+  WriteXW HERE,cRET,0
+  IAddB HERE,2
   CClear compiler::creating
   rts
 END
+
+
+CMD cDOES, "DOES"
+  rts
+COMPILE
+  rts
+END
+
+CMD POSTPONE, "POSTPONE",2
+COMPILE
+  jsr compiler::skip_space
+  bcs catch 
+  
+  IMov vocab::arg, compiler::POS
+  jsr vocab::find_entry
+  bcs catch
+  IAddA compiler::POS
+  
+  IMov compiler::result, vocab::cursor
+  jmp compiler::write_result
+  rts
+  catch:
+    cError "NOT FOUND"
+END
+
+
 
 CMD cINT, "#INT",2
   jmp runtime::doInt
@@ -88,10 +162,7 @@ LIST
 END
 
 CMD cRET,"RET"
-  ;wait:
-  ;inc 53280
-  ;jmp wait
-  jmp runtime::doRet
+  NEXT
 END
 
 

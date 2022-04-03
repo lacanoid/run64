@@ -1,8 +1,7 @@
 
 PROC DROP
-  
   SpDec
-  rts 
+  NEXT 
 END 
 
 PROC SWAP
@@ -10,7 +9,7 @@ PROC SWAP
   Copy 1,0
   Copy 2,1
   Copy 0,2
-  rts
+  NEXT
 END 
 
 PROC ROT
@@ -19,25 +18,25 @@ PROC ROT
   Copy 2,3
   Copy 1,2
   Copy 0,1
-  rts
+  NEXT
 END
 
 PROC OVER
   Copy 2,0
   SpInc
-  rts 
+  NEXT
 END
 
 PROC DUP, "DUP"
   Copy 1,0
   SpInc
-  rts 
+  NEXT
 END
 
 PROC CLEAR
   lda #0
   sta f_SP
-  rts
+  NEXT
 END
 
 
@@ -60,14 +59,14 @@ PROC PRINT_STACK, "??"
     clc 
     bcc loop
   done:
-    rts
+    NEXT
 END
 
 PROC HEX, ".$"
   
   OutputHex
   SpDec
-  rts
+  NEXT
 END
 
 PROC DEC, "."
@@ -75,20 +74,20 @@ PROC DEC, "."
   OutputDec
   SpDec
   PrintChr ' '
-  rts
+  NEXT
 END
 
 PROC LOOK, "?"
   
   OutputDec
-  rts
+  NEXT
 END
 
 PROC SYS
   PopTo rewrite+1
   rewrite:
   jsr $DEF
-  rts
+  NEXT
 END
 
 PROC GET, "@"
@@ -102,7 +101,7 @@ PROC GET, "@"
   lda (TMP),y
   SetHi 1
   Unstash TMP
-  rts 
+  NEXT 
 END
 
 PROC SET,  "!"
@@ -118,5 +117,5 @@ PROC SET,  "!"
   SpDec
   SpDec
   Unstash TMP
-  rts 
+  NEXT 
 END

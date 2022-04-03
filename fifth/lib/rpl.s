@@ -3,8 +3,8 @@
   skip_depth: .byte 0
 
   .proc do_debug
-    ISet runtime::IP, compiler::BUFFER
-    jsr runtime::start
+    ISet IP, compiler::CBUF
+    jsr runtime::reset
     jmp debug::do_debug
   .endproc
 
@@ -15,15 +15,18 @@
       BraTrue compiler::error, catch      
       jsr do_debug
     Else
-      jsr compiler::compile
-      BraTrue compiler::error, catch 
+      jsr compiler::compile_line
+      BraTrue compiler::error, catch
       NewLine
-      Run compiler::BUFFER
+      ;Run compiler::CBUF
     EndIf
-    ColorPush 3
-    PrintChr 'O'
-    PrintChr 'K'
-    ColorPop
+    IfFalse compiler::creating
+      ColorPush 3
+      PrintString "OK"
+      ColorSet 4
+      jsr PRINT_STACK
+      ColorPop
+    EndIf
     rts
     catch:
       ColorPush 10
@@ -40,26 +43,26 @@
     ClearScreen
     PrintString "5TH 0.1"
     NewLine
-
+    jsr compiler::reset
     Begin
+      ColorSet 3
+      IfTrue compiler::creating
+        PrintChr '>'
+      Else
+        ;PrintChr '$'
+      EndIf
       ColorSet 1
 
       jsr getinput
 
       CMov COLOR, tmp_color
-      NewLine
+      NewLineSoft
 
       jsr do_line    
 
       CMov tmp_color, COLOR
       
-      ColorSet 3
-      jsr PRINT_STACK
-      PrintChr ' '
-      ColorSet 4      
-      ; Run HSIZE
-      ; Run DEC
-      NewLine
+      NewLineSoft
       BraTrue f_quit, break
     Again
     PrintString "BYE."

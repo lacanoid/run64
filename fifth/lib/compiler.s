@@ -1,3 +1,9 @@
+.macro cError msg
+  PrintString msg
+  jmp compiler::die;
+
+.endmacro
+
 .macro cWriteCtl
   jsr compiler::write_ctl
 .endmacro
@@ -32,15 +38,15 @@
   jsr compiler::write_ref
 .endmacro
 
-  .scope compiler
-  BUFFER: .res 256
-  INPUT: .word BUF
-  CP: 
-    .word BUFFER
-  creating: 
+.scope compiler
+  INPUT   = BUF
+  CBUF    : .res 256
+  CUR     : .word BUF
+  POS     : .word 0
+  CP      : .word CBUF
+  creating:
+  ::creating: 
     .byte 0
-  offset:
-    .word 0
   eof:
     .byte 0
   error:
@@ -53,24 +59,47 @@
     .byte 3
   result: 
     .word 0
+  
+
+  ::mode_compile:
+  .proc mode_compile
+    CSet creating,$FF
+    rts
+  .endproc
+
+  ::mode_interpret:
+  .proc mode_interpret
+    CClear creating
+    rts
+  .endproc
 
   .proc advance_pointer
-    inc INPUT
+    inc CUR
     BraTrue skip
-    inc INPUT+1
+    inc CUR+1
     skip:
     rts
   .endproc
 
+  ::print_POS:
+  .proc print_POS
+    PrintString "[POS:"
+    IPrintHex POS
+    PrintChr ':'
+    PeekA POS
+    jsr print::dump_char
+    PrintChr ']'
+  .endproc
+
   .proc advance_offset
-    ;IMov offset, input::ptr
-    IMov offset, INPUT
+    ;IMov POS, input::ptr
+    IMov POS, CUR
     rts
   .endproc
 
   .proc reset_pointer
-    ;IMov offset, input::ptr
-    IMov INPUT,offset
+    ;IMov POS, input::ptr
+    IMov CUR,POS
     rts
   .endproc
 
@@ -80,7 +109,7 @@
     ldx #0
     loop:
     ;jsr input::read
-    PeekX INPUT
+    PeekX CUR
     BraFalse stop
     BraEq #13, stop
     BraGe #33, done
@@ -102,7 +131,7 @@
     ldx #0
     Begin
     ;jsr input:read
-    PeekX INPUT
+    PeekX CUR
     BraLt #33, break
     jsr CHROUT
     jsr advance_pointer
@@ -111,10 +140,11 @@
   .endproc
 
 
-  .proc parse_word
+
+  .proc compile_word
     jsr reset_pointer
     ;jsr input::read
-    PeekA INPUT
+    PeekA CUR
     JmpEq #34, parse_string
     JmpEq #'$', parse_hex
     BraLt #'0', not_dec
@@ -133,7 +163,7 @@
     ldx #0
     hex_digit:
     ; jsr input::read
-    PeekX INPUT
+    PeekX CUR
     and #$7f
 
     cmp #33
@@ -165,7 +195,7 @@
     jmp hex_digit 
 
     hex_error:
-    jmp die
+    cError "HEX"
     hex_done:
     jsr advance_offset
     jmp write_int
@@ -178,7 +208,7 @@
     dec_digit:
     
       ; jsr input::read
-      PeekX INPUT
+      PeekX CUR
       and #$7f
       
       BraLt #33, dec_done
@@ -204,7 +234,7 @@
       jmp dec_digit
 
     dec_error:
-      jmp die
+      cError "DEC"
       rts 
 
     dec_done:
@@ -225,7 +255,7 @@
     ldx #0
     Begin
     ; jsr input::read
-    PeekX INPUT
+    PeekX CUR
     BraLt #32, catch
     BraEq #34, break
     jsr write
@@ -239,29 +269,24 @@
     cDrop
     rts
     catch:
-    jmp die
+    cError "QUOT"
   .endproc  
 
   .proc parse_entry
-    IMov vocab::arg, offset
+    IMov vocab::arg, POS
     jsr vocab::find_entry
     bcc found
-      jmp die
+      cError "NOT FOUND"
     found:
     txa
-    IAddA offset
+    IAddA POS
     IMov result,vocab::cursor
     jmp write_entry
   .endproc ; parse_entry
 
   .proc write_entry
     ;IPrintHex result
-    PeekX result, vocab::compile_offset
-    sta rewrite+1
-    PeekX result, 1+vocab::compile_offset
-    sta rewrite+2
-    rewrite:
-    jmp $FEDA
+    jmp write_ctl
   .endproc
 
   .proc write
@@ -269,7 +294,7 @@
     lda creating
     beq nope
       pla
-      WriteA HERE_PTR
+      WriteA HERE
       rts
     nope:
       pla
@@ -385,47 +410,78 @@
   .endproc
   
   .proc compile_skip_first
-    ISet offset, BUF+1
-    jmp do_compile
+    ISet POS, BUF+1
+    jmp compile_line
   .endproc
 
-  .proc compile
-  ISet offset, BUF
-  .endproc  
+  
+  .proc do_word
+    jsr skip_space
+    BraTrue eof, exit
+    ;jsr print_POS
+    jsr compile_word
+    ;jsr print_POS
+    ;NewLine
+    BraTrue error, exit
+    jsr skip_space
+    BraTrue eof, exit
+    jsr run_step_over
+    exit:
+    rts
+  .endproc
 
-  .proc do_compile
-  ISet CP, BUFFER
+.proc reset
+  ISet CP, CBUF
+  ISet IP, CBUF
   CClear creating
+  jsr runtime::reset
+  rts
+.endproc
+
+.proc compile_line
+  ISet CUR, INPUT
+  ISet POS, INPUT
   CClear eof
   CClear error
   CClear csp
   Begin
-    jsr skip_space
+    jsr do_word
     BraTrue eof, break
-    
-    jsr parse_word
     BraTrue error, catch
+    BraTrue runtime::ended, catch
   Again
-  ;lda #bytecode::CTL
-  ;jsr write
-  CClear creating
+  PrintString "EOL"
+  IfTrue creating
+    rts
+  EndIf
+  catch:
+    jsr reset
+    rts
+  ;RPop
   lda #<cRET
   jsr write
   lda #>cRET
-  jsr write
-  
+  jsr write 
   lda csp
   bne rmismatch
-
   rts
-  catch:
-    jmp die
+  xcatch:
+    jsr reset
+  ;jsr runtime::start
+  
+  rts
+  
+    rts 
   exit:
     rts
+  
   .endproc
 
   .proc die
     inc error
+    ISet CP, CBUF
+    ISet IP, CBUF
+    CClear creating
     rts
   .endproc 
 
@@ -436,8 +492,7 @@
     lda csp
     jsr print::print_hex_digits
     PrintChr '('
-    inc error
-    rts
+    jmp die
   .endproc
 
   .proc rmismatch
@@ -446,7 +501,6 @@
     lda csp
     jsr print::print_hex_digits
     PrintChr ')'
-    inc error
-    rts
+    jmp die
   .endproc
   .endscope
