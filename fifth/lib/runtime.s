@@ -78,17 +78,6 @@
     jmp goto_from_ip
   .endproc
 
-  .proc doInt
-    ;PrintString "INT"
-    SpInc
-    ReadA IP
-    SetLo 1
-    ReadA IP
-    SetHi 1
-    clc
-    rts
-  .endproc
-
 
   .proc doRet
     jmp EXIT

@@ -11,21 +11,27 @@ PROC cQUOT, "", '"'
   break:
   lda #0
   WriteA HEAP_END
-  rts
+  NEXT
   catch:
     ThrowError "UNCLOSED STRING"
 END 
 
-PROC cEXIT, "EXIT"
-  inc runtime::ended
-  rts
+PROC EXIT
+  IfFalse RP
+    PrintString "EXIT"
+    ;jsr print_IP
+    ;GetKey
+    jmp (IP)
+  EndIf
+  RPop
+  NEXT
 END
 
 PROC KEY
   SpInc
   ReadA compiler::POS
   PushA
-  rts
+  NEXT
 END
 
 PROC WORD
@@ -49,7 +55,7 @@ PROC WORD
   AdvanceX compiler::POS
   txa
   PushA
-  rts
+  NEXT
 END
 
 CMD cCREATE, "CREATE"
@@ -95,26 +101,26 @@ CMD cCREATE, "CREATE"
   PushFrom VP
   PrintString "CREATED"
   jsr mode_compile
-  rts
+  NEXT
   TEMP_PTR: .word 0
 END
 
 CMD cSEMI, ";"
   cError "ONLY IN COMPILER MODE"
-  rts
+  NEXT
 COMPILE
   PrintString "SHOULD BE DONE"
   WriteXW HERE,cRET,0
   IAddB HERE,2
   CClear compiler::creating
-  rts
+  NEXT
 END
 
 
 CMD cDOES, "DOES"
-  rts
+  NEXT
 COMPILE
-  rts
+  NEXT
 END
 
 CMD POSTPONE, "POSTPONE",2
@@ -129,36 +135,42 @@ COMPILE
   
   IMov compiler::result, vocab::cursor
   jmp compiler::write_result
-  rts
+  NEXT
   catch:
     cError "NOT FOUND"
 END
 
 
 
-CMD cINT, "#INT",2
-  jmp runtime::doInt
-COMPILE
-  rts
+PROC cINT, "#INT",2
+    SpInc
+    ReadA IP
+    SetLo 1
+    ReadA IP
+    SetHi 1
+    NEXT
+/*COMPILE
+  NEXT
 LIST
   PeekA LP,2
   sta print::arg
   PeekA LP,3
   sta print::arg+1
   jmp print::print_dec
+*/
 END
 
 CMD cSTR, "#STR",2
   jmp runtime::doStr
 COMPILE
-  rts
+  NEXT
 LIST
   PrintChr '"'
   IMov print::arg, LP
   IAddB print::arg, 4
   jsr print::print_z
   PrintChr '"'
-  rts
+  NEXT
 END
 
 CMD cRET,"RET"
@@ -171,7 +183,7 @@ CMD cIF,"IF",2
 COMPILE
   cWriteCtl
   cWriteHope IF0
-  rts
+  NEXT
 END
 
 CMD cELSE,"ELSE",2
@@ -182,30 +194,30 @@ COMPILE
   bcs catch
   cDrop
   cWriteHope IF0 
-  rts
+  NEXT
   catch:
     jmp compiler::rmismatch
 END
 
 CMD cTHEN,"THEN"
-  rts
+  NEXT
 COMPILE
   cResolveHope IF0
   bcs catch
   cDrop
   cWriteCtl
-  rts
+  NEXT
   catch:
     jmp compiler::rmismatch
 END
 
 
 CMD cBEGIN,"BEGIN"
-  rts
+  NEXT
 COMPILE
   cWriteCtl
   cStoreRef BGN
-  rts
+  NEXT
 END
 
 CMD cWHILE,"WHILE",2
@@ -213,7 +225,7 @@ CMD cWHILE,"WHILE",2
 COMPILE
   cWriteCtl
   cWriteHope WHL
-  rts
+  NEXT
 END
 
 CMD cAGAIN,"AGAIN",2
@@ -230,7 +242,7 @@ COMPILE
   cWriteRef BGN
   bcs catch
   cDrop
-  rts
+  NEXT
   catch:
     jmp compiler::rmismatch
 END

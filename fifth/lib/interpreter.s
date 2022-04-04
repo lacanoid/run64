@@ -41,23 +41,25 @@
 .endmacro
 
 .macro NEXT
+  .local here
   jmp DO_NEXT
-  nop
 .endmacro
 
 .proc DO_NEXT
-  ;jsr print_IP
-  ;jsr print_depth
+   PrintString "NEXT"
+   jsr print_IP
+   jsr print_depth
 
-  ; PeekX IP
-  ; sta print::arg
-  ; PeekX IP,1
-  ; sta print::arg+1
-  ; jsr print::dump_hex
-  ; wait:
-  ;  jsr GETIN
-  ; beq wait
-
+   PeekX IP,0
+   sta print::arg
+   PeekX IP,1
+   sta print::arg+1
+   ;ISubB print::arg,2
+   jsr print::dump_hex
+   wait:
+    jsr GETIN
+   beq wait
+  
   IMov rewrite+1,IP
   IAddB IP, 2
   rewrite: 
@@ -66,28 +68,19 @@
 
 
 .proc DO_DOCOL
+    ;WPrintHex THEEND
     pla
     sta IP
     pla
     sta IP+1
     IInc IP
+    jsr print_IP
     RPush 2
     NEXT
 .endproc
 
 
-.proc EXIT
-  RPop
-  IfFalse RP
-    ;jsr print_IP
-    ;PrintString "EXITING"
-    ;GetKey
-    jmp (IP)
-  EndIf
-  PrintString "NOT EXITING"
-  GetKey
-  NEXT
-.endproc
+
 
 DOCOL0 = $20
 DOCOL1 = <DO_DOCOL
@@ -139,14 +132,17 @@ DOCOL2 = >DO_DOCOL
     jsr vocab::find_entry
     bcs not_found
     IMov entry, vocab::cursor
-    ;WPrintHex entry  
+    WPrintHex entry  
+    WPrintHex THEEND
     DOCOL
     entry: .word $DEFA
     _ EXIT
+    THEEND:
     ;PrintString "THIS IS THE WAY"
     ;GetKey
     clc
     rts
+    .asciiz "THEEND"
     not_found:
     sec
     rts
@@ -187,7 +183,9 @@ DOCOL2 = >DO_DOCOL
     PushA
     lines:
       
-      ;jsr PRINT_STACK
+      ;DOCOL
+      ;_ PRINT_STACK
+      ;_ EXIT
       NewLine
       PrintChr 'R'
       PrintChr '>'

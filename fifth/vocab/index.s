@@ -11,11 +11,11 @@ PROC VLIST
     jsr vocab::advance_cursor
     bne print_entry
   NewLine
-  rts
+  NEXT
 END
 
 PROC QUIT
   __next_entry__=0
   inc rpl::f_quit
-  rts 
+  NEXT
 END
