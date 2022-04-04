@@ -4,7 +4,7 @@ jmp idump
 .include "macros/index.s"
 .include "../utils.s"
  
- mode: .byte 0
+ MODE: .byte 0
  CP: .word $0000
  DP = $FB
  PP = $FD 
@@ -17,10 +17,16 @@ jmp idump
   ISet PP, 1024  
   jsr print_z
   PrintChr 14
+  CSet $CC, 0
+  ::main_loop:
   loop:
-    jsr dump_hex
+    lda MODE
+    beq hex
+      jsr dump_text
+      bra wait
+    hex:
+      jsr dump_hex
 
-    CSet $CC, 0
     wait: 
       jsr GETIN
     beq wait
@@ -28,29 +34,57 @@ jmp idump
     and #$7F
 
     BraEq #'Q',exit
-    IfEq #'W'
-      ISubB CP, $80
-      bra next
-    EndIf
-    IfEq #'S'
-      IAddB CP, $80
-      bra next
-    EndIf
-    IfEq #'A'
-      ISubB CP+1, $10
-      bra next
-    EndIf
-    IfEq #'D'
-      IAddB CP+1,$10
-      bra next
-    EndIf
+    BraEq #'M',mode
+    BraEq #'W',up 
+    BraEq #$91,up 
+    BraEq #'S',down 
+    BraEq #$11,down 
+    BraEq #'A',left 
+    BraEq #$9d,left 
+    BraEq #'D',right 
+    BraEq #$1d,right 
     bra wait
-  next:
-    ldx #16
-  bra loop
+    up:
+      jmp key_up
+    down:
+      jmp key_down
+    left:
+      jmp key_left
+    right: 
+      jmp key_right
+    mode:
+      jmp key_mode
   exit:
     ClearScreen
   rts
+.endproc
+
+.proc key_up
+  ISubB CP, $80
+  jmp main_loop
+.endproc 
+
+.proc key_down
+  IAddB CP, $80
+  jmp main_loop
+.endproc   
+.proc key_left
+  ISubB CP+1, $10
+  jmp main_loop
+.endproc 
+.proc key_right 
+  IAddB CP+1, $10
+  jmp main_loop
+.endproc 
+.proc key_mode
+  lda MODE
+  eor #$FF
+  sta MODE
+  jmp main_loop
+.endproc
+
+.proc print_space
+  lda #' '
 .endproc
 
 .proc print_char
@@ -71,7 +105,6 @@ jmp idump
 .proc dump_hex
   ldx #0
   ldy #0
-  clc
   jsr PLOT
   ISet PP, 1064
   IMov DP, CP
@@ -87,14 +120,14 @@ jmp idump
     jsr print_hex_digits
     lda DP
     jsr print_hex_digits
-    jsr incPP
+    jsr print_space
     
     .scope print_bytes
       loop:
       tya
       and #1
       bne colon
-        jsr incPP
+        jsr print_space
         bra space
       colon:
         lda #':'
@@ -110,13 +143,13 @@ jmp idump
       break:
     .endscope
     ISubB DP, 8
-    jsr incPP
+    jsr print_space
     .scope print_chars
       loop:
         tya
         and #3
         bne skip
-          jsr incPP
+          jsr print_space
         skip: 
         lda (DP,x)
         jsr print_char
@@ -136,6 +169,48 @@ jmp idump
 .endproc
 
 
+
+.proc dump_text
+  ldx #0
+  ldy #0
+  jsr PLOT
+  ISet PP, 1064
+  IMov DP, CP
+  
+  jsr do_dump_text
+  jsr do_dump_text
+  ;continue
+.endproc
+
+.proc do_dump_text
+  ldy #0
+  print_line:
+    lda DP+1
+    jsr print_hex_digits
+    lda DP
+    jsr print_hex_digits
+    jsr print_space
+    jsr print_space
+    .scope print_chars
+      loop:
+        lda (DP,x)
+        jsr print_char
+        jsr incDP
+        dey
+        tya
+        and #31
+        bne loop
+      break:
+  .endscope
+  next_line:
+  jsr print_space 
+  jsr print_space 
+  tya
+  BraFalse exit
+  jmp print_line
+  exit:
+    rts
+.endproc
 
   .proc print_hex_digits
     pha
