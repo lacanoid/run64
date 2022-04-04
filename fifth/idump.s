@@ -31,18 +31,17 @@ jmp idump
       jsr GETIN
     beq wait
     
+    BraEq #$91,up 
+    BraEq #$9d,left 
+    BraEq #$11,down 
+    BraEq #$1d,right 
     and #$7F
-
     BraEq #'Q',exit
     BraEq #'M',mode
     BraEq #'W',up 
-    BraEq #$91,up 
     BraEq #'S',down 
-    BraEq #$11,down 
     BraEq #'A',left 
-    BraEq #$9d,left 
     BraEq #'D',right 
-    BraEq #$1d,right 
     bra wait
     up:
       jmp key_up
