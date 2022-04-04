@@ -82,9 +82,21 @@ NOCHAR: PHP
         RTS
 
 ; -----------------------------------------------------------------------------
+; skip white space
+
+.proc GETSPC
+        JSR GETCHR
+        BEQ done        ; end of string
+        CMP #$20        ; skip leading spaces
+        BEQ GETSPC
+done:
+        rts
+.endproc
+
+; -----------------------------------------------------------------------------
 ; parse optionally quoted filename from command line
 
-GETFNADR:
+.proc GETFNADR
         lda #$20
         sta GETFNTERM
 GETFNADR1:
@@ -129,6 +141,7 @@ GETFNADRE:
         rts
 GETFNTERM:
         .byte 0
+.endproc ; GETFNADR
 
 ; -----------------------------------------------------------------------------
 ; print and clear routines
