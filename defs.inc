@@ -66,9 +66,16 @@ DFLTO     = $9A        ; Default Output Device #
 T1        = $9E        ; Tape pass 1 error log index
 T2        = $9F        ; Tape pass 2 error log correction index
 
+C3P0      = $94
+BSOUR     = $95
+R2D2      = $A3
+BSOUR1    = $A4
+BUFPT     = $A6        ; Count of Characters in (Tape) I/O Buffer
+
 TIME      = $A0        ; (3) Software Jiffy Clock 
 SAL       = $AC        ; (2) Pointer to the Starting Address of a Load/Screen Scrolling (temporary)
 EAL       = $AE        ; (2) Pointer to Ending Address of Load (End of Program)
+
 
 FNLEN     = $B7        ; Length of Current Filename
 SA        = $B9        ; current secondary address (official name SA)
@@ -76,7 +83,7 @@ FA        = $BA        ; Current Device Number
 FNADR     = $BB        ; (2) Pointer: Current Filename
 
 ; -----------------------------------------------------------------------------
-; temporary pointers
+; temporary ZP vars
 TMP0      = $C1        ; used to return input, often holds end address
 TMP1      = $C2        ;
 TMP2      = $C3        ; usually holds start address
