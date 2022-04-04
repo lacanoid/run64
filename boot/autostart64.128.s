@@ -47,7 +47,9 @@ relocate:
         bne @loop3
 .endif
 
-; copy C64 autostart code into place from screen to $8000
+; copy C64 autostart code into place from screen to $8000, 
+; swap bytes with original at $8000
+; they will be restored when in c64 mode
 copy:   LDX  #< (__CARTHDR_SIZE__ + 1)
 @loop:  
         LDA VICCRTB - 1, X
