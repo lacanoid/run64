@@ -28,26 +28,27 @@ jmp idump
     and #$7F
 
     BraEq #'Q',exit
-    IfEq #'W'
-      ISubB CP, $80
-      bra next
-    EndIf
-    IfEq #'S'
-      IAddB CP, $80
-      bra next
-    EndIf
-    IfEq #'A'
-      ISubB CP+1, $10
-      bra next
-    EndIf
-    IfEq #'D'
-      IAddB CP+1,$10
-      bra next
-    EndIf
+    BraEq #'W',up 
+    BraEq #$91,up 
+    BraEq #'S',down 
+    BraEq #$11,down 
+    BraEq #'A',left 
+    BraEq #$9d,left 
+    BraEq #'D',down 
+    BraEq #$1d,right 
     bra wait
-  next:
-    ldx #16
-  bra loop
+    up:
+      ISubB CP, $80
+      bra loop
+    down:
+      IAddB CP, $80
+      bra loop
+    left:
+      ISubB CP+1, $10
+      bra loop
+    right: 
+      ISubB CP+1, $10
+      bra loop
   exit:
     ClearScreen
   rts
