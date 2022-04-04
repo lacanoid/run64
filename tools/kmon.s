@@ -28,7 +28,8 @@ resultRegister = $d7ff
 
 ; -----------------------------------------------------------------------------
 ; initial entry point
-SUPER:  LDY #MSG4-MSGBAS    ; display "..SYS "
+SUPER: 
+        LDY #MSG4-MSGBAS    ; display "..SYS "
         JSR SNDMSG
         LDA SUPAD           ; store entry point address in tmp0
         STA TMP0
@@ -243,7 +244,7 @@ L8:     STX CHRPNT          ; set character pointer to the current index
         LDX TMP0            ; put low byte of end address in X
         LDY TMP0+1          ; put high byte of end address in Y
         LDA SAVY            ; confirm that we're doing a save
-        CMP #'S'
+        CMP #'s'
         BNE LERROR          ; if not, error due to too many params
         LDA #0
         STA SA            ; set secondary address to 0
@@ -251,9 +252,9 @@ L8:     STX CHRPNT          ; set character pointer to the current index
         JSR SAVE            ; call kernal save routine
 LSVXIT: JMP STRT            ; back to mainloop
 LSHORT: LDA SAVY            ; check which command we received
-        CMP #'V'
+        CMP #'v'
         BEQ LOADIT          ; we're doing a verify so don't set A to 0
-        CMP #'L'
+        CMP #'l'
         BNE LERROR          ; error due to not enough params for save
         LDA #0              ; 0 in A signals load, anything else is verify
 LOADIT: JSR LOAD            ; call kernal load routine
@@ -811,16 +812,16 @@ DREXIT: JSR UNTLK           ; command device to untalk
 
 MSGBAS  =*
 MSG0:   .BYTE 14
-        .BYTE "KMON 0.7",' '+$80
+        .BYTE "kmon 0.7",' '+$80
 MSG1:   .BYTE $0D               ; header for registers
-        .BYTE "*ERR",'*'+$80
+        .BYTE "*err",'*'+$80
 MSG2:   .BYTE $0D               ; header for registers
-        .BYTE "*BRK*",$20+$80
+        .BYTE "*brk*",$20+$80
 MSG3:   .BYTE $1D,$3F+$80       ; syntax error:move right, display "?"
-MSG4:   .byte "..SYS"           ; SYS call to enter monitor
+MSG4:   .byte "..sys"           ; SYS call to enter monitor
         .BYTE $20+$80
 MSG5:   .BYTE $3A,$12+$80       ; ":" then RVS ON for memory ASCII dump
-MSG6:   .byte " ERROR",$80      ; I/O error:display " ERROR"
+MSG6:   .byte " error",$80      ; I/O error:display " ERROR"
 MSG7:   .BYTE $41,$20+$80       ; assemble next instruction:"A " + addr
 MSG8:   .byte "  "              ; pad non-existent byte:skip 3 spaces
         .BYTE $20+$80
@@ -903,16 +904,16 @@ textinfo:
         rts
 
 ;msg0:    .asciiz "MEMBOT "
-msg1:    .asciiz "TXTTAB "
-msg2:    .asciiz "VARTAB "
+msg1:    .asciiz "txttab "
+msg2:    .asciiz "vartab "
 ;msg3:    .asciiz "ARYTAB "
-msg4:    .asciiz "STREND "
-msg5:    .asciiz "FRETOP "
-msg6:    .asciiz "MEMSIZ "
+msg4:    .asciiz "strend "
+msg5:    .asciiz "fretop "
+msg6:    .asciiz "memsiz "
 ;msgN:    .asciiz "MEMTOP "
 ;msgSAL:  .asciiz "SAL    "
-msgEAL:  .asciiz "EAL    "
-msgFNADR:.asciiz "FNADR  "
+msgEAL:  .asciiz "eal    "
+msgFNADR:.asciiz "fnadr  "
 
 DSPLYI:jsr CRLF
         jsr basicinfo
@@ -942,13 +943,12 @@ basicinfo:
 
         rts
 
-msgb1: .asciiz "IERROR "
-msgb2: .asciiz "IMAIN  "
-msgb3: .asciiz "ICRNCH "
-msgb4: .asciiz "IQPLOP "
-msgb5: .asciiz "IGONE  "
-msgb6: .asciiz "IEVAL  "
-
+msgb1: .asciiz "ierror "
+msgb2: .asciiz "imain  "
+msgb3: .asciiz "icrnch "
+msgb4: .asciiz "iqplop "
+msgb5: .asciiz "igone  "
+msgb6: .asciiz "ieval  "
 
 vectorinfo:
         msg msgc1
@@ -962,9 +962,9 @@ vectorinfo:
         jsr hexoutxynl
         rts
 
-msgc1: .asciiz "IIRQ   "
-msgc2: .asciiz "IBRK   "
-msgc3: .asciiz "INMI   "
+msgc1: .asciiz "iirq   "
+msgc2: .asciiz "ibrk   "
+msgc3: .asciiz "inmi   "
 
 
 listvars:
@@ -1277,8 +1277,8 @@ CMDDI0:.asciiz "@8,$"
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
-KEYW:   .byte "BDEGHIJMNRX@>#"
-HIKEY:  .byte "$+&%LSV"
+KEYW:   .byte "bdeghijmnrx@>#"
+HIKEY:  .byte "$+&%lsv"
 KEYTOP  =*
 
 ; vectors corresponding to commands above
@@ -1411,10 +1411,10 @@ SNDMSG2:
         RTS
 
 MSGBAS2  =*
-MSG2_0:   .BYTE $0d,".RUN",$0D+$80
-MSG2_1:   .BYTE $0d,"?IO",$20+$80
+MSG2_0:   .BYTE $0d,".run",$0D+$80
+MSG2_1:   .BYTE $0d,"?io",$20+$80
 TB_FNLEN: .byte 4
-TB_FN:    .byte "KMON"
+TB_FN:    .byte "kmon"
           .res  10
 
 .ifdef __C64__

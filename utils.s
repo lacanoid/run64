@@ -22,30 +22,37 @@ SPACE:  LDA #$20            ; output space
 
 CHOUT:  CMP #$0D            ; output char with special handling of CR
         BNE FLIP
-CRLF:   LDA #$0D            ; load CR in A
+
+CRLF:
+        LDA #$0D            ; load CR in A
         BIT $13             ; check default channel
         BPL FLIP            ; if high bit is clear output CR only
         JSR CHROUT          ; otherwise output CR+LF
         LDA #$0A            ; output LF
 FLIP:   JMP CHROUT
 
-FRESH:  JSR CRLF            ; output CR
+.proc FRESH
+        JSR CRLF            ; output CR
         LDA #$20            ; load space in A
         JSR CHROUT
         JMP SNCLR
+.endproc
 
 ; -----------------------------------------------------------------------------
 ; output two hex digits for byte
-WRTWO:  STX SAVX            ; save X
+.proc WRTWO
+        STX SAVX            ; save X
         JSR ASCTWO          ; get hex chars for byte in X (lower) and A (upper)
         JSR CHROUT          ; output upper nybble
         TXA                 ; transfer lower to A
         LDX SAVX            ; restore X
         JMP CHROUT          ; output lower nybble
+.endproc
 
 ; -----------------------------------------------------------------------------
 ; convert byte in A to hex digits
-ASCTWO: PHA                 ; save byte
+.proc ASCTWO
+        PHA                 ; save byte
         JSR ASCII           ; do low nybble
         TAX                 ; save in X
         PLA                 ; restore byte
@@ -61,13 +68,16 @@ ASCII:  AND #$0F            ; clear upper nibble
         ADC #6              ; skip ascii chars between 9 and A
 ASC1:   ADC #$30            ; add ascii char 0 to value
         RTS
+.endproc
 
 ; -----------------------------------------------------------------------------
 ; get prev char from input buffer
 GOTCHR: DEC CHRPNT
 
 ; get next char from input buffer
-GETCHR: STX SAVX
+
+.proc GETCHR
+        STX SAVX
         LDX CHRPNT          ; get pointer to next char
         LDA BUF,X        ; load next char in A
         BEQ NOCHAR          ; null, :, or ? signal end of buffer
@@ -80,6 +90,7 @@ NOCHAR: PHP
 @nc1:   LDX SAVX
         PLP                 ; Z flag will signal last character
         RTS
+.endproc
 
 ; -----------------------------------------------------------------------------
 ; skip white space
@@ -145,10 +156,13 @@ GETFNTERM:
 
 ; -----------------------------------------------------------------------------
 ; print and clear routines
-CLINE:  JSR CRLF            ; send CR+LF
+CLINE:
+        JSR CRLF            ; send CR+LF
         JMP SNCLR           ; clear line
 SNDCLR: JSR SNDMSG
-SNCLR:  LDY #$28            ; loop 40 times
+
+.proc SNCLR
+        LDY #$28            ; loop 40 times
 SNCLP:  LDA #$20            ; output space character
         JSR CHROUT
         LDA #$14            ; output delete character
@@ -156,34 +170,17 @@ SNCLP:  LDA #$20            ; output space character
         DEY
         BNE SNCLP
         RTS
+.endproc
 
 ; -----------------------------------------------------------------------------
 ; display message from table
 .proc SNDMSG
         LDA MSGBAS,Y        ; Y contains offset in msg table
-.ifdef __C128__
-@s2:    lda MSGBAS,Y
-        and #$7f
-        beq @s1
-        jsr CHROUT
-        iny
-        bne @s2
-@s1:    rts
-
-        PHP
-        AND #$7F            ; strip high bit before output
-        JSR CHROUT
-        INY
-        PLP
-        BPL SNDMSG          ; loop until high bit is set
-@l1:    rts
-.else
         PHP
         AND #$7F            ; strip high bit before output
         JSR CHOUT
         INY
         PLP
         BPL SNDMSG          ; loop until high bit is set
-.endif
         RTS
 .endproc
