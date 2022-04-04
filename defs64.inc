@@ -16,10 +16,6 @@ VARNAM = $45    ; Current BASIC Variable Name
 VERCK  = $0A
 COUNT  = $0B
 
-C3P0   = $94
-BSOUR  = $95
-R2D2   = $A3
-BSOUR1 = $A4
 CMP0   = $B0
 TEMP   = $B1
 
@@ -53,6 +49,7 @@ KOUNT  = $028B  ; Counter for Timing the Delay Between Key Repeats
 DELAY  = $028C  ; Counter for Timing the Delay Until the First Key Repeat Begins
 SHFLAG = $028C  ; Shift key status flag
 
+; vectors
 IERROR = $0300  ; Vector to the Print BASIC Error Message Routine
 IMAIN  = $0302  ; Vector to the Main BASIC Program Loop
 ICRNCH = $0304  ; Vector to the Routine That Crunches the ASCII Text of Keywords into Tokens
@@ -60,9 +57,12 @@ IQPLOP = $0306  ; Vector to the Routine That Lists BASIC Program Token as ASCII 
 IGONE  = $0308  ; Vector to the Routine That Executes the Next BASIC Program Token
 IEVAL  = $030A  ; Vector to the Routine That Evaluates a Single-Term Arithmetic Expression
 
-CINV   = $0314  ; Vector to IRQ Interrupt Routine
-CBINV  = $0316  ; Vector: BRK Instruction Interrupt
-NMINV  = $0318  ; Vector: Non-Maskable Interrupt 
+IIRQ   = $0314  ; Vector to IRQ Interrupt Routine
+IBRK   = $0316  ; Vector: BRK Instruction Interrupt
+INMI   = $0318  ; Vector: Non-Maskable Interrupt 
+CINV   = IIRQ
+CBINV  = IBRK
+NMINV  = INMI
 
 IBASIN = $0324  ;
 IBSOUT = $0326  ; 
@@ -76,7 +76,7 @@ CLEARC  = $A663 ; perform CLEAR
 STXTPT  = $A68E ; reset text pointer 
 LIST    = $A69C ; perform LIST
 RUN     = $A871 ; perform RUN
-NEWSTT  = $A7AE ;
+NEWSTT  = $A7AE ; executes the next BASIC statement
 LINPRT  = $BDCD ; print unsigned integer .a = high .x = low
 
 ; kernal magic api

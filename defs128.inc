@@ -56,12 +56,29 @@ QTSW    = $F4    ; Flag: Editor in Quote Mode? 0=No
 INSRT   = $F5    ; Insert Mode Flag
 
 ; vectors
-IIRQ      = $0314  ; Vector to IRQ Interrupt Routine
-IBRK      = $0316  ; Vector: BRK Instruction Interrupt
-INMI      = $0318  ; Vector: Non-Maskable Interrupt 
+IERROR = $0300  ; Vector to the Print BASIC Error Message Routine
+IMAIN  = $0302  ; Vector to the Main BASIC Program Loop
+ICRNCH = $0304  ; Vector to the Routine That Crunches the ASCII Text of Keywords into Tokens
+IQPLOP = $0306  ; Vector to the Routine That Lists BASIC Program Token as ASCII Text
+IGONE  = $0308  ; Vector to the Routine That Executes the Next BASIC Program Token
+IEVAL  = $030A  ; Vector to the Routine That Evaluates a Single-Term Arithmetic Expression
+
+IIRQ   = $0314  ; Vector to IRQ Interrupt Routine
+IBRK   = $0316  ; Vector: BRK Instruction Interrupt
+INMI   = $0318  ; Vector: Non-Maskable Interrupt 
 
 ; basic magic api
+LINKPRG = $4F4F ; link basic program
+LIST    = $50E2 ; handle LIST
+RUN     = $5A9B ; handle RUN
+RUNC    = $51F3 ; reset execute pointer
+SCRTCH  = $51D9 ; perform NEW
+STXTPT  = $5254 ; reset text pointer
+;NEWSTT  = $4af6 ; executes the next BASIC statement
+JNEWSTT = $AF90 ; executes the next BASIC statement
 LINPRT  = $8E32 ; print unsigned integer .a = high .x = low
+JRUN_A_PROGRAM = $AF99 ; run a loaded program
+
 
 ; kernal magic api
 CRTI      = $FF33  ; return from interrupt

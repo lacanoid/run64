@@ -159,7 +159,7 @@ SNCLP:  LDA #$20            ; output space character
 
 ; -----------------------------------------------------------------------------
 ; display message from table
-SNDMSG:
+.proc SNDMSG
         LDA MSGBAS,Y        ; Y contains offset in msg table
 .ifdef __C128__
 @s2:    lda MSGBAS,Y
@@ -186,3 +186,4 @@ SNDMSG:
         BPL SNDMSG          ; loop until high bit is set
 .endif
         RTS
+.endproc

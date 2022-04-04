@@ -1,10 +1,13 @@
 ; Automated test for C64 autostart (use with VICE -debugcart and -limitcycles 
 ; options).
 
+.ifdef __C128__
+.include "defs128.inc"
+.else
 .include "defs64.inc"
-.include "macros.inc"
-
 .forceimport __EXEHDR__
+.endif
+.include "macros.inc"
 
 .import __TBUFFR_SIZE__, __TBUFFR_LOAD__, __TBUFFR_RUN__
 .import __CARTHDR_SIZE__, __CARTHDR_LOAD__, __CARTHDR_RUN__
@@ -48,9 +51,9 @@ SUPER:  LDY #MSG4-MSGBAS    ; display "..SYS "
 
 ;        JSR CRLF
         LDA LINKAD          ; set BRK vector
-        STA CBINV
+        STA IBRK
         LDA LINKAD+1
-        STA CBINV+1
+        STA IBRK+1
 
         BRK
 
@@ -137,7 +140,7 @@ S1:     CMP KEYW,X          ; see if input character matches
                             ; then fall through to error handler
 ; -----------------------------------------------------------------------------
 ; handle error
-ERROR: LDY #MSG3-MSGBAS    ; display "?" to indicate error and go to new line
+ERROR:  LDY #MSG3-MSGBAS    ; display "?" to indicate error and go to new line
         JSR SNDMSG
         JMP STRT            ; back to main loop
 
@@ -393,7 +396,7 @@ COPY1P: BCS CPY1PX          ; do nothing if parameter is empty
 CPY1PX: RTS 
 
 ; -----------------------------------------------------------------------------
-; new [N]
+; new [N] set memory bounds and perform NEW
 CMDNEW: JSR GETPAR
         LDX SP              ; load stack pointer from memory
         TXS                 ; save in SP register
@@ -817,8 +820,7 @@ MSG3:   .BYTE $1D,$3F+$80       ; syntax error:move right, display "?"
 MSG4:   .byte "..SYS"           ; SYS call to enter monitor
         .BYTE $20+$80
 MSG5:   .BYTE $3A,$12+$80       ; ":" then RVS ON for memory ASCII dump
-MSG6:   .byte " ERRO"           ; I/O error:display " ERROR"
-        .BYTE 'R'+$80
+MSG6:   .byte " ERROR",$80      ; I/O error:display " ERROR"
 MSG7:   .BYTE $41,$20+$80       ; assemble next instruction:"A " + addr
 MSG8:   .byte "  "              ; pad non-existent byte:skip 3 spaces
         .BYTE $20+$80
@@ -950,19 +952,19 @@ msgb6: .asciiz "IEVAL  "
 
 vectorinfo:
         msg msgc1
-        ldxy CINV
+        ldxy IIRQ
         jsr hexoutxynl
         msg msgc2
-        ldxy CBINV
+        ldxy IBRK
         jsr hexoutxynl
         msg msgc3
-        ldxy NMINV
+        ldxy INMI
         jsr hexoutxynl
         rts
 
-msgc1: .asciiz "CINV   "
-msgc2: .asciiz "CBINV  "
-msgc3: .asciiz "MNINV  "
+msgc1: .asciiz "IIRQ   "
+msgc2: .asciiz "IBRK   "
+msgc3: .asciiz "INMI   "
 
 
 listvars:
@@ -1118,6 +1120,8 @@ DSPLYH:
 ; -----------------------------------------------------------------------------
 CMDBOOT:
         jsr INSTALL_CARTHDR
+        ; configure cartridge with boot filename
+.ifdef __C64__
         jsr GETFNADR
         beq CMDBOOT1   ; no argsuments
         sta CH_FNLEN
@@ -1128,6 +1132,7 @@ CMDBOOT:
         iny
         dex
         bne @l1
+.endif
 CMDBOOT1:
         jmp ($FFFC)
 CMDBOOTX:
@@ -1135,6 +1140,7 @@ CMDBOOTX:
 
 ; -----------------------------------------------------------------------------
 INSTALL_CARTHDR:
+.ifdef __C64__
         LDX  #< (__CARTHDR_SIZE__ + 1)
 @loop:  LDA __CARTHDR_LOAD__ - 1, X
         STA __CARTHDR_RUN__ - 1, X
@@ -1146,6 +1152,7 @@ INSTALL_CARTHDR:
         STA SAVBGCOL0+1
         LDA EXTCOL
         STA SAVEXTCOL+1
+.endif
         RTS
 
 INSTALL_TBUFFR:
@@ -1225,12 +1232,16 @@ SETDEV:
 ; -----------------------------------------------------------------------------
 ; run already loaded program
 CMDRUNLOADED:
+.ifdef __C128__
+        jsr JRUN_A_PROGRAM
+.else
         jsr ON_ERR_SET
         jsr CRLF
         jsr LINKPRG
         jsr RUNC
         jsr STXTPT
         jmp NEWSTT
+.endif
         rts
 
 ; -----------------------------------------------------------------------------
@@ -1342,11 +1353,15 @@ TBSTART1:
         stxy VARTAB
 
         ; start a program
+.ifdef __C128__
+        jsr JRUN_A_PROGRAM
+.else
         jsr LINKPRG
         jsr RUNC
         jsr STXTPT
         jmp NEWSTT
         rts
+.endif
 
 IERROR_GO:
         lda NDX           ; number of keystrokes
@@ -1402,6 +1417,7 @@ TB_FNLEN: .byte 4
 TB_FN:    .byte "KMON"
           .res  10
 
+.ifdef __C64__
 .segment "CARTHDR"
         ; cartridge header
         .addr hardrst   ; hard reset vector
@@ -1461,3 +1477,4 @@ SAVBGCOL0:
 CH_FA:   .byte 8        ; boot device number
 CH_FNLEN:.byte 2
 CH_FN:   .byte ":*" 
+.endif ; C64
