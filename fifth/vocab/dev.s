@@ -4,6 +4,7 @@ END
 
 DEF TWO, "TWO"
   _ DUP
+  _ MUL
 END
 
 DEF INCR, "INC"
@@ -54,7 +55,7 @@ END
 
 PROC CR
   NewLine
-  rts
+  NEXT
 END
 
 DEF PRINT
@@ -94,7 +95,7 @@ PROC POKE
   SpDec
   ldx #0
   sta (TMP,x)
-  rts 
+  NEXT 
 END
 
 PROC PEEK
@@ -105,5 +106,5 @@ PROC PEEK
   lda (TMP),y
   InsertA 1
   Unstash TMP
-  rts 
+  NEXT 
 END

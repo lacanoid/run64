@@ -134,7 +134,7 @@
   .proc dump_hex
     NewLineSoft
     IMov PP, arg
-    ldy #128
+    ldy #64
     ldx #0
     print_line:
       lda PP+1

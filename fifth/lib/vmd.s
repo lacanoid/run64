@@ -1,6 +1,17 @@
+; parameters:
+; inst x       : register
+; inst x, a    : register, another register
+; inst x, a, y : register, lo byte, high byte
+
+
+
 
 .scope VMI
-  R: .res 32
+  TMP = $2
+  R = $20
+  LO = $FB
+  HI = $FD
+  
   .scope REGS
     aa = 0
     bb = 2
@@ -34,123 +45,200 @@
     xt = 24
     xu = 28
   .endscope
+  ; utils:
+    .proc get_rx
+      lda R,x
+      ldy R+1,x
+      rts
+    .endproc
+    
+    .proc get_ry
+      lda R,y
+      pha
+      lda R+1,y
+      tay
+      pla
+      rts
+    .endproc
 
-  .proc read_rx
-    lda R,x
-    ldy R+1,x
-    rts
-  .endproc
+    .proc set_rx
+      sta R,x
+      sty R+1,x
+      rts
+    .endproc
 
-  .proc write_rx
-    sta R,x
-    pha
-    tya 
-    sta R+1,x
-    pla
-    rts
-  .endproc
+    .proc addr_set_ay
+      sta LO
+      sta HI
+      sty LO+1
+      sty HI+1
+      inc HI
+      bne skip
+        inc HI+1
+      skip:
+      rts
+    .endproc
 
-  .proc read_ry
-    stx tmp
-    tya
-    tax
-    jsr read_rx
-    ldx tmp
-    rts
-    tmp: .byte 0
-  .endproc
 
-  .proc write_ry
-    sta R,y
-    pha
-    tya 
-    sta R+1,y
-    pla
-    rts
-  .endproc
+    .proc addr_set_rx
+      pha
+      lda R,x
+      sta LO
+      sta HI
+      lda R+1,x
+      sta LO+1
+      sta HI+1
+      inc HI
+      bne skip
+        inc HI+1
+      skip:
+      pla
+      rts
+    .endproc
+    
+    .proc addr_set_ry
+      pha
+      lda R,y
+      sta LO
+      sta HI
+      lda R+1,y
+      sta LO+1
+      sta HI+1
+      inc HI
+      bne skip
+        inc HI+1
+      skip:
+      pla
+      rts
+    .endproc
 
-  .proc read_ia
-    jsr read_a
-    ; continue
-  .endproc
+     .proc read_from_addr
+      ldy #0
+      lda (LO),y
+      pha
+      lda (HI),y
+      tay
+      pla
+      rts
+    .endproc
 
-  .proc read_a
-    sta lo+1
-    sta hi+1
-     
-    sty lo+2
-    sty hi+2
-    stx tmp
-    ldx #1
-    hi:
-    ldy $FADE,x
-    lo:
-    lda $FADE 
-    ldx tmp
-    rts
-    tmp: .byte 0
-  .endproc
+    .proc write_to_addr
+      stx TMP
+      ldx #0
+      sta (LO,x)
+      pha
+      tya
+      sta (HI,x)
+      pla
+      ldx TMP
+      rts
+    .endproc
+/*
+    .proc save_rx
+      jsr get_rx
+      jmp write_to_addr
+    .endproc
 
-  .proc read_ix
-    jsr read_rx
-    jmp read_a
-  .endproc
-  
-  .proc read_iy
-    jsr read_ry
-    jmp read_a
-  .endproc
-  
-  .proc write_ix
-    pha  
-    lda R,x 
-    sta lo+1
-    sta hi+1
-    lda R+1,x 
-    sta lo+2
-    sta hi+2
-    inc hi+1
-    bne skip
-    inc hi+2
-    skip:
-    pla
-    lo:
-    sta $FADE
-    hi:
-    sty $FADE
-    rts
-  .endproc 
+    .proc save_ry
+      jsr get_ry
+      jmp write_to_addr
+      rts
+    .endproc
+
+    .proc load_rx
+      jsr read_from_addr
+      jmp set_rx
+    .endproc
+*/
+    set_m = write_to_addr
+    .proc get_m
+      jsr addr_set_ay
+      jmp read_from_addr
+    .endproc
+
+    .proc get_iy
+      jsr addr_set_ry
+      jmp read_from_addr
+    .endproc
+    .proc get_ix
+      jsr addr_set_rx
+      jmp read_from_addr
+    .endproc
+
+
+    .proc set_ix
+      jsr addr_set_rx
+      jmp write_to_addr
+    .endproc
 
   ; MVI
     ; mvi aa, bb
     .proc mv_rx_ry
-      jsr read_ry
-      jmp write_rx 
+      jsr get_ry
+      jmp set_rx
     .endproc
 
     ; mvi aa, xb
     .proc mv_rx_iy
-      jsr read_iy
-      jmp write_rx
+      jsr get_iy
+      jmp set_rx
     .endproc
 
     ; mvi xa, bb
     .proc mv_ix_ry
-      jsr read_ry
-      jmp write_ix
+      jsr get_ry
+      jmp set_ix
     .endproc
 
-    ; mvi xa, xb
+    ; mvi xa, bb
     .proc mv_ix_iy
-      jsr read_iy
-      jmp write_ix
+      jsr get_iy
+      jmp set_ix
     .endproc
 
-  ; STI
+ ; CPI
 
-    ; sti ax, label
-    .proc st_x_a
-      jmp write_ix
+    .proc cp_x
+      pha
+      sec
+      eor #$ff
+      adc R,x
+      php
+      tya 
+      eor #$ff
+      adc R+1,x
+
+      php
+      pla
+      sta TMP
+      pla
+      and #%00000010
+      ora #%11111101
+      and TMP 
+      pha
+      plp
+
+      pla
+      rts
+    .endproc
+    
+    .proc cp_rx_w
+      jmp cp_x
+    .endproc
+
+    .proc cp_rx_ry
+      jsr get_ry
+      jmp cp_x 
+    .endproc
+
+    .proc cp_rx_iy
+      jsr get_iy
+      jmp cp_x
+    .endproc
+
+    .proc cp_rx_m
+      jsr get_m
+      jmp cp_x
     .endproc 
 
   ; ADI
@@ -171,19 +259,19 @@
 
     ; adi ax, bx
     .proc ad_rx_ry
-      jsr read_ry
+      jsr get_ry
       jmp add_x 
     .endproc
 
     ; adi ax, @bx
     .proc ad_rx_iy
-      jsr read_iy
+      jsr get_iy
       jmp add_x
     .endproc
 
     ; adi ax, label
-    .proc ad_rx_a
-      jsr read_a
+    .proc ad_rx_m
+      jsr get_m
       jmp add_x
     .endproc 
   
@@ -206,69 +294,147 @@
 
     ; sbi ax, bx
     .proc sb_rx_ry
-      jsr read_ry
+      jsr get_ry
       jmp sub_x 
     .endproc
 
     ; sbi ax, @bx
     .proc sb_rx_iy
-      jsr read_iy
+      jsr get_iy
       jmp sub_x
     .endproc
 
     ; sbi ax, label
-    .proc sb_rx_a
-      jsr read_a
+    .proc sb_rx_m
+      jsr get_m
       jmp sub_x
     .endproc
 
-  ; INI & DEI
-    ; ini ax
+  ; INI
+    .proc in_ay
+      clc
+      adc #1
+      bne skip
+        iny
+      skip:
+      rts      
+    .endproc
+
     .proc in_rx
-      inc R,x
-      bne skip
-      inc R+1,x
-      skip:
-      rts      
+      jsr get_rx
+      jsr in_ay
+      jmp set_rx
     .endproc
 
-    ; ini @bx
     .proc in_ix
-      txa
-      pha
-      jsr read_ix
-      ldx #REGS::hh
-      jsr write_rx
-      jsr in_rx
-      jsr read_rx 
-      pla
-      tax
-      jmp write_ix
+      jsr get_ix
+      jsr in_ay
+      jmp set_m ; we aleady have the addess set by get_ix
     .endproc
 
-    ; dei ax
-    .proc de_rx
-      lda R,x
-      bne skip
-        dec R+1,x
+    .proc in_m
+      jsr get_m
+      jsr in_ay
+      jmp set_m ; we aleady have the addess set by get_m
+    .endproc
+
+  ; DEI
+    
+    .proc de_ay
+      cmp #0
+      beq skip
+        dey
       skip:
-      dec R,x
+      sec
+      sbc #1
       rts      
     .endproc
 
-    ; ini @bx
-    .proc de_ix
-      stx tmp
-      jsr read_ix
-      ldx #REGS::hh
-      jsr write_rx
-      jsr de_rx
-      jsr read_rx 
-      ldx tmp
-      jmp write_ix
-      tmp:
-        .byte 0
+
+    .proc de_rx
+      jsr get_rx
+      jsr de_ay
+      jmp set_rx
     .endproc
+
+    .proc de_ix
+      jsr get_ix
+      jsr de_ay
+      jmp set_m ; we aleady have the addess set by get_ix
+    .endproc
+
+    .proc de_m
+      jsr get_m
+      jsr de_ay
+      jmp set_m ; we aleady have the addess set by get_m
+    .endproc
+
+  ; PHI
+    .proc in2_x
+      clc
+      lda R,x
+      adc #2
+      sta R,x
+      bcc skip
+        inc R-1,x
+      skip:
+      rts      
+    .endproc
+
+    .proc ph_rx_w
+      jsr set_ix
+      jmp in2_x
+    .endproc
+
+
+    .proc ph_rx_m
+      jsr get_m
+      jmp ph_rx_w
+    .endproc
+
+    .proc ph_rx_ry
+      jsr get_ry
+      jmp ph_rx_w
+    .endproc
+
+    .proc ph_rx_iy
+      jsr get_iy
+      jmp ph_rx_w
+    .endproc
+
+  ; PLI
+    .proc de2_y
+      pha
+      sec
+      lda R,y
+      sbc #2
+      sta R,y
+      bcc skip
+        lda R-1,y
+        adc #1
+        sta R-1,y
+      skip:
+      pla
+      rts      
+    .endproc
+
+    .proc pl_y
+      jsr de2_y
+      jsr get_iy
+      rts
+    .endproc
+
+    .proc pl_rx_ry
+      jsr pl_y
+      jmp set_rx
+    .endproc
+
+    .proc pl_ix_ry
+      jsr pl_y
+      jmp set_ix
+    .endproc
+
+
 .endscope
 
 .macro mnemonic op, arg1, arg2
@@ -283,7 +449,7 @@
     .else
       lda #<arg1
       ldy #>arg1
-      .define left "_a"
+      .define left "_m"
     .endif
     .ifblank arg2
       .define fn .ident(.concat(op,left))
@@ -292,6 +458,10 @@
         lda #<(.right (.tcount ({arg2})-1, {arg2}))
         ldy #>(.right (.tcount ({arg2})-1, {arg2}))
         .define right "_w" 
+      .elseif (.match (.left (1, {arg2}), {=}))
+        lda #<(.right (.tcount ({arg2})-1, {arg2}))
+        ldy #>(.right (.tcount ({arg2})-1, {arg2}))
+        .define right "_m" 
       .elseif .defined (VMI::IREGS::arg2)
         ldy #VMI::IREGS::arg2
         .define right "_iy"
@@ -301,7 +471,7 @@
       .else
         lda #<arg2
         ldy #>arg2
-        .define right "_a"
+        .define right "_m"
       .endif
       .define fn .ident(.concat(op,left,right))
     .endif
@@ -317,7 +487,7 @@
   .scope
     reg = VMI::R + VMI::REGS::arg1
     .if (.match (.left (1, {arg2}), #))
-      .out .string(.right (.tcount ({arg2})-1, {arg2}))
+      ;.out .string(.right (.tcount ({arg2})-1, {arg2}))
       lda #.lobyte(.right (.tcount ({arg2})-1, {arg2}))
       sta reg
       lda #.hibyte(.right (.tcount ({arg2})-1, {arg2}))
@@ -361,12 +531,20 @@
   mnemonic "de", arg1, arg2
 .endmacro
 
-.macro pri arg1
-  .local reg
+.macro phi arg1, arg2
+  mnemonic "ph", arg1, arg2
+.endmacro
+
+.macro pli arg1, arg2
+  mnemonic "pl", arg1, arg2
+.endmacro
+
+.macro pri arg1, arg2
+  .ifnblank arg2
+    PrintString .concat(arg2,":")
+  .endif
   mvi gg, arg1
   sti gg, print::arg
-  inc 646
   jsr print::print_hex
-  inc 646
-
+  PrintChr ' '
 .endmacro
