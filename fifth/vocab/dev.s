@@ -7,6 +7,13 @@ DEF TWO, "TWO"
   _ MUL
 END
 
+DEF THREE, "THREE"
+  _ ADD
+  _ TWO 
+  _ DIV
+END
+
+
 DEF INCR, "INC"
   _ #1
   _ ADD
