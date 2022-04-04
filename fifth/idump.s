@@ -31,6 +31,7 @@ jmp idump
       jsr GETIN
     beq wait
     
+    BraEq #$3,exit 
     BraEq #$91,up 
     BraEq #$9d,left 
     BraEq #$11,down 
