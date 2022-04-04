@@ -1366,7 +1366,6 @@ TBSTART1:
         rts
 
 IERROR_GO:
-        brk
         lda NDX           ; number of keystrokes
 ;        sta VICSCN
         beq @ieg1
