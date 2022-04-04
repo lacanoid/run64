@@ -159,9 +159,9 @@ S2:
         PHA                 ;   so that the RTS from GETPAR will jump there
         LDA KADDR,X
         PHA
-;        JMP GETPAR          ; get the first parameter for the command
+;        JMP GETPAR         ; get the first parameter for the command
         RTS
-LSV:   STA SAVY            ; handle load/save/validate
+LSV:   STA SAVY             ; handle load/save/validate
         JMP LD
 CNVLNK: JMP CONVRT          ; handle base conversion
 
@@ -170,7 +170,7 @@ CNVLNK: JMP CONVRT          ; handle base conversion
 EXIT:   
         ldxy ON_ERR_SAV
         stxy IERROR
-        JMP ($A002)         ; jump to warm-start vector to reinitialize BASIC
+        JMP (ISOFT_RESET)   ; jump to warm-start vector to reinitialize BASIC
 
 
 ; -----------------------------------------------------------------------------
@@ -1300,7 +1300,6 @@ PRGEND:
         jmp run_mon
         jmp run_prg
 ; -----------------------------------------------------------------------------
-; display message from table
 loadflags:
         .word 0
 loaddev:
@@ -1349,8 +1348,11 @@ TBSTART1:
 ;        LDY #MSG2_0-MSGBAS2    ;
 ;        JSR SNDMSG2
 
+.ifdef __C128__
+.else
         ldxy EAL
         stxy VARTAB
+.endif
 
         ; start a program
 .ifdef __C128__
@@ -1360,13 +1362,16 @@ TBSTART1:
         jsr RUNC
         jsr STXTPT
         jmp NEWSTT
-        rts
 .endif
+        rts
 
 IERROR_GO:
+        brk
         lda NDX           ; number of keystrokes
+;        sta VICSCN
         beq @ieg1
-        jmp $A483         ; run basic MAIN if keys pressed
+        jmp (IERROR_OLD)
+;        jmp $A483         ; run basic MAIN if keys pressed
 @ieg1:
         jsr IERROR_CLR
 ;        LDY #MSG2_2-MSGBAS2    ; display "?" to indicate error and go to new line
@@ -1417,6 +1422,7 @@ TB_FNLEN: .byte 4
 TB_FN:    .byte "kmon"
           .res  10
 
+; -----------------------------------------------------------------------------
 .ifdef __C64__
 .segment "CARTHDR"
         ; cartridge header

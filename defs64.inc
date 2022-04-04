@@ -67,6 +67,9 @@ NMINV  = INMI
 IBASIN = $0324  ;
 IBSOUT = $0326  ; 
 
+
+ISOFT_RESET = $A002 ; basic soft reset (after BRK or RESTORE)
+
 ; basic magic api
 
 LINKPRG = $A533 ; link basic program

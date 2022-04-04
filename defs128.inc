@@ -67,6 +67,8 @@ IIRQ   = $0314  ; Vector to IRQ Interrupt Routine
 IBRK   = $0316  ; Vector: BRK Instruction Interrupt
 INMI   = $0318  ; Vector: Non-Maskable Interrupt 
 
+ISOFT_RESET = $4004 ; BASIC soft reset vector
+
 ; basic magic api
 LINKPRG = $4F4F ; link basic program
 LIST    = $50E2 ; handle LIST
