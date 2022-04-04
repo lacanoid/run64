@@ -17,12 +17,6 @@ PROC cQUOT, "", '"'
 END 
 
 PROC EXIT
-  IfFalse RP
-    PrintString "EXIT"
-    ;jsr print_IP
-    ;GetKey
-    jmp (IP)
-  EndIf
   RPop
   NEXT
 END

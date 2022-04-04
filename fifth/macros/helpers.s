@@ -148,7 +148,8 @@
 .macro ISubB arg1,arg2
   .scope
     lda arg1
-    sub #arg2
+    sec
+    sbc #arg2
     sta arg1
     bcs skip
       dec arg1+1
@@ -160,11 +161,12 @@
 .macro IAddB arg1,arg2
   .local skip
   lda arg1
-  add #arg2
+  clc
+  adc #arg2
+  sta arg1
   bcc skip
   inc arg1+1
   skip:
-  sta arg1
 .endmacro
 
 .macro IInc arg1

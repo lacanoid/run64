@@ -5,7 +5,7 @@ X128 := x128
 X64 := x64
 
 TIME := $(shell date +%y%m%d%H%M%S)
-PROGRAMS := 5th 5mon
+PROGRAMS := 5th 5mon idump
 
 ifdef CC65_HOME
 	AS := $(CC65_HOME)/bin/$(AS)
@@ -36,6 +36,10 @@ check: $(PROGRAMS)
 
 5th: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
 5th: 5th.o
+
+idump: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
+idump: idump.o
+
 
 5mon: LDFLAGS += -t c64 -C 5mon.cfg -u __EXEHDR__
 5mon: 5mon.o

@@ -1,3 +1,26 @@
+.proc print_rstack
+ ldx RP
+  NewLine
+  loop:
+    cpx #0
+    beq done 
+
+    lda #' '
+    jsr CHROUT
+    
+    dex
+    lda rstack::STACK,x
+    sta print::arg+1
+    dex
+    lda rstack::STACK,x
+    sta print::arg
+    jsr print::print_hex
+    clc 
+    bcc loop
+  done:
+  NewLine
+  rts
+.endproc
 
 .scope stdin
   ::eof: .byte 0
@@ -40,26 +63,31 @@
   jsr DO_DOCOL
 .endmacro
 
+.macro DONE
+  .local exit
+  .word exit
+  exit:
+.endmacro
 .macro NEXT
-  .local here
   jmp DO_NEXT
 .endmacro
 
 .proc DO_NEXT
-   PrintString "NEXT"
-   jsr print_IP
-   jsr print_depth
-
-   PeekX IP,0
-   sta print::arg
-   PeekX IP,1
-   sta print::arg+1
-   ;ISubB print::arg,2
-   jsr print::dump_hex
-   wait:
-    jsr GETIN
-   beq wait
-  
+  .ifdef DEBUG_NEXT 
+    PrintString "NEXT"
+    jsr print_IP
+    jsr print_depth
+    jsr print_rstack
+    PeekX IP,0
+    sta print::arg
+    PeekX IP,1
+    sta print::arg+1
+    ;ISubB print::arg,2
+    jsr print::dump_hex
+    wait:
+      jsr GETIN
+    beq wait
+  .endif
   IMov rewrite+1,IP
   IAddB IP, 2
   rewrite: 
@@ -70,13 +98,17 @@
 .proc DO_DOCOL
     ;WPrintHex THEEND
     pla
-    sta IP
+    sta tmp
     pla
-    sta IP+1
-    IInc IP
-    jsr print_IP
-    RPush 2
+    sta tmp+1
+    IInc tmp
+
+    RPush 
+    IMov IP,tmp
+    ;jsr print_IP
     NEXT
+    tmp: 
+      .word 0
 .endproc
 
 
@@ -127,17 +159,13 @@ DOCOL2 = >DO_DOCOL
   .endproc 
 
   .proc try_entry
-    CClear RP
     ISet vocab::arg, buf
     jsr vocab::find_entry
     bcs not_found
     IMov entry, vocab::cursor
-    WPrintHex entry  
-    WPrintHex THEEND
     DOCOL
     entry: .word $DEFA
-    _ EXIT
-    THEEND:
+    DONE
     ;PrintString "THIS IS THE WAY"
     ;GetKey
     clc
@@ -183,9 +211,10 @@ DOCOL2 = >DO_DOCOL
     PushA
     lines:
       
-      ;DOCOL
-      ;_ PRINT_STACK
-      ;_ EXIT
+      DOCOL
+      _ PRINT_STACK
+      DONE
+
       NewLine
       PrintChr 'R'
       PrintChr '>'
