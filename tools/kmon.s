@@ -1306,6 +1306,11 @@ loaddev:
         .word 8
 ; run a monitor
 run_mon:
+.ifdef __C128__
+        ; switch ROMs in
+        lda #0
+        sta $FF00
+.endif
         lda TB_FNLEN
         leaxy TB_FN
         JSR SETNAM
@@ -1378,10 +1383,14 @@ IERROR_GO:
         LDA #0            ; disable kernel control messages
         JSR SETMSG        ; and enable error messages
 
+.ifdef __C128__
+        jmp run_mon       ; load kmon back first
+.else
         lda #> PRGEND     ; check if kmon was overwritten
         cmp TXTTAB+1
         bcs run_mon       ; load kmon back first
         jmp STRT          ; go to kmon main
+.endif
 
 IERROR_SET:
         ldx #3
@@ -1417,9 +1426,15 @@ SNDMSG2:
 MSGBAS2  =*
 MSG2_0:   .BYTE $0d,".run",$0D+$80
 MSG2_1:   .BYTE $0d,"?io",$20+$80
+.ifdef __C128__
+TB_FNLEN: .byte 8
+TB_FN:    .byte "kmon.128",0
+          .res  6
+.else
 TB_FNLEN: .byte 4
 TB_FN:    .byte "kmon"
           .res  10
+.endif
 
 ; -----------------------------------------------------------------------------
 .ifdef __C64__
