@@ -11,7 +11,8 @@
 .import __CARTHDR_LOAD__, __CARTHDR_RUN__, __CARTHDR_SIZE__
 
 .segment "CARTHDR"
-        ; cartridge header
+        ; c64 cartridge header
+        ; boot continues here 
         .addr hardrst   ; hard reset vector
         .addr $fe5e     ; soft reset vector: return to NMI handler immediately after cartridge check
         .byte $C3, $C2, $CD, $38, $30   ; 'CBM80' magic number for autostart cartridge

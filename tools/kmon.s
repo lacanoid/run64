@@ -93,6 +93,15 @@ kmon:
         JSR SNDMSG
 
 ; -----------------------------------------------------------------------------
+; switch to fast mode if c128 80 column mode
+.ifdef __C128__
+        lda MODE
+        bpl @nofast
+        jsr FAST
+@nofast:
+.endif
+
+; -----------------------------------------------------------------------------
 ; redirect input
         lda #1
         jsr CHKIN

@@ -70,6 +70,10 @@ INMI   = $0318  ; Vector: Non-Maskable Interrupt
 ISOFT_RESET = $4004 ; BASIC soft reset vector
 
 ; basic magic api
+FAST    = $77B6 ; switches to fast mode
+SLOW    = $77C7 ; switches to slow mode
+BANK15  = $A845 ; switches to bank 15 configuration
+
 LINKPRG = $4F4F ; link basic program
 LIST    = $50E2 ; handle LIST
 RUN     = $5A9B ; handle RUN
