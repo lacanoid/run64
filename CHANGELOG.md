@@ -4,9 +4,8 @@ Version 0.7
 - new vdc64 program to use VDC chip in C128 in C64 mode 
 - new 5th mini forth interpreter & shell
 - convert from to trigrams in kmon (#)
-- boot parameters increased to 8 bytes
 - improved directory layout and build process
-- pip interactive mode
+- pip interactive and ASCII/ANSI mode
 
 Version 0.6
 ===========

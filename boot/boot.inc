@@ -2,7 +2,7 @@
 .import __AUTOSTART64_SIZE__, __VICGO64_SIZE__, __CARTHDR_SIZE__
 
 ; temporary buffers in $0400-$0800 area which survives reset
-VICTEMP  = VICSCN + 40*15
+VICTEMP  = VICSCN + 40*18
 VICGO64  = VICTEMP
 VICCRTB  = VICGO64 + __VICGO64_SIZE__
 VICAS64  = VICCRTB + __CARTHDR_SIZE__

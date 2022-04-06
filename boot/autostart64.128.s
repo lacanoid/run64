@@ -17,10 +17,11 @@ DE      = $C3
 
 RUN64   = __RUN64_RUN__
 
-.segment "VICGO64"
+.segment "GO64"
 go64old:
         jmp RUN64
 
+.segment "VICGO64"
 go64:
 .if !LOADMODE
 ; reloacte (copy) basic program loaded in c128 mode at $1c00/$8000 to $0801 for c64

@@ -32,15 +32,19 @@ bootbgc:.byte 11      ; background color
 bootfgc:.byte 1       ; foreground color
 bootexc:.byte 11      ; border color
 
+coladj = $ce5c  ; map of vic -> vdc colors
+vdcout = $cdcc  ; vdcout routine
+
 ; actual bootloader
 .segment "BOOT128"
 boot128:
-        ; clear $800 area so that running a C64 program will trigger BRK
+        ; clear $800 area so that running a C64 program will trigger a BRK
         ldx #0
         txa
 @b1:    sta $800,X
         dex
         bne @b1        
+
         ; set BRK vector
         lda #<AS64
         sta IBRK
@@ -52,12 +56,24 @@ boot128:
 
 ;        lda SHFLAG          ; check for shift
 ;        bne boot128done
-        lda bootfgc
+
+        ; set colors
+        ldx bootfgc
         bmi cfg1
-        sta COLOR
-cfg1:   lda bootbgc
-        bmi cfg2
-        sta BGCOL0
+        bit MODE
+        bpl @l1
+        lda coladj,X
+        tax
+@l1:    stx COLOR
+cfg1:   ldx bootbgc
+        bmi cfg2        
+        stx BGCOL0
+        cpx #11
+        bne @l2
+        inx
+@l2:    lda coladj,X
+        ldx #$1a      ; color register
+        jsr vdcout
 cfg2:   lda bootexc
         bmi cfg3
         sta EXTCOL
@@ -122,7 +138,6 @@ run65:
 ; Screen memory at $400 survives transition to c64 mode. 
 ; Below $400 is wiped on reset. Above $800 (up to $D000) is the loaded program.
 
-
 ; copy go64 routine to boot block screen memory, so that boot block buffer can be freed
         LDX  #< (__VICGO64_SIZE__ + __CARTHDR_SIZE__ + __AUTOSTART64_SIZE__ + 1)
 @loop4: LDA __VICGO64_LOAD__ - 1, X
@@ -154,7 +169,7 @@ run65:
         sta EAL+1
 ;        tax
 
-        jmp VICGO64 + 3
+        jmp VICGO64  ; VICGO64 + 3
 
 
 DQUOTE = $22
@@ -177,9 +192,8 @@ fnadr:
 fnadr9:
         .byte DQUOTE
         .byte CR, CR, CR, CR, CR
-;        .byte 151     ; hide
-        .byte "SYS3072"
-;        .byte 153     ; show
+;        .byte "SYS3072"
+        .byte "RUN"
         .byte HOME
         .byte 0
 
