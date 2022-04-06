@@ -1,4 +1,5 @@
 VICREG    = $D000   ; VIC-II register base
+VICSCN    = $0400   ; default screen memory
 COLORAM   = $D800   ; color memory
 
 ; -----------------------------------------------------------------------------
@@ -90,4 +91,3 @@ TMP2      = $C3        ; usually holds start address
 TMP3      = $C4        ;
 ; -----------------------------------------------------------------------------
 
-VICSCN    = $0400     ; default screen memory

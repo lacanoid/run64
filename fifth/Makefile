@@ -20,7 +20,7 @@ endif
 
 .PHONY: all clean check zap
 
-ASFLAGS = --create-dep $(@:.o=.dep)
+ASFLAGS = -I .. --create-dep $(@:.o=.dep)
 
 all: $(PROGRAMS)
 
@@ -37,9 +37,15 @@ check: $(PROGRAMS)
 5th: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
 5th: 5th.o
 
-idump: LDFLAGS += -t c64 -C c64-asm.cfg -u __EXEHDR__
 idump: idump.o
+	$(CC) $(LDFLAGS) -t c64 -C c64.cfg -u __EXEHDR__ -o idump idump.o
+idump.o: idump.s
+	$(AS) $(ASFLAGS) -t c64 -o idump.o idump.s
 
+idump.128: idump.128.o
+	$(CC) $(LDFLAGS) -t c128 -C c128.cfg -o idump.128 idump.128.o
+idump.128.o: idump.s
+	$(AS) $(ASFLAGS) -t c128 -o idump.128.o idump.s
 
 5mon: LDFLAGS += -t c64 -C 5mon.cfg -u __EXEHDR__
 5mon: 5mon.o
