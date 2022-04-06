@@ -59,21 +59,12 @@
 .endScope
 
 
-.macro DOCOL
-  jsr DO_DOCOL
-.endmacro
-
-.macro DONE
-  .local exit
-  .word exit
-  exit:
-.endmacro
 .macro NEXT
   jmp DO_NEXT
 .endmacro
 
 .proc DO_NEXT
-  .ifdef DEBUG_NEXT 
+  .if 1
     PrintString "NEXT"
     jsr print_IP
     jsr print_depth
@@ -94,36 +85,37 @@
   jmp ($DEFA)
 .endproc
 
+.macro DOCOL
+  jsr DO_DOCOL
+.endmacro
 
 .proc DO_DOCOL
-    ;WPrintHex THEEND
-    pla
-    sta tmp
-    pla
-    sta tmp+1
-    IInc tmp
-
-    RPush 
-    IMov IP,tmp
-    ;jsr print_IP
-    NEXT
-    tmp: 
-      .word 0
+  RPush 
+  ;WPrintHex THEEND
+  pla
+  sta IP
+  pla
+  sta IP+1
+  IInc IP
+  NEXT
 .endproc
 
-
-
-
-DOCOL0 = $20
-DOCOL1 = <DO_DOCOL
-DOCOL2 = >DO_DOCOL
+.proc DONE
+  IMov rewrite+1, IP
+  ;IInc rewrite+1
+  RPop
+  rewrite:
+  jmp $FEDA
+.endproc
 
 .scope interpreter
   buf: .res 32
+  ::STATE: .byte 0
   ::ERROR_CODE:
   error: .byte 0
   ::ERROR_MSG:
-  msg: .addr 0   
+  msg: .addr 0
+  runtime_color: .byte 0   
 
   .proc read_word
     skip:
@@ -162,15 +154,28 @@ DOCOL2 = >DO_DOCOL
     ISet vocab::arg, buf
     jsr vocab::find_entry
     bcs not_found
-    IMov entry, vocab::cursor
-    DOCOL
-    entry: .word $DEFA
-    DONE
-    ;PrintString "THIS IS THE WAY"
-    ;GetKey
+
+    lda STATE
+    beq interpret
+    PeekX vocab::cursor, vocab::flags_offset
+    and vocab::is_immediate
+    bne interpret
+
+    compile:
+      lda vocab::cursor
+      jsr here::write
+      lda vocab::cursor+1
+      jsr here::write
+      clc
+      rts  
+    interpret:
+      IMov entry, vocab::cursor
+      DOCOL
+        entry: .word $DEFA
+      _ DONE
+    
     clc
     rts
-    .asciiz "THEEND"
     not_found:
     sec
     rts
@@ -206,28 +211,33 @@ DOCOL2 = >DO_DOCOL
   .endproc
 
   .proc rpl
-    
+    ColorSave runtime_color
     ISet 53280, 0
     PushA
     lines:
-      
+      ColorSet 1
       DOCOL
       _ PRINT_STACK
-      DONE
+      _ DONE
 
       NewLine
-      PrintChr 'R'
+      IfTrue STATE
+        PrintChr 'C'
+      Else 
+        PrintChr 'I'
+      EndIf
       PrintChr '>'
 
       CClear error
       jsr read_line
       NewLine
-      
+      ColorRestore runtime_color
       words:
         jsr do_word
         bcs break
       bra words
       break:
+      ColorSave runtime_color
       lda error
       beq lines
       IMov print::arg,msg
@@ -239,5 +249,4 @@ DOCOL2 = >DO_DOCOL
     bra lines
 
   .endproc
-
 .endScope

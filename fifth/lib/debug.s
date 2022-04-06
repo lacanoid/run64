@@ -98,7 +98,7 @@
     PeekA IP
     sta tmp
     jsr print::print_hex_digits
-    PeekX tmp,vocab::token_offset
+    PeekX tmp,vocab::flags_offset
     beq skip
     tay
     ldx #2

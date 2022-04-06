@@ -40,7 +40,7 @@
   .addr EXIT
 .endmacro
 
-.macro _ arg
+.macro _ arg, arg2, arg3, arg4, arg5, arg6, arg7, arg8
   .if .blank ({arg}) 
     rRet
   .elseif (.match (.left (1, {arg}), #))
@@ -49,6 +49,27 @@
     rStr arg
   .else 
     rRun arg 
+  .endif
+  .ifnblank arg2
+    _ arg2
+  .endif
+  .ifnblank arg3
+    _ arg3
+  .endif  
+  .ifnblank arg4
+    _ arg4
+  .endif
+  .ifnblank arg5
+    _ arg5
+  .endif
+  .ifnblank arg6
+    _ arg6
+  .endif  
+  .ifnblank arg7
+    _ arg7
+  .endif
+  .ifnblank arg8
+    _ arg8
   .endif
 .endmacro
 

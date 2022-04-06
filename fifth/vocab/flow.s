@@ -6,11 +6,10 @@ PROC cQUOT, "", '"'
     jsr read_char
     cmp #'"'
     beq break
-    WriteA HEAP_END
+    jsr heap::write
   bra loop
   break:
-  lda #0
-  WriteA HEAP_END
+  jsr heap::write_zero
   NEXT
   catch:
     ThrowError "UNCLOSED STRING"
@@ -23,101 +22,162 @@ END
 
 PROC KEY
   SpInc
-  ReadA compiler::POS
+  jsr read_char
+  PushA
+  NEXT
+END
+
+DEF FINDWORD, "'"
+  _ WORD, FIND
+END
+
+
+PROC FIND
+  PopTo vocab::arg
+  jsr vocab::find_entry
+  bcs not_found
+    PushFrom vocab::cursor
+    NEXT
+  not_found:
+  lda #0
   PushA
   NEXT
 END
 
 PROC WORD
-  PrintString "WORD"
-  jsr compiler::skip_space
-  PushFrom compiler::POS
-  bcc not_eof
-    cError "EOF"
-  not_eof:
-  ldx #0
-  loop: 
-    ReadX compiler::POS
-    pha
-    PrintChr
-    pla
+  PushFrom HEAP_END 
+  ldy #0
+  loop:
+    lda eof
+    bne catch
+    jsr read_char
     cmp #33
     bcc break
-    bra loop
+    jsr heap::write
+    iny
+  bra loop
   break:
-  dex
-  AdvanceX compiler::POS
-  txa
-  PushA
+  tya
+  ;PushA
+  jsr heap::write_zero
+  NEXT
+  catch:
+    ThrowError "UNCLOSED STRING"
+END 
+
+PROC COMMA, ","
+  GetLo 1
+  jsr here::write 
+  GetHi 1
+  jsr here::write 
+  SpDec 
   NEXT
 END
 
-CMD cCREATE, "CREATE"
-  jsr mode_compile
-  PrintString "CREATING"
-  jsr compiler::skip_space
-  bcc not_eof
-    cError "EOF"
-  not_eof:
-  WriteYB HERE, bytecode::NAT, 0
-  IWriteY HERE, HERE
-  
-  WriteYW HERE, DEFAULT_COMPILER, vocab::compile_offset
-  WriteYW HERE, DEFAULT_LISTER
-  ldx #0
-  loop: 
-    ReadX compiler::POS
-    cmp #33
-    bcc break
-    WriteY HERE
-    bra loop
-  break:
-  WriteYB HERE, 0
-  AdvanceX compiler::POS
-  jsr compiler::advance_offset
-  tya
-  tax
-  WriteYB HERE, DOCOL0
-  WriteYB HERE, DOCOL1
-  WriteYB HERE, DOCOL2
-  WriteYW HERE, cINT
-  IWriteY HERE, HERE 
-  WriteYW HERE, cRET
-  IMov TEMP_PTR, HERE
-  txa
-  IAddA TEMP_PTR
-  IWriteX HERE,TEMP_PTR,vocab::exec_offset
-  IMov TEMP_PTR, VP
-  IWriteX HERE,TEMP_PTR,vocab::next_offset
-  IMov VP, HERE
-  tya
-  IAddA HERE
-  PushFrom VP
-  PrintString "CREATED"
-  jsr mode_compile
+PROC SCOMMA, "S,"
+  PopTo here::arg
+  jsr here::write_string
   NEXT
-  TEMP_PTR: .word 0
 END
 
-CMD cSEMI, ";"
+
+PROC CCOMMA, "C,"
+  GetLo 1
+  jsr here::write 
+  SpDec 
+  NEXT
+END
+
+DEF CREATE, "CREATE"
+  _ WORD
+  _ CREAT
+END
+
+PROC CREAT, "CREAT"
+  DOCOL
+  _ HERE
+    _ #bytecode::NAT, CCOMMA 
+    _ HERE
+      _ #$DEFD, COMMA
+      _ #0, CCOMMA
+      _ LATEST, COMMA
+      _ ROT, SCOMMA
+    _ HERE, SWAP, SET
+    _ #$20, CCOMMA
+    _ #DO_DOCOL, COMMA
+    _ #cINT, COMMA
+    _ HERE, #6, ADD, COMMA
+    _ #EXIT, COMMA
+    _ #0, COMMA
+    _ DONE
+    PopTo VP 
+  NEXT
+END
+
+DEF DOES, "DOES>"
+  _ LATEST, JMP
+  _ #4, SUB
+  _ DUP, #BRANCH, SWAP, SET
+  _ #2, ADD
+  _ HERE, SWAP, SET
+  _ STATE1
+END
+
+PROC BRANCH, "BRANCH"
+  PushFrom IP
+  PopTo IP
+  NEXT
+END
+
+IDEF SEMICOLON, ";"
+  _ #EXIT, COMMA
+  _ STATE0
+END
+
+IDEF COLON, ":"
+  _ CREATE
+  _ DOES 
+  _ DROP
+END
+
+IPROC STATE0, "]"
+  CClear STATE
+  NEXT
+END
+
+IPROC STATE1, "["
+  CSet STATE, 1
+  NEXT
+END
+
+
+PROC RESET
+  ISet HERE_PTR, PROG_END
+  ISet VP, VOCAB_START
+  NEXT
+END
+
+PROC JMP
+  PopTo entry
+  DOCOL
+    entry: .word 0
+  _ EXIT 
+END
+
+
+IPROC cSEMI, ";"
   cError "ONLY IN COMPILER MODE"
   NEXT
 COMPILE
   PrintString "SHOULD BE DONE"
-  WriteXW HERE,cRET,0
-  IAddB HERE,2
+  WriteXW HERE_PTR,cRET,0
+  IAddB HERE_PTR,2
   CClear compiler::creating
   NEXT
 END
 
 
-CMD cDOES, "DOES"
-  NEXT
-COMPILE
-  NEXT
-END
-
-CMD POSTPONE, "POSTPONE",2
+IPROC POSTPONE, "POSTPONE",2
 COMPILE
   jsr compiler::skip_space
   bcs catch 
@@ -154,7 +214,7 @@ LIST
 */
 END
 
-CMD cSTR, "#STR",2
+IPROC cSTR, "#STR",2
   jmp runtime::doStr
 COMPILE
   NEXT
@@ -167,12 +227,12 @@ LIST
   NEXT
 END
 
-CMD cRET,"RET"
+IPROC cRET,"RET"
   NEXT
 END
 
 
-CMD cIF,"IF",2
+IPROC cIF,"IF",2
   jmp runtime::doIf
 COMPILE
   cWriteCtl
@@ -180,7 +240,7 @@ COMPILE
   NEXT
 END
 
-CMD cELSE,"ELSE",2
+IPROC cELSE,"ELSE",2
   jmp runtime::goto_from_ip
 COMPILE
   cWriteCtl
@@ -193,7 +253,7 @@ COMPILE
     jmp compiler::rmismatch
 END
 
-CMD cTHEN,"THEN"
+IPROC cTHEN,"THEN"
   NEXT
 COMPILE
   cResolveHope IF0
@@ -206,7 +266,7 @@ COMPILE
 END
 
 
-CMD cBEGIN,"BEGIN"
+IPROC cBEGIN,"BEGIN"
   NEXT
 COMPILE
   cWriteCtl
@@ -214,7 +274,7 @@ COMPILE
   NEXT
 END
 
-CMD cWHILE,"WHILE",2
+IPROC cWHILE,"WHILE",2
   jmp runtime::doIf
 COMPILE
   cWriteCtl
@@ -222,7 +282,7 @@ COMPILE
   NEXT
 END
 
-CMD cAGAIN,"AGAIN",2
+IPROC cAGAIN,"AGAIN",2
   jmp runtime::goto_from_ip
 COMPILE
   cWriteCtl

@@ -72,12 +72,11 @@ DEF PRINT
 END
 
 DEF CALL1
-  _ ROT
-  _ SET
+  _ ROT, SWAP, SET
   _ SYS
 END
 
-DEF VOCAB
+DEF LATEST
   _ #VP
   _ GET
 END
@@ -90,8 +89,8 @@ DEF PEND
   _ #PROG_END
 END 
 
-DEF cHERE, "HERE"
-  _ #HERE
+DEF HERE
+  _ #HERE_PTR
   _ GET
 END
 

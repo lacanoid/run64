@@ -177,3 +177,23 @@
   skip:
 .endmacro
 
+.macro PushX
+  .scope
+    stx __push_x_rewrite+1
+.endmacro
+.macro PopX
+    __push_x_rewrite:
+    ldx $FF
+  .endscope
+.endmacro
+
+.macro PushY
+  .scope
+    stx __push_y_rewrite+1
+.endmacro
+
+.macro PopY
+    __push_y_rewrite:
+    ldx $FF
+  .endscope
+.endmacro

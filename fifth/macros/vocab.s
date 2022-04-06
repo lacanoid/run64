@@ -1,17 +1,12 @@
-.macro GenericEntry id, name, label, payload, q 
+
+.macro GenericEntry  flags, name, label, q 
   .scope
     ::.ident (.string(name))=entry 
     entry:
-      .byte id
+      .byte $4c
       .addr __runtime__ 
-      .ifblank payload 
-        .byte payload $0
-      .else
-        .byte payload
-      .endif
+      .byte flags
       .addr __next_entry__
-      .addr __compile__
-      .addr __list__
       .ifnblank q
         .byte label, q, 0;
       .else 
@@ -25,35 +20,29 @@
   .endscope
 .endmacro
 
-.macro rEntry name, label, q
-  GenericEntry bytecode::NAT, name, label,0,q
-.endmacro
-
-.macro jEntry name, label, q
-  GenericEntry bytecode::NAT, name, label,0,q
-.endmacro
-
-.macro cEntry name, label,q
-  GenericEntry bytecode::NAT, name, label, 1, q
-.endmacro
-
-
-.macro CMD name, label, q
+.macro IPROC name, label, q
   .scope
-    DEF_CMD = 1
-    cEntry name, label,q
+    DEF_PROC = 1
+    GenericEntry vocab::is_immediate, name, label, q
 .endmacro
 
 .macro PROC name, label, q
   .scope
     DEF_PROC = 1
-    jEntry name, label, q
+    GenericEntry 0, name, label, q
 .endmacro
 
 .macro DEF name, label, q
   .scope
     DEF_RUN = 1
-    rEntry name, label, q
+    GenericEntry 0, name, label, q
+    DOCOL
+.endmacro
+
+.macro IDEF name, label, q
+  .scope
+    DEF_RUN = 1
+    GenericEntry vocab::is_immediate, name, label, q
     DOCOL
 .endmacro
 
@@ -76,7 +65,7 @@
       _ EXIT
       rts
     .elseif .def (DEF_PROC)
-      NEXT
+      ;NEXT
     .endif
     .ifndef __compile__
       __compile__ = DEFAULT_COMPILER ; default compiler

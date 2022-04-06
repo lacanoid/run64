@@ -107,14 +107,13 @@ END
 PROC SET,  "!"
   Stash TMP
   
-  CopyTo 2,TMP
+  PopTo TMP
   GetLo 1
   ldy #0
   sta (TMP),y
   iny
   GetHi 1
   sta (TMP),y
-  SpDec
   SpDec
   Unstash TMP
   NEXT 

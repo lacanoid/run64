@@ -294,7 +294,7 @@
     lda creating
     beq nope
       pla
-      WriteA HERE
+      WriteA HERE_PTR
       rts
     nope:
       pla

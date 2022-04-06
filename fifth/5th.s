@@ -94,10 +94,11 @@ MAIN = interpreter::rpl
 DEFAULT_COMPILER = compiler::write_run
 DEFAULT_LISTER = runtime::list_entry
 
-HERE: .word PROG_END
+HERE_PTR: .word PROG_END
 HEAP_END: .word HEAP_START
 
 VOCAB_END:
+.bss
 .align 16
 PROG_END:
 

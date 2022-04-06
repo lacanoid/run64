@@ -1,10 +1,13 @@
 .scope vocab
   exec_offset = 1
-  token_offset = 3
+  flags_offset = 3
   next_offset = 4
+  name_offset = 6
+  
+  is_immediate = 1
+
   compile_offset = 6
   list_offset = 8
-  name_offset = 10
   cursor: .word 0
   ::VP: .addr VOCAB_START
   arg: .addr 0
@@ -68,6 +71,10 @@
       rts
   .endproc 
 
+  .proc create_entry
+
+  .endproc
+
   .proc print_name_at_cursor
     IMov print::arg, cursor
     jmp _print_name_
@@ -79,6 +86,43 @@
   .proc _print_name_
     IAddB print::arg, name_offset
     jsr print::print_z
+    rts
+  .endproc
+.endscope
+
+
+.scope heap
+  .proc write_zero
+    lda #0
+    ;continue
+  .endproc
+  
+  .proc write
+    WriteA HEAP_END
+    rts
+  .endproc
+.endscope
+
+.scope here
+  arg: .word 0
+  .proc write_zero
+    lda #0
+    ;continue
+  .endproc
+  
+  .proc write
+    WriteA HERE_PTR
+    rts
+  .endproc
+
+  .proc write_string
+    loop:
+      ReadA arg
+      beq done
+      jsr write
+      bra loop
+    done:
+    jsr write_zero
     rts
   .endproc
 .endscope

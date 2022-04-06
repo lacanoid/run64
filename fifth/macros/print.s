@@ -15,6 +15,17 @@
     sta COLOR
 .endmacro
 
+.macro ColorSave addr, c
+  CMov addr, COLOR
+  .ifnblank c
+    CSet COLOR, c 
+  .endif
+.endmacro
+
+.macro ColorRestore addr 
+  CMov COLOR, addr
+.endmacro
+
 
 .macro PrintString str
   .scope

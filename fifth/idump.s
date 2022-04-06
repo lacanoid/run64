@@ -1,36 +1,110 @@
+.feature c_comments
 jmp idump
 
 .include "../defs64.inc"
 .include "macros/index.s"
 .include "../utils.s"
+.include "./dis.s"
  
- MODE: .byte 0
- CP: .word $0000
- DP = $FB
- PP = $FD 
- title: .asciiz "IDUMP 1.0"
+DP = $FB
+PP = $FD
+CP = $20
+
+COLOR_RAM = $D800
+TEXT_RAM = $400
+
+MODES = 6
+
+.data
+  MODE: .byte 1
+  HOME: .word $0000
+  title: .asciiz "IDMP  M"
+  rest: .byte 40
+  line_cnt: .byte 0
+  CP_TMP: .word 0
+  char_mask: .byte $0
+  
+  MODE_PTR: .word MODES_TABLE+8
+
+  MODES_TABLE:
+  .word dis::print_instruction 
+  .byte "DIS" 
+  .res 3
+  .word print_line_hex
+  .byte "DEF"
+  .res 3
+  .word print_line_bytes
+  .byte "BYT"
+  .res 3
+  .word print_line_mixed
+  .byte "MIX"
+  .res 3
+  .word print_line_words
+  .byte "WRD"
+  .res 3
+  .word print_line_text
+  .byte "TXT"
+  .res 3
+.code
 
 .proc idump
+  IMov CP_TMP, CP
   ClearScreen
-  ISet 53280,0
-  ISet DP, title
-  ISet PP, 1024  
-  jsr print_z
   PrintChr 14
-  CSet $CC, 0
+  ISet 53280,0
+
   ::main_loop:
   loop:
+
+  .proc set_mode 
+    ISet MODE_PTR, MODES_TABLE
     lda MODE
-    beq hex
-      jsr dump_text
-      bra wait
-    hex:
-      jsr dump_hex
+    clc
+    asl 
+    asl 
+    asl
+    IAddA MODE_PTR
+  .endproc
+    CSet COLOR,1
+    ISet CP, COLOR_RAM
+    ISet PP, TEXT_RAM
+    ISet DP, title
+    CSet char_mask, $80
+    jsr print_z
+    lda MODE
+    jsr print_hex_digit
+
+    jsr print_space
+
+    IMov DP, MODE_PTR
+    IAddB DP, 2 
+    jsr dump_char
+    jsr dump_char
+    jsr dump_char
+
+    jsr print_nl
+    CSet char_mask, $0
+    
+
+    IMov DP, HOME
+    CSet line_cnt, 24
+    CSet rest, 40
+    line:
+      jsr print_line
+      dec line_cnt
+    bne line
 
     wait: 
       jsr GETIN
     beq wait
-    
+
+    BraLt #'0', not_digit
+    BraGe #'0'+MODES, not_digit
+    sec 
+    sbc #'0'
+    sta MODE
+    jmp main_loop
+    not_digit:
     BraEq #$3,exit 
     BraEq #$91,up 
     BraEq #$9d,left 
@@ -41,8 +115,8 @@ jmp idump
     BraEq #'M',mode
     BraEq #'W',up 
     BraEq #'S',down 
-    BraEq #'A',left 
-    BraEq #'D',right 
+    BraEq #'A',sub_1
+    BraEq #'D',add_1 
     bra wait
     up:
       jmp key_up
@@ -52,49 +126,118 @@ jmp idump
       jmp key_left
     right: 
       jmp key_right
+    add_1:
+      jmp key_add_1
+    sub_1: 
+      jmp key_sub_1
     mode:
       jmp key_mode
   exit:
+    IMov CP, CP_TMP
     ClearScreen
   rts
 .endproc
 
 .proc key_up
-  ISubB CP, $80
+  ISubB HOME, $80
   jmp main_loop
 .endproc 
 
 .proc key_down
-  IAddB CP, $80
+  IAddB HOME, $80
   jmp main_loop
 .endproc   
 .proc key_left
-  ISubB CP+1, $10
+  ISubB HOME+1, $10
   jmp main_loop
 .endproc 
 .proc key_right 
-  IAddB CP+1, $10
+  IAddB HOME+1, $10
   jmp main_loop
 .endproc 
+
 .proc key_mode
+  inc MODE
   lda MODE
-  eor #$FF
-  sta MODE
+  cmp #MODES
+  bcc skip
+    lda #0
+    sta MODE
+  skip:
+    jmp main_loop
+.endproc
+
+.proc key_sub_1
+  ISubB HOME, $1
   jmp main_loop
-.endproc
+.endproc 
 
+.proc key_add_1
+  IAddB HOME, $1
+  jmp main_loop
+.endproc   
+
+
+
+.global print_space
 .proc print_space
+  pha
   lda #' '
+  jsr print_char
+  pla
+  rts
 .endproc
 
+.global print_char
 .proc print_char
+  pha
+  ora char_mask
+  ldx #0
   sta (PP,x)
+  lda COLOR
+  sta (CP,X)
+  jsr incPP
+  pla
+  rts 
+.endproc
+
+.proc reset_print
+  ISet CP, COLOR_RAM
+  ISet  PP, TEXT_RAM
+  CSet rest,40  
+  rts
 .endproc
 
 .proc incPP
-  IInc PP
+  inc CP
+  inc PP
+  bne skip
+    inc CP+1
+    inc PP+1
+    lda PP+1
+    cmp #8
+    bne skip
+    jsr reset_print
+  skip:
+  dec rest
+  bne outro
+    CSet rest,40  
+  outro:
   rts
 .endproc
+
+.global print_nl
+.proc print_nl
+  loop: 
+    lda rest
+    cmp #40
+    beq exit 
+    jsr print_space
+  bra loop
+  exit:
+  rts
+.endproc
+
 
 .proc incDP
   IInc DP
@@ -102,151 +245,209 @@ jmp idump
 .endproc
 
 
-.proc dump_hex
-  ldx #0
-  ldy #0
-  jsr PLOT
-  ISet PP, 1064
-  IMov DP, CP
-  jsr do_dump_hex
-  jsr do_dump_hex
-  ;continue
+.proc print_line
+
+  ColorSet 1
+
+  lda DP+1
+  jsr print_hex_digits
+  lda DP
+  jsr print_hex_digits
+  jsr print_space
+  jsr print_space
+  ColorSet 12
+  IMov rewrite+1, MODE_PTR
+  rewrite:
+  jmp ($FADE)
+ 
 .endproc
-.proc do_dump_hex
-  ldy #128
-  
-  print_line:
-    lda DP+1
-    jsr print_hex_digits
-    lda DP
-    jsr print_hex_digits
-    jsr print_space
-    
-    .scope print_bytes
-      loop:
-      tya
-      and #1
-      bne colon
-        jsr print_space
-        bra space
-      colon:
-        lda #':'
-        jsr print_char
-      space:        
-      lda (DP,x)
-      jsr print_hex_digits
-      jsr incDP
-      dey
-      tya
-      and #7
-      bne loop
-      break:
-    .endscope
-    ISubB DP, 8
-    jsr print_space
-    .scope print_chars
-      loop:
-        tya
-        and #3
-        bne skip
-          jsr print_space
-        skip: 
-        lda (DP,x)
-        jsr print_char
-        jsr incDP
-        dey
-        tya
-        and #7
-        bne loop
-      break:
-  .endscope
-  next_line:
-  tya
-  BraFalse exit
-  jmp print_line
-  exit:
-    rts
+.proc choose_color
+  IfTrue
+    lda #1
+  Else
+    lda #15
+  EndIf
+  sta COLOR
+  rts
 .endproc
-
-
-
-.proc dump_text
-  ldx #0
-  ldy #0
-  jsr PLOT
-  ISet PP, 1064
-  IMov DP, CP
-  
-  jsr do_dump_text
-  jsr do_dump_text
-  ;continue
-.endproc
-
-.proc do_dump_text
-  ldy #0
-  print_line:
-    lda DP+1
-    jsr print_hex_digits
-    lda DP
-    jsr print_hex_digits
-    jsr print_space
-    jsr print_space
-    .scope print_chars
-      loop:
-        lda (DP,x)
-        jsr print_char
-        jsr incDP
-        dey
-        tya
-        and #31
-        bne loop
-      break:
-  .endscope
-  next_line:
-  jsr print_space 
-  jsr print_space 
-  tya
-  BraFalse exit
-  jmp print_line
-  exit:
-    rts
-.endproc
-
-  .proc print_hex_digits
-    pha
-    sec
-    lsr 
-    lsr 
-    lsr 
-    lsr
-    jsr print_hex_digit
-
-    pla
-    and #$0f
-    ;continue
-  .endproc
-
-  .proc print_hex_digit
-    BraGe #10, big
-      add #'0'
-      jsr print_char
-      rts
-    big:
-      add #'A'-10
-      jsr print_char
-      rts
-  .endproc
-
- .proc print_z
-    ldx #0
+.proc print_line_hex
+  .scope print_bytes
+    ldy #4
     loop:
-      lda (DP,x)
-      BraFalse exit
+    tya
+    and #$1
+    jsr choose_color
+    jsr dump_byte
+    lda #':'
+    jsr print_char
+    jsr dump_byte
+    jsr print_space
+    dey 
+    bne loop
+    break:
+  .endscope
+  ISubB DP, 8
+  jsr print_space
+  ldy #4
+  .scope print_chars
+    loop:
+      tya
+      and #$1
+      jsr choose_color
+      sta COLOR
+      jsr dump_char
+      jsr dump_char
+      dey
+    bne loop
+  .endscope
+  exit:
+    jmp print_nl
+.endproc
+
+.proc print_line_text
+  ldy #32
+  loop:
+    jsr dump_char
+    dey 
+  bne loop
+  jmp print_nl
+.endproc
+
+
+.proc print_line_words
+  ldy #4
+  loop:
+    ColorSet 12
+    jsr dump_word
+    ColorSet 1
+    jsr dump_word
+    dey 
+  bne loop
+  jmp print_nl
+.endproc
+
+.proc print_line_bytes
+  ldy #8
+  loop:
+    ColorSet 12
+    jsr dump_byte
+    ColorSet 1
+    jsr dump_byte
+    dey 
+  bne loop
+  jmp print_nl
+.endproc
+
+.proc print_line_mixed
+  ldy #16
+  loop:
+    jsr read_data
+    pha
+    cmp #33
+    bcc byte
+    cmp #127
+    bcs byte
+      ColorSet 7
+      pla 
       jsr print_char
-      jsr incDP
-      bra loop
-    exit:
-      rts
-  .endproc
-  
+      jsr print_space
+      bra done
+    byte:
+      tya
+      and #$1
+      IfTrue 
+        ColorSet 11
+      Else 
+        ColorSet 12
+      EndIf
+      ;CSet char_mask, $80
+      pla 
+      jsr print_hex_digits
+      ;CSet char_mask, $0
+    done:
+    dey 
+  bne loop
+  jmp print_nl
+.endproc
+
+.global dump_sword
+.proc dump_sword
+  lda #'$'
+  jsr print_char
+  ;continue
+.endproc
+.proc dump_word
+  jsr read_data
+  pha
+  jsr dump_byte
+  pla
+  jsr print_hex_digits
+  rts
+.endproc
+
+.global dump_sbyte
+.proc dump_sbyte
+  lda #'$'
+  jsr print_char
+  ;continue
+.endproc
+
+.proc dump_byte
+  jsr read_data
+  jsr print_hex_digits
+  rts
+.endproc
+
+
+.proc dump_char
+  jsr read_data
+  jmp print_char
+.endproc
+
+
+.global print_hex_digits
+.proc print_hex_digits
+  pha
+  sec
+  lsr 
+  lsr 
+  lsr 
+  lsr
+  jsr print_hex_digit
+  pla
+
+  pha
+  and #$0f
+  jsr print_hex_digit
+  pla
+  rts
+.endproc
+
+.proc print_hex_digit
+  BraGe #10, big
+    add #'0'
+    jsr print_char
+    rts
+  big:
+    add #'A'-10
+    jsr print_char
+    rts
+.endproc
+
+.proc print_z
+  ldx #0
+  loop:
+    jsr read_data
+    BraFalse exit
+    jsr print_char
+    bra loop
+  exit:
+    rts
+.endproc
+
+.global read_data
+.proc read_data
+  ReadA DP
+  rts
+.endproc
 MSGBAS:
