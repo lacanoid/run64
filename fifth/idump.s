@@ -3,15 +3,11 @@ jmp idump
 
 .include "../defs64.inc"
 .include "macros/index.s"
-.include "../utils.s"
 .include "./dis.s"
  
 DP = $FB
 PP = $FD
 CP = $20
-
-COLOR_RAM = $D800
-TEXT_RAM = $400
 
 MODES = 6
 
@@ -66,8 +62,8 @@ MODES = 6
     IAddA MODE_PTR
   .endproc
     CSet COLOR,1
-    ISet CP, COLOR_RAM
-    ISet PP, TEXT_RAM
+    ISet CP, COLORAM
+    ISet PP, VICSCN
     ISet DP, title
     CSet char_mask, $80
     jsr print_z
@@ -202,8 +198,8 @@ MODES = 6
 .endproc
 
 .proc reset_print
-  ISet CP, COLOR_RAM
-  ISet  PP, TEXT_RAM
+  ISet CP, COLORAM
+  ISet  PP, VICSCN
   CSet rest,40  
   rts
 .endproc
@@ -450,4 +446,3 @@ MODES = 6
   ReadA DP
   rts
 .endproc
-MSGBAS:
