@@ -121,22 +121,10 @@ run65:
 
 ; Screen memory at $400 survives transition to c64 mode. 
 ; Below $400 is wiped on reset. Above $800 (up to $D000) is the loaded program.
-; copy c64 autostart to screen memory
-        LDX  #< (__AUTOSTART64_SIZE__ + 1)
-@loop2: LDA __AUTOSTART64_LOAD__ - 1, X
-        STA VICAS64 - 1, X
-        DEX
-        BNE @loop2
 
-; copy cartridge autostart
-        LDX #< (__CARTHDR_SIZE__)
-@loop3: LDA __CARTHDR_LOAD__ - 1, X
-        STA VICCRTB - 1, X
-        DEX
-        BNE @loop3
 
 ; copy go64 routine to boot block screen memory, so that boot block buffer can be freed
-        LDX  #< (__VICGO64_SIZE__ + 1)
+        LDX  #< (__VICGO64_SIZE__ + __CARTHDR_SIZE__ + __AUTOSTART64_SIZE__ + 1)
 @loop4: LDA __VICGO64_LOAD__ - 1, X
         STA VICGO64 - 1, X
         DEX
