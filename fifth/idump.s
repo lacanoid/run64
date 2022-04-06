@@ -1,9 +1,21 @@
+.ifdef __C128__
+.include "defs128.inc"
+.else
+.include "defs64.inc"
+.endif
+.include "macros/index.s"
+.include "utils.s"
+.include "dis.s"
+
 .feature c_comments
 jmp idump
+<<<<<<< HEAD
 
 .include "../defs64.inc"
 .include "macros/index.s"
 .include "./dis.s"
+=======
+>>>>>>> 1277dc6cdd9c799ff3c1b3e7704686eaa3614299
  
 DP = $FB
 PP = $FD

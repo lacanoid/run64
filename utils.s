@@ -174,6 +174,7 @@ SNCLP:  LDA #$20            ; output space character
 
 ; -----------------------------------------------------------------------------
 ; display message from table
+;.ifdef MSGBAS
 .proc SNDMSG
         LDA MSGBAS,Y        ; Y contains offset in msg table
         PHP
@@ -184,3 +185,4 @@ SNCLP:  LDA #$20            ; output space character
         BPL SNDMSG          ; loop until high bit is set
         RTS
 .endproc
+;.endif
