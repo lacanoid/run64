@@ -128,13 +128,6 @@ run65:
         DEX
         BNE @loop2
 
-; copy settings
-        ldx #4
-@loop21:lda bootctl-1,X
-        sta __CARTHDR_LOAD__ + 9 - 1,X
-        dex
-        bne @loop21
-
 ; copy cartridge autostart
         LDX #< (__CARTHDR_SIZE__)
 @loop3: LDA __CARTHDR_LOAD__ - 1, X
@@ -148,6 +141,13 @@ run65:
         STA VICGO64 - 1, X
         DEX
         BNE @loop4
+
+; copy settings
+        ldx #4
+@loop21:lda bootctl-1,X
+        sta VICCRTB + 9 - 1,X
+        dex
+        bne @loop21
 
 ; adjust EAL (end-of load pointer) for 64 mode
         clc

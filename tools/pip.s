@@ -35,11 +35,11 @@ FNLEN2: .byte 0
 ; -----------------------------------------------------------------------------
 ; message table; last character has high bit set
 MSGBAS  =*
-MSG0:   .BYTE "RUN64 PIP 0.4 ",$80
-MSG1:   .BYTE "COPYING ",$80,0
-MSG2:   .BYTE "ERROR ",$80,0
+MSG0:   .byte "run64 pip 0.4 ",$80
+MSG1:   .BYTE "copying ",$80,0
+MSG2:   .BYTE "error ",$80,0
 MSG3:   .BYTE $1D,$3F+$80       ; syntax error:move right, display "?"
-MSG4:   .BYTE " BYTES.",13+$80,0
+MSG4:   .BYTE " bytes.",13+$80,0
 
 ; -----------------------------------------------------------------------------
 ; main program
@@ -422,18 +422,6 @@ CLIOPT:    .byte 0,0,0,0
         jmp GETOPT
 done:
         dec CHRPNT
-
-.if 1
-;        lda CLIOPT+3
-;        jsr WRTWO
-;        lda CLIOPT+2
-;        jsr WRTWO
-;        lda CLIOPT+1
-;        jsr WRTWO
-        lda CLIOPT
-        jsr WRTWO
-        jsr CRLF
-.endif
 
         rts
 .endproc

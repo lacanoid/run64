@@ -34,8 +34,10 @@ kmon.128: kmon.128.o
 kmon.128.o: kmon.s
 	$(AS) $(ASFLAGS) -t c128 -o kmon.128.o kmon.s
 
-pip: LDFLAGS += -t c64 -C c64.cfg -u __EXEHDR__ 
 pip: pip.o
+	$(CC) $(LDFLAGS) -t c64 -C c64.cfg -u __EXEHDR__ -o pip pip.o
+pip.o: pip.s
+	$(AS) $(ASFLAGS) -t c64 -o pip.o pip.s
 
 pip.128: pip.128.o
 	$(CC) $(LDFLAGS) -t c128 -C c128.cfg -o pip.128 pip.128.o

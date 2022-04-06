@@ -6,7 +6,12 @@ To do
 - *DONE* keep initial cursor color & position in 40 column mode
 - *DONE* reverse + clr hack
 - *DONE* splitscreen and 'modes'
-- case switching (twice?)
+- fix SCREEN/SCRORG to return proper screen size
+- fix PLOT to work
+- function keys
+- scnkey for extra keys
+- SYS call to activate/swap
+- case switching (done twice now?)
 - cursor bugs in 40 column mode if no feature_irq (cursor doesn't always dissapear)
 - extra returns in basic prompt
 - harmonize new editor variables better with their c128 counterparts
@@ -14,9 +19,6 @@ To do
 - reverse should use vdc reverse attribute
 - some tests (super expander, PLOT & SCREEN/SCRORG)
 - make 80 column stuff optional
-- fix SCREEN/SCRORG to return proper screen size
-- function keys
-- scnkey
 
 About
 =====
@@ -44,7 +46,7 @@ adapted with the following modifications:
 - updated swapper to support this
 - editor.src replaced with vdc64.s
 - wrapper to run this as a normal c64 program, check for vdc
-- functions for 128 like memory management for 64 mode
+- functions for 128 like memory management for 64 mode (getcfg, indfet, fetch)
 - 40/80 key is not readable in c64 mode
 - initialize to 80 column mode with current vic colors
 - switched colors 11 and 12 on vdc, this seems to match vic colors better. 
