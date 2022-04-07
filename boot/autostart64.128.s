@@ -8,10 +8,12 @@
 
 .import __CARTHDR_LOAD__, __CARTHDR_RUN__, __CARTHDR_SIZE__
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
+.import __VICGO64_SIZE__, __VICGO64_LOAD__, __VICGO64_RUN__
 .import __RUN64_RUN__
 .import __TBUFFR_RUN__
 .import devnum_sav
 
+bootctl = $B11   ; boot parameters
 C64DEST = $801   ; relocation destination address (c64 basic)
 DE      = $C3
 
@@ -19,7 +21,38 @@ RUN64   = __RUN64_RUN__
 
 .segment "GO64"
 go64old:
-        jmp RUN64
+;        jsr PRIMM
+;        .byte 14,145,"GO 64  ",0
+
+; Screen memory at $400 survives transition to c64 mode. 
+; Below $400 is wiped on reset. Above $800 (up to $D000) is the loaded program.
+
+; copy go64 routine to boot block screen memory, so that boot block buffer can be freed
+        LDX  #< (__VICGO64_SIZE__ + __CARTHDR_SIZE__ + __AUTOSTART64_SIZE__ + 1)
+@loop4: LDA __VICGO64_LOAD__ - 1, X
+        STA VICGO64 - 1, X
+        DEX
+        BNE @loop4
+
+; adjust EAL (end-of load pointer) for 64 mode
+        sec
+        lda EAL
+        sbc SAL
+        sta EAL
+        lda EAL+1
+        sbc SAL+1
+        sta EAL+1
+        clc
+;        lda EAL
+;        adc #< C64DEST
+;        sta EAL
+        inc EAL
+        lda EAL+1
+        adc #> C64DEST
+        sta EAL+1
+;        tax
+
+        jmp VICGO64  ; VICGO64 + 3
 
 .segment "VICGO64"
 go64:
