@@ -90,13 +90,16 @@ cfg3:
         TXS
         ; normally the main BASIC loop starts here, but we have more work to do ;)
 
-print:  LDX #$00        ; Print load/run commands to screen
-@loop:  LDA cmds, X
-        BEQ @done
-        JSR CHROUT
-        INX
-        BNE @loop
-@done:
+        lda #13
+        jsr CHROUT
+
+;print:  LDX #$00        ; Print load/run commands to screen
+;@loop:  LDA cmds, X
+;        BEQ @done
+;        JSR CHROUT
+;        INX
+;        BNE @loop
+;@done:
         jmp old
 
 ;kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
@@ -137,16 +140,16 @@ restorecrtb:
         rts
 
 
-DQUOTE = $22
-BLUE = $1F
-LBLUE = $9A
-CR = $0D
-UP = $91
-HOME = $13
+;DQUOTE = $22
+;BLUE = $1F
+;LBLUE = $9A
+;CR = $0D
+;UP = $91
+;HOME = $13
 
-bootmsg:.byte NAME, 0
+;bootmsg:.byte NAME, 0
 
-cmds:
-        .BYTE CR, 0
+;cmds:
+;        .BYTE CR, 0
 
 ; keys:   .byte CR, CR, CR, 0 ; keystrokes to inject into keyboard buffer

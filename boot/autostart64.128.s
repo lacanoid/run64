@@ -64,5 +64,5 @@ copy:   LDX  #< (__CARTHDR_SIZE__ + 1)
 
         stx $ff00
         
-        JMP C64MODE ; c64 mode will take it from here
+        JMP C64_MODE ; c64 mode will take it from here
 

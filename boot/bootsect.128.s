@@ -132,8 +132,9 @@ run64:
 ;        bne run65
 ;        rts             ; stop was presseed, do nothing
 run65:
-        leaxy banner
-        jsr print
+banner:
+        jsr PRIMM
+        .byte 14,145,"GO 64  ",0
 
 ; Screen memory at $400 survives transition to c64 mode. 
 ; Below $400 is wiped on reset. Above $800 (up to $D000) is the loaded program.
@@ -178,9 +179,6 @@ LBLUE = $9A
 CR = $0D
 UP = $91
 HOME = $13
-
-banner:
-        .byte 14,145,"GO 64  ",0
 
 cmds:
         .byte 27,"T"   ; fix the screen top
