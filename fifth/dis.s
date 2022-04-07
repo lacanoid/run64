@@ -197,25 +197,25 @@
     jmp print_y
   .endproc
  
-
-  INV = $FF
-  _AC = $00
-  _AB = $10
-  _AX = $20
-  _AY = $30
-  _HA = $40
-  _IM = $50
-  _IN = $60
-  _IY = $70
-  _XI = $80
-  _RE = $90
-  _ZP = $A0
-  _ZX = $B0
-  _ZY = $C0
+  MIS = $C0
+  INV = $FF  ; %r#(wbx)y
+  _AC = $00  ; %00000000 
+  _AB = $10  ; %00010000
+  _AX = $20  ; %00010100
+  _AY = $30  ; %00010001
+  _HA = $40  ; %01000000
+  _IM = $50  ; %00000000
+  _IN = $60  ; %00110010
+  _IY = $70  ; %00101011
+  _XI = $80  ; %00101110
+  _RE = $90  ; %10000000 
+  _ZP = $A0  ; %00001000
+  _ZX = $B0  ; %00001100  
+  _ZY = $C0  ; %00001001
 
 .align 2
 first_two:
-  FirstTwo "AD"
+  FirstTwo "AD" 
   FirstTwo "AN"
   FirstTwo "AS"
 
@@ -303,47 +303,38 @@ last_one:
   ; end
 
   instr2:
-    .byte _K_ | _IM, _A_ | _XI, INV | INV, INV | INV, INV | INV, _A_ | _ZP, _L_ | _ZP, INV | INV
-    .byte _P_ | _IM, _A_ | _HA, _L_ | _AC, INV | INV, INV | INV, _A_ | _AB, _L_ | _AB, INV | INV
-   
-    .byte _L_ | _RE, _A_ | _IY, INV | INV, INV | INV, INV | INV, _A_ | _ZX, _L_ | _ZX, INV | INV
-    .byte _C_ | _IM, _A_ | _AY, INV | INV, INV | INV, INV | INV, _A_ | _AX, _L_ | _AX, INV | INV
-    
-    .byte _R_ + _AB, _D_ | _XI, INV | INV, INV | INV, _T_ | _ZP, _D_ | _ZP, _L_ | _ZP, INV | INV
-    .byte _P_ | _IM, _D_ | _HA, _L_ | _AC, INV | INV, _T_ | _AB, _D_ | _AB, _L_ | _AB, INV | INV
-   
-    .byte _I_ | _RE, _D_ | _IY, INV | INV, INV | INV, INV | INV, _D_ | _ZX, _L_ | _ZX, INV | INV
-    .byte _C_ | _IM, _D_ | _AY, INV | INV, INV | INV, INV | INV, _D_ | _AX, _L_ | _AX, INV | INV
-    
-    .byte _I_ | _IM, _R_ | _XI, INV | INV, INV | INV, INV | INV, _R_ | _ZP, _R_ | _ZP, INV | INV
-    .byte _A_ | _IM, _R_ | _HA, _R_ | _AC, INV | INV, _P_ | _AB, _R_ | _AB, _R_ | _AB, INV | INV
-    .byte _C_ | _RE, _R_ | _IY, INV | INV, INV | INV, INV | INV, _R_ | _ZX, _R_ | _ZX, INV | INV
-    .byte _I_ | _IM, _R_ | _AY, INV | INV, INV | INV, INV | INV, _R_ | _AX, _R_ | _AX, INV | INV
-    
-    .byte _S_ | _IM, _C_ | _XI, INV | INV, INV | INV, INV | INV, _C_ | _ZP, _R_ | _ZP, INV | INV
-    .byte _A_ | _IM, _C_ | _HA, _R_ | _AC, INV | INV, _P_ | _IN, _C_ | _AB, _R_ | _AB, INV | INV
-    .byte _S_ | _RE, _C_ | _IY, INV | INV, INV | INV, INV | INV, _C_ | _ZX, _R_ | _ZX, INV | INV
-    .byte _I_ | _IM, _C_ | _AY, INV | INV, INV | INV, INV | INV, _C_ | _AX, _R_ | _AX, INV | INV
-    
-    .byte INV | INV, _A_ | _XI, INV | INV, INV | INV, _Y_ | _ZP, _A_ | _ZP, _X_ | _ZP, INV | INV
-    .byte _Y_ | _IM, INV | INV, _A_ | _IM, INV | INV, _Y_ | _AB, _A_ | _AB, _X_ | _AB, INV | INV
-    .byte _C_ | _RE, _A_ | _IY, INV | INV, INV | INV, _Y_ | _ZX, _A_ | _ZX, _X_ | _ZY, INV | INV
-    .byte _A_ | _IM, _A_ | _AY, _S_ | _IM, INV | INV, INV | INV, _A_ | _AX, INV | INV, INV | INV
-    
-    .byte _Y_ | _HA, _A_ | _XI, _X_ | _HA, INV | INV, _Y_ | _ZP, _A_ | _ZP, _X_ | _ZP, INV | INV
-    .byte _Y_ | _IM, _A_ | _HA, _X_ | _IM, INV | INV, _Y_ | _AB, _A_ | _AB, _X_ | _AB, INV | INV
-    .byte _S_ | _RE, _A_ | _IY, INV | INV, INV | INV, _Y_ | _ZX, _A_ | _ZX, _X_ | _ZY, INV | INV
-    .byte _V_ | _IM, _A_ | _AY, _X_ | _IM, INV | INV, _Y_ | _AX, _A_ | _AX, _X_ | _AY, INV | INV
-    
-    .byte _Y_ | _HA, _P_ | _XI, INV | INV, INV | INV, _Y_ | _ZP, _P_ | _ZP, _C_ | _ZP, INV | INV
-    .byte _Y_ | _IM, _P_ | _HA, _X_ | _IM, INV | INV, _Y_ | _AB, _P_ | _AB, _C_ | _AB, INV | INV
-    .byte _E_ | _RE, _P_ | _IY, INV | INV, INV | INV, INV | INV, _P_ | _ZX, _C_ | _ZX, INV | INV
-    .byte _D_ | _IM, _P_ | _AY, INV | INV, INV | INV, INV | INV, _P_ | _AX, _C_ | _AX, INV | INV
-    
-    .byte _X_ | _HA, _C_ | _XI, INV | INV, INV | INV, _X_ | _ZP, _C_ | _ZP, _C_ | _ZP, INV | INV
-    .byte _X_ | _IM, _C_ | _HA, _P_ | _IM, INV | INV, _X_ | _AB, _C_ | _AB, _C_ | _AB, INV | INV
-    .byte _Q_ | _RE, _C_ | _IY, INV | INV, INV | INV, INV | INV, _C_ | _ZX, _C_ | _ZX, INV | INV
-    .byte _D_ | _IM, _C_ | _AY, INV | INV, INV | INV, INV | INV, _C_ | _AX, _C_ | _AX, INV | INV
+    .byte _K_ | _IM, _A_ | _XI, INV | INV, MIS, INV | INV, _A_ | _ZP, _L_ | _ZP, MIS
+    .byte _P_ | _IM, _A_ | _HA, _L_ | _AC, MIS, INV | INV, _A_ | _AB, _L_ | _AB, MIS
+    .byte _L_ | _RE, _A_ | _IY, INV | INV, MIS, INV | INV, _A_ | _ZX, _L_ | _ZX, MIS
+    .byte _C_ | _IM, _A_ | _AY, INV | INV, MIS, INV | INV, _A_ | _AX, _L_ | _AX, MIS
+    .byte _R_ + _AB, _D_ | _XI, INV | INV, MIS, _T_ | _ZP, _D_ | _ZP, _L_ | _ZP, MIS
+    .byte _P_ | _IM, _D_ | _HA, _L_ | _AC, MIS, _T_ | _AB, _D_ | _AB, _L_ | _AB, MIS
+    .byte _I_ | _RE, _D_ | _IY, INV | INV, MIS, INV | INV, _D_ | _ZX, _L_ | _ZX, MIS
+    .byte _C_ | _IM, _D_ | _AY, INV | INV, MIS, INV | INV, _D_ | _AX, _L_ | _AX, MIS
+    .byte _I_ | _IM, _R_ | _XI, INV | INV, MIS, INV | INV, _R_ | _ZP, _R_ | _ZP, MIS
+    .byte _A_ | _IM, _R_ | _HA, _R_ | _AC, MIS, _P_ | _AB, _R_ | _AB, _R_ | _AB, MIS
+    .byte _C_ | _RE, _R_ | _IY, INV | INV, MIS, INV | INV, _R_ | _ZX, _R_ | _ZX, MIS
+    .byte _I_ | _IM, _R_ | _AY, INV | INV, MIS, INV | INV, _R_ | _AX, _R_ | _AX, MIS
+    .byte _S_ | _IM, _C_ | _XI, INV | INV, MIS, INV | INV, _C_ | _ZP, _R_ | _ZP, MIS
+    .byte _A_ | _IM, _C_ | _HA, _R_ | _AC, MIS, _P_ | _IN, _C_ | _AB, _R_ | _AB, MIS
+    .byte _S_ | _RE, _C_ | _IY, INV | INV, MIS, INV | INV, _C_ | _ZX, _R_ | _ZX, MIS
+    .byte _I_ | _IM, _C_ | _AY, INV | INV, MIS, INV | INV, _C_ | _AX, _R_ | _AX, MIS
+    .byte INV | INV, _A_ | _XI, INV | INV, MIS, _Y_ | _ZP, _A_ | _ZP, _X_ | _ZP, MIS
+    .byte _Y_ | _IM, INV | INV, _A_ | _IM, MIS, _Y_ | _AB, _A_ | _AB, _X_ | _AB, MIS
+    .byte _C_ | _RE, _A_ | _IY, INV | INV, MIS, _Y_ | _ZX, _A_ | _ZX, _X_ | _ZY, MIS
+    .byte _A_ | _IM, _A_ | _AY, _S_ | _IM, MIS, INV | INV, _A_ | _AX, INV | INV, MIS
+    .byte _Y_ | _HA, _A_ | _XI, _X_ | _HA, MIS, _Y_ | _ZP, _A_ | _ZP, _X_ | _ZP, MIS
+    .byte _Y_ | _IM, _A_ | _HA, _X_ | _IM, MIS, _Y_ | _AB, _A_ | _AB, _X_ | _AB, MIS
+    .byte _S_ | _RE, _A_ | _IY, INV | INV, MIS, _Y_ | _ZX, _A_ | _ZX, _X_ | _ZY, MIS
+    .byte _V_ | _IM, _A_ | _AY, _X_ | _IM, MIS, _Y_ | _AX, _A_ | _AX, _X_ | _AY, MIS
+    .byte _Y_ | _HA, _P_ | _XI, INV | INV, MIS, _Y_ | _ZP, _P_ | _ZP, _C_ | _ZP, MIS
+    .byte _Y_ | _IM, _P_ | _HA, _X_ | _IM, MIS, _Y_ | _AB, _P_ | _AB, _C_ | _AB, MIS
+    .byte _E_ | _RE, _P_ | _IY, INV | INV, MIS, INV | INV, _P_ | _ZX, _C_ | _ZX, MIS
+    .byte _D_ | _IM, _P_ | _AY, INV | INV, MIS, INV | INV, _P_ | _AX, _C_ | _AX, MIS
+    .byte _X_ | _HA, _C_ | _XI, INV | INV, MIS, _X_ | _ZP, _C_ | _ZP, _C_ | _ZP, MIS
+    .byte _X_ | _IM, _C_ | _HA, _P_ | _IM, MIS, _X_ | _AB, _C_ | _AB, _C_ | _AB, MIS
+    .byte _Q_ | _RE, _C_ | _IY, INV | INV, MIS, INV | INV, _C_ | _ZX, _C_ | _ZX, MIS
+    .byte _D_ | _IM, _C_ | _AY, INV | INV, MIS, INV | INV, _C_ | _AX, _C_ | _AX, MIS
   ;end
 
 .endscope

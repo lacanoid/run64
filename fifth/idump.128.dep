@@ -1,0 +1,4 @@
+idump.128.o:	idump.s ../defs128.inc ../defs.inc macros/index.s macros/ifelse.s macros/helpers.s macros/pointers.s macros/print.s macros/stack.s macros/bytecode.s macros/vocab.s dis.s
+
+idump.s ../defs128.inc ../defs.inc macros/index.s macros/ifelse.s macros/helpers.s macros/pointers.s macros/print.s macros/stack.s macros/bytecode.s macros/vocab.s dis.s:
+

@@ -1,0 +1,4 @@
+imenu.o:	imenu.s ../defs64.inc ../defs.inc macros/helpers.s ../utils.s imenu_lib/macros.inc imenu_lib/core.s imenu_lib/handlers/index.s imenu_lib/handlers/menu.s imenu_lib/handlers/heading.s imenu_lib/handlers/echo.s imenu_lib/menu_root.s
+
+imenu.s ../defs64.inc ../defs.inc macros/helpers.s ../utils.s imenu_lib/macros.inc imenu_lib/core.s imenu_lib/handlers/index.s imenu_lib/handlers/menu.s imenu_lib/handlers/heading.s imenu_lib/handlers/echo.s imenu_lib/menu_root.s:
+

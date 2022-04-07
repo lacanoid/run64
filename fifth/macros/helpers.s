@@ -172,7 +172,7 @@
 .macro IInc arg1
   .local skip
   inc arg1
-  BraTrue skip
+  bne skip
   inc arg1+1
   skip:
 .endmacro
@@ -191,7 +191,6 @@
   .scope
     stx __push_y_rewrite+1
 .endmacro
-
 .macro PopY
     __push_y_rewrite:
     ldx $FF

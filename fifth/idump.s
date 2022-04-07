@@ -1,21 +1,13 @@
-.ifdef __C128__
-.include "defs128.inc"
-.else
-.include "defs64.inc"
-.endif
-.include "macros/index.s"
-.include "utils.s"
-.include "dis.s"
-
 .feature c_comments
 jmp idump
-<<<<<<< HEAD
 
-.include "../defs64.inc"
+.ifdef __C128__
+  .include "defs128.inc"
+.else
+  .include "defs64.inc"
+.endif
 .include "macros/index.s"
-.include "./dis.s"
-=======
->>>>>>> 1277dc6cdd9c799ff3c1b3e7704686eaa3614299
+.include "dis.s"
  
 DP = $FB
 PP = $FD
@@ -24,7 +16,7 @@ CP = $20
 MODES = 6
 
 .data
-  MODE: .byte 1
+  CMODE: .byte 1
   HOME: .word $0000
   title: .asciiz "IDMP  M"
   rest: .byte 40
@@ -66,7 +58,7 @@ MODES = 6
 
   .proc set_mode 
     ISet MODE_PTR, MODES_TABLE
-    lda MODE
+    lda CMODE
     clc
     asl 
     asl 
@@ -79,7 +71,7 @@ MODES = 6
     ISet DP, title
     CSet char_mask, $80
     jsr print_z
-    lda MODE
+    lda CMODE
     jsr print_hex_digit
 
     jsr print_space
@@ -110,7 +102,7 @@ MODES = 6
     BraGe #'0'+MODES, not_digit
     sec 
     sbc #'0'
-    sta MODE
+    sta CMODE
     jmp main_loop
     not_digit:
     BraEq #$3,exit 
@@ -119,12 +111,12 @@ MODES = 6
     BraEq #$11,down 
     BraEq #$1d,right 
     and #$7F
-    BraEq #'Q',exit
-    BraEq #'M',mode
-    BraEq #'W',up 
-    BraEq #'S',down 
-    BraEq #'A',sub_1
-    BraEq #'D',add_1 
+    BraEq #'q',exit
+    BraEq #'m',mode
+    BraEq #'w',up 
+    BraEq #'s',down 
+    BraEq #'a',sub_1
+    BraEq #'d',add_1 
     bra wait
     up:
       jmp key_up
@@ -165,12 +157,12 @@ MODES = 6
 .endproc 
 
 .proc key_mode
-  inc MODE
-  lda MODE
+  inc CMODE
+  lda CMODE
   cmp #MODES
   bcc skip
     lda #0
-    sta MODE
+    sta CMODE
   skip:
     jmp main_loop
 .endproc
@@ -211,7 +203,7 @@ MODES = 6
 
 .proc reset_print
   ISet CP, COLORAM
-  ISet  PP, VICSCN
+  ISet PP, VICSCN
   CSet rest,40  
   rts
 .endproc
@@ -437,7 +429,7 @@ MODES = 6
     jsr print_char
     rts
   big:
-    add #'A'-10
+    add #'a'-10
     jsr print_char
     rts
 .endproc

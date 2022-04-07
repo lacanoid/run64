@@ -45,12 +45,14 @@
   .endproc
 
   .proc print_hex_digit
-    BraGe #10, big
-      add #'0'
+    bcs #10, big
+      clc 
+      adc #'0'
       jsr CHROUT
       rts
     big:
-      add #'A'-10
+      clc 
+      adc #'A'-10
       jsr CHROUT
       rts
   .endproc
@@ -74,7 +76,7 @@
     IMov PP, arg
     loop:
       PeekA PP
-      BraFalse exit
+      beq exit
       jsr CHROUT
       IInc PP
       bra loop
@@ -85,7 +87,7 @@
   .proc dump_char
     pha
     and #$7f
-    BraGe #32, regular_char
+    bcs #32, regular_char
       PrintChr $12
       pla
       ora #$40
@@ -125,7 +127,7 @@
     .endscope
     next_line:
     tya
-    BraTrue print_line
+    bne print_line
     exit:
       NewLine
       rts
@@ -183,7 +185,7 @@
     .endscope
     next_line:
     tya
-    BraFalse exit
+    beq exit
     jmp print_line
     exit:
       rts
@@ -195,9 +197,9 @@
     sec
     jsr $e50a
     tya
-    IfTrue
+    beq skip
       NewLine
-    EndIf
+    skip:
     rts
   .endproc 
 .endscope
