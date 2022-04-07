@@ -4,8 +4,12 @@
 .ifdef __C128__
 .include "defs128.inc"
 .else
+.ifdef __C16__
+.include "defs16.inc"
+.else
 .include "defs64.inc"
 .forceimport __EXEHDR__
+.endif
 .endif
 .include "macros.inc"
 
