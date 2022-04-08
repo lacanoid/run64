@@ -57,3 +57,48 @@ EndMenuHandler
   jmp print_z_from_here
   rts
 .endproc
+
+.macro Menu title, id
+  .ifnblank id 
+    ::id:
+  .endif
+  .scope
+    .addr HNDL_MENU
+    .byte .strlen(title)+1
+    .byte title, 0
+    .scope 
+.endmacro
+
+.macro MenuItem handler, title
+      __next_item__:
+    .endscope
+    .scope 
+      .addr __next_item__
+    __item__:
+      .addr handler
+      .byte .strlen(title)+1
+      .byte title, 0
+.endmacro
+
+.macro MenuSub title, id
+      __next_item__:
+    .endscope
+    .scope 
+      .addr __next_item__
+      Menu title,id
+.endmacro
+
+
+.macro EndMenuSub
+  EndMenu
+.endmacro
+
+.macro EndMenu
+      __next_item__ = 0
+    .endscope
+  .endscope
+.endmacro
+
+.macro MenuRoot title
+  Menu title, MENU_ROOT
+.endmacro

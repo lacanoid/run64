@@ -1,3 +1,11 @@
+.include "defs64.inc"
+.include "macros/basics.s"
+
+.include "imenu_lib/macros.inc"
+.include "imenu_lib/print.s"
+
+.scope imenu
+.include "imenu_lib/handlers/index.s"
 .data
   INIT_THERE=$C000
   
@@ -316,3 +324,104 @@
   CSet SELECTED_INDEX, 0 
   rts
 .endproc
+
+.proc main
+  ISet THERE, INIT_THERE
+
+  lda #14
+  jsr CHROUT
+  ISet 53280,0
+  CSet COLOR, 15
+  
+  jsr load_root
+  jsr fetch_items
+  main_loop:
+    jsr print_menu
+    jsr handle_keys
+  bra main_loop
+  rts
+.endproc
+
+.proc print_menu
+  jsr print::reset
+  CSet PRINT_INDEX, 0
+  jsr set_the_item_to_menu
+  CSet COLOR, 1
+  jsr print::rev_on
+  lda #0
+  jsr handler_method_a
+  jsr print::nl
+  jsr print::rev_off
+  item:
+    lda PRINT_INDEX
+    cmp CNT_ITEMS
+    beq break
+    pha
+      IfEq SELECTED_INDEX
+        lda #1
+        sta COLOR
+        lda #'>'
+        jsr print::char
+      Else
+        lda #12
+        sta COLOR
+        jsr print::space
+      EndIf
+    pla
+    jsr print_item_a
+    jsr print::nl
+    inc PRINT_INDEX
+    bne item
+  break:
+  jmp print::clear_rest
+.endproc
+
+.proc handle_keys
+  wait: 
+  jsr GETIN
+  beq wait
+    JmpEq #$11, do_next
+    JmpEq #$91, do_prev
+    JmpEq #$0D, do_action
+    JmpEq #$1D, do_action
+    JmpEq #$03, do_back
+    JmpEq #$9D, do_back
+  jmp wait
+.endproc
+
+.proc load_root
+  ISet CUR_MENU, MENU_ROOT
+  rts
+.endproc
+
+.proc do_next
+  inc SELECTED_INDEX
+  lda SELECTED_INDEX
+  IfEq CNT_ITEMS
+    lda #0
+    sta SELECTED_INDEX
+  EndIf
+  rts
+.endproc
+
+.proc do_prev
+  dec SELECTED_INDEX
+  IfNeg 
+    lda CNT_ITEMS
+    sta SELECTED_INDEX
+    dec SELECTED_INDEX
+  EndIf
+  rts
+.endproc
+
+.proc do_action 
+  lda SELECTED_INDEX
+  jsr action_item_a
+  jmp fetch_items
+.endproc
+
+.proc do_back 
+  jsr go_back
+  jmp fetch_items
+.endproc
+.endscope

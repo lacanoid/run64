@@ -2,7 +2,7 @@
 Menu "Home", MENU_ROOT
   MenuHeading "This is the root menu"
   MenuAction "dump items"
-    ISet idump::HOME, MENU_ITEMS
+    ISet idump::HOME, imenu::MENU_ITEMS
     jmp idump::main
   MenuAction "dump heap"
     ISet idump::HOME, $C000

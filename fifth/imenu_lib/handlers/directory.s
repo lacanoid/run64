@@ -147,7 +147,7 @@ MenuHandler HNDL_FILE
     sta print::arg+1
     lda #'.'
     jsr print::char
-    jsr print_z_from_here
+    jsr imenu::print_z_from_here
     lda #2
     jsr print::spaces_to
     jsr print::number
