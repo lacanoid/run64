@@ -1,11 +1,18 @@
+.enum METHODS
+  PRINT=0
+  ACTION=2
+  ITEMS=4
+  BACK=6
+.endenum
 
 .macro MenuHandler arg
   .align 2
   ::arg:
   .scope arg 
-    do_print: .word __print__
-    do_action: .word __action__
-    get_items: .word __items__
+    .word __print__
+    .word __action__
+    .word __items__
+    .word __back__
 .endmacro
 .macro EndMenuHandler
     .ifdef PRINT
@@ -22,6 +29,11 @@
       __items__ = ITEMS
     .else
       __items__ = 0
+    .endif
+    .ifdef BACK
+      __back__ = BACK
+    .else
+      __back__ = 0
     .endif
   .endscope
 .endmacro

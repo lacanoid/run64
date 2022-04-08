@@ -6,12 +6,14 @@ jmp main
 MSGBAS = 0
 
 .include "imenu_lib/macros.inc"
+.include "imenu_lib/print.s"
 .include "imenu_lib/core.s"
 .include "imenu_lib/handlers/index.s"
 .include "imenu_lib/menu_root.s"
 
-
 .proc main
+  lda #14
+  jsr CHROUT
   ISet 53280,0
   CSet COLOR, 15
   jsr load_root
@@ -24,34 +26,40 @@ MSGBAS = 0
 .endproc
 
 .proc print_menu
-  jsr clear_screen
+  jsr print::reset
   CSet PRINT_INDEX, 0
+  jsr set_the_item_to_menu
+  CSet COLOR, 1
+  jsr print::rev_on
+  lda #0
+  jsr handler_method_a
+  jsr print::nl
+  jsr print::rev_off
   item:
-    jsr print_nl
     lda PRINT_INDEX
-  cmp CNT_ITEMS
-  beq break
-    lda PRINT_INDEX
+    cmp CNT_ITEMS
+    beq break
     pha
       cmp SELECTED_INDEX
       beq is_selected
       not_selected:
         lda #12
         sta COLOR
-        jsr print_space
+        jsr print::space
         bne then
       is_selected:
         lda #1
         sta COLOR
         lda #'>'
-        jsr print_char
+        jsr print::char
       then:
     pla
     jsr print_item_a
+    jsr print::nl
     inc PRINT_INDEX
     bne item
   break:
-  rts
+  jmp print::clear_rest
 .endproc
 
 .proc handle_keys
@@ -64,13 +72,17 @@ MSGBAS = 0
   beq key_prev
   cmp #13
   beq key_action
+  cmp #$1D
+  beq key_action
   cmp #3
+  beq key_back
+  cmp #$9D
   beq key_back
   jmp wait
   key_next: jmp do_next
   key_prev: jmp do_prev
   key_action: jmp do_action
-  key_back:
+  key_back: jmp do_back
   jmp wait
 .endproc
 
@@ -105,6 +117,10 @@ MSGBAS = 0
   jmp action_item_a
 .endproc
 
+.proc do_back 
+  jmp go_back
+.endproc
+
 .proc print_debug
   pha
   lda #'['
@@ -119,9 +135,9 @@ MSGBAS = 0
   ;jsr WRTWO
   ;lda #':'
   ;jsr CHROUT
-  lda CUR_ITEM+1
+  lda THE_ITEM+1
   jsr WRTWO
-  lda CUR_ITEM
+  lda THE_ITEM
   jsr WRTWO
   lda #':'
   jsr CHROUT
@@ -137,25 +153,4 @@ MSGBAS = 0
   rts
 .endproc 
 
-.proc print_nl
-  pha 
-  lda #13
-  jsr CHROUT
-  pla
-  rts
-.endproc
-.proc print_space
-  pha 
-  lda #' '
-  jsr CHROUT
-  pla
-  rts
-.endproc
-
-.proc clear_screen
-  pha 
-  lda #147
-  jsr CHROUT
-  pla
-  rts
-.endproc
+__PROGRAM_END__:

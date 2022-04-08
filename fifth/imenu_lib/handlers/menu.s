@@ -1,18 +1,18 @@
 MenuHandler HNDL_MENU
   ACTION:
-    IMov CUR_MENU,CUR_ITEM
-    CSet SELECTED_INDEX, 0 
-    rts
+    jmp go_to_the_item
   ITEMS:
-    jsr here_set_to_cur_item_body
+    ;jsr here_set_to_the_item_body
+    lda HERE+1
     loop:
       cmp #0
-      beq exit 
+      beq exit
+
       IMov tmp, HERE
       IAddB HERE, 2
       ;lda #'1'
       ;jsr print_debug
-      IMov CUR_ITEM, HERE
+      IMov THE_ITEM, HERE
       ;lda #'2'
       ;jsr print_debug
       jsr add_item
@@ -29,24 +29,39 @@ MenuHandler HNDL_MENU
   .code 
 EndMenuHandler
 
-MenuHandler HNDL_MENU_LINK
+MenuHandler HNDL_LINK
   ACTION:
-    jsr here_set_to_cur_item_body
-    jsr here_read_item
-    IMov CUR_MENU,CUR_ITEM
-    CSet SELECTED_INDEX, 0 
-    rts
+    ;lda #4
+    ;jsr here_advance_a
+    jsr here_deref 
+    ;jsr here_read_item
+    jmp go_to_here
 EndMenuHandler
 
 
 .macro MenuLink title, id
-  MenuItem HNDL_MENU_LINK, title
+  MenuItem HNDL_LINK, title
   .addr id
 .endmacro
 
 
+
+MenuHandler HNDL_BACK_LINK
+  ACTION:
+    jmp go_back 
+EndMenuHandler
+
+
+.macro MenuBackLink title
+  .ifnblank title
+    MenuItem HNDL_BACK_LINK, title
+  .else
+    MenuItem HNDL_BACK_LINK, "Go Back "
+  .endif
+.endmacro
+
 .proc print_z_title
-  jsr here_set_to_cur_item
+  jsr here_set_to_the_item
   lda #2
   jsr here_advance_a
   jsr here_deref

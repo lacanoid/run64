@@ -1,11 +1,25 @@
+
 Menu "Home", MENU_ROOT
-  MenuHeading "test"
-  MenuEcho "action"
-  MenuSub "sub"
-    MenuHeading "test2"
-    MenuEcho "action2"
-    MenuLink "back", MENU_ROOT
-  EndMenuSub
-  MenuEcho "more action"
+  MenuHeading "This is the root menu"
+  MenuEcho "echo me"
+  MenuAction "white"
+    lda #1
+    sta 53280
+    rts
+  MenuSub "Border"
+    MenuAction "white"
+      lda #1
+      sta 53280
+      rts
+    MenuAction "red"
+      lda #2
+      sta 53280
+      rts
+    MenuAction "blue"
+      lda #3
+      sta 53280
+      rts
+    MenuBackLink
+  EndMenuSub 
 EndMenu
-  
+

@@ -1,9 +1,8 @@
 MenuHandler HNDL_ECHO
   ACTION:
-    ;ClearScreen
-    jsr print_nl
+    jsr print::reset 
     jsr print_z_title
-    
+    jsr print::clear_rest
     wait:
       jsr GETIN
     beq wait
