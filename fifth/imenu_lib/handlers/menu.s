@@ -9,14 +9,8 @@ MenuHandler HNDL_MENU
       beq exit
 
       IMov tmp, HERE
-      IAddB HERE, 2
-      ;lda #'1'
-      ;jsr print_debug
-      IMov THE_ITEM, HERE
-      ;lda #'2'
-      ;jsr print_debug
-      jsr add_item
-      
+      IAddB HERE,2
+      jsr add_item_here
       IMov HERE, tmp
       jsr here_deref
       lda HERE+1

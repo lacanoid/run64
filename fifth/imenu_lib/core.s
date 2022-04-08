@@ -1,10 +1,12 @@
 .data
+  INIT_THERE=$C000
+  
   MAX_HISTORY = 16
   MAX_ITEMS = 128
   
   THE_ITEM: .word 9
   HERE = $FD
-  METHOD = $FB
+  THERE = $FB
   CUR_INDEX = $2
   
   CUR_MENU: .word 0
@@ -15,9 +17,9 @@
 
   MENU_ITEMS: .res MAX_ITEMS * 2
 
-  HISTORY: .res MAX_HISTORY * 2
+  HISTORY: .res MAX_HISTORY * 4
   HISTORY_PTR: .byte 0
-  HEAP: .word __PROGRAM_END__
+  OLD_THERE: .word INIT_THERE
   BUILTIN_HANDLERS:
     .word HNDL_HEADING
     .word HNDL_ECHO
@@ -29,7 +31,20 @@
   rts 
 .endproc
 
-.proc add_item
+.proc add_item_here
+  lda HERE
+  ldy HERE+1
+  jmp add_item_ay
+.endproc
+
+.proc add_item_there
+  lda THERE
+  ldy THERE+1
+  jmp add_item_ay
+.endproc
+
+.proc add_item_ay
+  sta rw+1
   lda CNT_ITEMS
   cmp #MAX_ITEMS
   bcs skip
@@ -37,9 +52,9 @@
     clc 
     asl
     tax 
-    lda THE_ITEM
+    rw: lda #$FF
     sta MENU_ITEMS+0,x
-    lda THE_ITEM+1
+    tya
     sta MENU_ITEMS+1,x
   skip:
   rts
@@ -50,11 +65,19 @@
   rts
 .endproc
 
+.proc set_menu_to_ay
+  sta CUR_MENU
+  sty CUR_MENU+1
+  CSet SELECTED_INDEX, 0 
+  rts
+.endproc
+
 .proc set_menu_to_the_item
   IMov CUR_MENU, THE_ITEM
   CSet SELECTED_INDEX, 0 
   rts
 .endproc
+
 
 .proc set_the_item_to_selected
   lda SELECTED_INDEX
@@ -127,15 +150,28 @@
 .proc here_set_for_method_a
   cmp #METHODS::PRINT 
   beq skip
-    jsr here_set_to_the_item
     lda #2
-    jsr here_advance_a
+    jsr here_set_to_the_item_plus_a
     jsr here_read_byte
-    jmp here_advance_a
+    beq count_em
+    jsr here_advance_a
+    rts
+    count_em:
+    jsr here_read_byte
+    bne count_em
+    rts
   skip:
-  jsr here_set_to_the_item
   lda #3
-  jmp here_advance_a
+  jmp here_set_to_the_item_plus_a
+.endproc 
+
+.proc here_set_to_the_item_plus_a
+  clc
+  adc THE_ITEM
+  sta HERE
+  lda #0
+  adc THE_ITEM+1
+  sta HERE+1
   rts 
 .endproc 
 
@@ -163,6 +199,14 @@
   ldx #0
   sta (HERE,x)
   IInc HERE
+  rts
+.endproc
+
+
+.proc there_write_byte
+  ldx #0
+  sta (THERE,x)
+  IInc THERE
   rts
 .endproc
 
@@ -199,15 +243,22 @@
 
 .proc history_push
   ldx HISTORY_PTR
-  cpx #MAX_HISTORY
+  cpx #MAX_HISTORY*4
   bcs skip
     lda CUR_MENU
     sta HISTORY,x
-    lda CUR_MENU+1
-    sta HISTORY+1,x
     inx 
+    lda CUR_MENU+1
+    sta HISTORY,x
+    inx 
+    lda OLD_THERE
+    sta HISTORY,x
+    inx 
+    lda OLD_THERE+1
+    sta HISTORY,x
     inx
     stx HISTORY_PTR 
+    IMov OLD_THERE, THERE
   skip:
   rts
 .endproc
@@ -216,13 +267,33 @@
   ldx HISTORY_PTR
   beq skip
     dex 
+    lda HISTORY,x
+    sta OLD_THERE+1
+    sta THERE+1
+    dex
+    lda HISTORY,x
+    sta OLD_THERE
+    sta THERE
+    dex
+    lda HISTORY,x
+    sta CUR_MENU+1
     dex
     lda HISTORY,x
     sta CUR_MENU
-    lda HISTORY+1,x
-    sta CUR_MENU+1
     stx HISTORY_PTR 
   skip:
+  rts
+.endproc
+
+.proc go_to_ay
+  sty rwy+1
+  sta rwa+1
+  jsr history_push
+  rwa: lda #$ff 
+  sta CUR_MENU
+  rwy: ldy #$ff 
+  sty CUR_MENU+1
+  CSet SELECTED_INDEX, 0 
   rts
 .endproc
 

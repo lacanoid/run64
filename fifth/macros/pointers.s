@@ -1,10 +1,5 @@
-.macro Pointer label, argp
-  .ifblank argp
-    label: .addr 0
-  .else
-    label: .addr argp
-  .endif
-.endmacro
+.ifndef __POINTERS_INCLUDED__
+__POINTERS_INCLUDED__ = 1
 
 .macro PeekA argp, offset
   .local rewrite
@@ -178,3 +173,4 @@
   tya
   IAddA argp
 .endmacro
+.endif

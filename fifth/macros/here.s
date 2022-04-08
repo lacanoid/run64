@@ -9,8 +9,12 @@
     sty HERE
     rts
   .endproc 
-      
+
+  .proc forward
+    IInc HERE 
+    rts
   .endproc
+
   .proc forward_a
     IAddA HERE
     rts
@@ -21,10 +25,6 @@
     rts
   .endproc
 
-  .proc forward
-    IInc HERE 
-    rts
-  .endproc
 
   .proc back
     IDec HERE
@@ -76,7 +76,7 @@
     rts
   .end 
     
-  .proc here_deref
+  .proc deref
     jsr read_byte
     pha
     jsr here_read_byte

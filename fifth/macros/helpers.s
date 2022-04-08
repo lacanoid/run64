@@ -1,3 +1,5 @@
+.ifndef __HELPERS_INCLUDED__
+__HELPERS_INCLUDED__ = 1
 .macro bra arg
   clv 
   bvc arg
@@ -196,3 +198,4 @@
     ldx $FF
   .endscope
 .endmacro
+.endif

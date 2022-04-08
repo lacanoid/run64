@@ -1,7 +1,14 @@
 
 Menu "Home", MENU_ROOT
   MenuHeading "This is the root menu"
-  MenuEcho "echo me"
+  MenuAction "dump items"
+    ISet idump::HOME, MENU_ITEMS
+    jmp idump::main
+  MenuAction "dump heap"
+    ISet idump::HOME, $C000
+    jmp idump::main
+  MenuAction "idump"
+    jmp idump::main
   MenuDirectory "ls"
   MenuSub "Border"
     MenuAction "white"
@@ -11,7 +18,7 @@ Menu "Home", MENU_ROOT
     MenuAction "red"
       lda #2
       sta 53280
-      rts
+      rts 
     MenuAction "blue"
       lda #3
       sta 53280

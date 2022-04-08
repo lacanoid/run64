@@ -1,3 +1,6 @@
+.ifndef __DEFS_INCLUDED__
+__DEFS_INCLUDED__ = 64
+
 .include "defs.inc"
 
 KEYD   = $0277  ; start of keyboard buffer for C64 screen editor
@@ -88,3 +91,5 @@ RESTOR    = $FD15  ; Restore RAM Vectors for Default I/O Routines
 RAMTAS    = $FD50  ; Perform RAM Test and Set Pointers to the Top and Bottom of RAM
 IOINIT    = $FDA3  ; Initialize CIA I/O Devices
 CINT      = $FF5B  ; Initialize Screen Editor and VIC-II Chip
+
+.endif

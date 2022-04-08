@@ -1,28 +1,7 @@
-MenuHandler HNDL_FILE
-  PRINT:
-    jsr print_z_title
-    ;jsr print::space
-    jsr here_read_byte
-    sta print::arg
-    jsr here_read_byte
-    sta print::arg+1
-    lda #'.'
-    jsr print::char
-    jsr print_z_from_here
-    lda #2
-    jsr print::spaces_to
-    jsr print::number
-    
-  rts
-EndMenuHandler
-
 MenuHandler HNDL_DIRECTORY
   ACTION:
     jmp go_to_the_item
   ITEMS:
-    IMov HERE, HEAP
-    jsr here_deref
-    
     LDA #dirname_end-dirname
     LDX #<dirname
     LDY #>dirname
@@ -53,16 +32,14 @@ MenuHandler HNDL_DIRECTORY
     DEY
     BNE skip2
   
-    ;jsr print_debug
-    IMov THE_ITEM,HERE
-    jsr add_item    
+    jsr add_item_there
     lda #<HNDL_FILE
-    jsr here_write_byte
+    jsr there_write_byte
     lda #>HNDL_FILE
-    jsr here_write_byte
-    IMov METHOD, HERE
+    jsr there_write_byte
+
     lda #0
-    jsr here_write_byte
+    jsr there_write_byte
     ldy #0
     JSR getbyte    ; get low byte of basic line number
     sta tmp
@@ -80,22 +57,19 @@ MenuHandler HNDL_DIRECTORY
     cmp #'"'
     beq break
     iny
-    JSR here_write_byte
+    JSR there_write_byte
     clc
     bcc char
   break:
     ; write terminator and length
     lda #0
-    jsr here_write_byte
-    iny 
-    tya
-    ldx #0
-    sta (METHOD,x)
-    ; write file size
+    jsr there_write_byte
+
+    ; write file length that we stored earlier
     lda tmp
-    jsr here_write_byte
+    jsr there_write_byte
     lda tmp+1
-    jsr here_write_byte
+    jsr there_write_byte
 
   ; ignore the spaces
   skip4:
@@ -107,7 +81,7 @@ MenuHandler HNDL_DIRECTORY
   ; read file type
   .scope 
     loop:
-    jsr here_write_byte
+    jsr there_write_byte
     JSR getbyte
     beq break
     cmp #' '
@@ -116,7 +90,7 @@ MenuHandler HNDL_DIRECTORY
   .endscope
   pha
     lda #0
-    jsr here_write_byte
+    jsr there_write_byte
   pla
   .scope 
     beq break
@@ -158,3 +132,29 @@ EndMenuHandler
 .macro MenuDirectory title
   MenuItem HNDL_DIRECTORY, title
 .endmacro
+
+MenuHandler HNDL_FILE
+  ACTION:
+    lda #<MENU_FILE
+    ldy #>MENU_FILE
+    jmp go_to_ay
+  PRINT:
+    jsr print_z_title
+    ;jsr print::space
+    jsr here_read_byte
+    sta print::arg
+    jsr here_read_byte
+    sta print::arg+1
+    lda #'.'
+    jsr print::char
+    jsr print_z_from_here
+    lda #2
+    jsr print::spaces_to
+    jsr print::number
+  rts
+EndMenuHandler
+
+Menu "File", MENU_FILE
+  MenuHeading "open"
+  MenuHeading "delete"
+EndMenu

@@ -1,3 +1,4 @@
+
 .scope print
   PP: .word 0
   arg: .word 0

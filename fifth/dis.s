@@ -22,9 +22,9 @@
       beq invalid
       tya
       lda first_two,y
-      jsr print_char
+      jsr print::char
       lda first_two+1,y
-      jsr print_char
+      jsr print::char
     pla
     tax
     lda instr2,x
@@ -32,8 +32,8 @@
       and #$0F
       tay
       lda last_one,y
-      jsr print_char
-      jsr print_space
+      jsr print::char
+      jsr print::space
     pla 
     
     
@@ -50,16 +50,11 @@
 
     lda table,y
     sta rewrite+1
-    ;jsr print_hex_digits
 
-    ;jsr print_space
-    ;tya
-    ;lsr
-    ;jsr print_hex_digits
     ColorSet 7
     rewrite:
     jsr $FEDA
-    jmp print_nl
+    jmp print::nl
     .data
     table: 
     .word do_AC 
@@ -79,47 +74,47 @@
     invalid:
       ColorSet 4
       lda #'.'
-      jsr print_char
+      jsr print::char
       lda #'B'
-      jsr print_char
+      jsr print::char
       lda #'Y'
-      jsr print_char
-      jsr print_space
+      jsr print::char
+      jsr print::space
       pla
       ColorSet 15
       jsr dump_sbyte
-      jmp print_nl
+      jmp print::nl
   .endproc
 
   .proc print_open
     ColorSet 12
     lda #'('
-    jmp print_char
+    jmp print::char
   .endproc
   .proc print_close
     ColorSet 12
     lda #')'
-    jmp print_char
+    jmp print::char
   .endproc
   .proc print_x
     ColorSet 12
     lda #','
-    jsr print_char
+    jsr print::char
     lda #'X'
-    jmp print_char
+    jmp print::char
   .endproc
   .proc print_y
     ColorSet 12
     lda #','
-    jsr print_char
+    jsr print::char
     lda #'Y'
-    jmp print_char
+    jmp print::char
   .endproc
   
   .proc do_AC
     rts
     lda #'A'
-    jmp print_char
+    jmp print::char
   .endproc
 
   .proc do_AB
@@ -137,7 +132,7 @@
   .proc do_HA
     ColorSet 8
     lda #'#'
-    jsr print_char
+    jsr print::char
     jmp dump_sbyte
   .endproc
   .proc do_IM
@@ -165,7 +160,7 @@
   .endproc
   .proc do_RE 
     lda #'$'
-    jsr print_char
+    jsr print::char
 
     ldy #$00
     jsr read_data
@@ -178,9 +173,9 @@
     tya         ; .X is the high byte
     adc DP+1
     ColorSet 7
-    jsr print_hex_digits
+    jsr print::byte_a
     pla
-    jmp print_hex_digits
+    jmp print::byte_a
   .endproc
   .proc do_ZP
     ColorSet 7

@@ -1,4 +1,7 @@
+.ifndef __PRINT_INCLUDED__
+__PRINT_INCLUDED__ = 1
 .scope print
+
   .data
     PP = $D1
     CP = $F3
@@ -34,6 +37,7 @@
   .proc space
     lda #' '
     ldx #0
+    ora CHAR_OR
     sta (PP,x)
     jmp _advance
   .endproc
@@ -172,15 +176,18 @@
     rts
   .endproc
 
-  .proc acc
+  .proc number_a
     sta arg
     lda #0
     sta arg+1
     jmp number
   .endproc
-
   
-
+  .proc number_ay
+    sta arg
+    sty arg+1
+  .endproc
+  ;passthrough
   .proc number
     ; print a 16 bit unsigned binary integer from stack in base 10
     ; leading zeros are omitted
@@ -215,6 +222,10 @@
       rts
   .endproc
 
+  .proc z_ay
+    sta arg
+    sty arg+1
+  .endproc
   .proc z
     loop:
       lda arg
@@ -225,6 +236,41 @@
     exit:
       rts
   .endproc
-  
-.endscope
 
+  .proc byte_a
+    pha
+    lsr 
+    lsr 
+    lsr 
+    lsr
+    jsr nybble_a
+    pla
+
+    pha
+    and #$0f
+    jsr nybble_a
+    pla
+    rts
+  .endproc
+
+  .proc nybble_a
+    cmp #10
+    bcs letter
+      add #'0'
+      jsr char
+      rts
+    letter:
+      add #'a'-10
+      jsr char
+      rts
+  .endproc
+
+  .proc word_ay
+    pha
+    tya
+    jsr byte_a
+    pla
+    jmp byte_a
+  .endproc
+.endscope
+.endif

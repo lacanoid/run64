@@ -1,3 +1,6 @@
+.ifndef __DEFS_INCLUDED__
+__DEFS_INCLUDED__ = 128
+
 .include "defs.inc"
 
 ; keyboard
@@ -90,5 +93,4 @@ JRUN_A_PROGRAM = $AF99 ; run a loaded program
 CRTI      = $FF33  ; return from interrupt
 C64MODE   = $FF4D  ; go 64 mode
 
-
-
+.endif

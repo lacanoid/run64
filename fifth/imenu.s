@@ -2,20 +2,22 @@
 jmp main
 .include "defs64.inc"
 .include "macros/helpers.s"
-.include "utils.s"
-MSGBAS = 0
 
 .include "imenu_lib/macros.inc"
 .include "imenu_lib/print.s"
 .include "imenu_lib/core.s"
 .include "imenu_lib/handlers/index.s"
+.include "imenu_lib/idump.s"
 .include "imenu_lib/menu_root.s"
 
 .proc main
+  ISet THERE, INIT_THERE
+
   lda #14
   jsr CHROUT
   ISet 53280,0
   CSet COLOR, 15
+  
   jsr load_root
   jsr fetch_items
   main_loop:
@@ -125,20 +127,15 @@ MSGBAS = 0
 
 .proc print_debug
   pha
+  /*
   lda #'['
-  jsr CHROUT
+  jsr print::char
   pla
-  jsr CHROUT
+  jsr print::char
   lda #':'
-  jsr CHROUT
-  ;lda CUR_HANDLER+1
-  ;jsr WRTWO
-  ;lda CUR_HANDLER
-  ;jsr WRTWO
-  ;lda #':'
-  ;jsr CHROUT
+  jsr print::char
   lda THE_ITEM+1
-  jsr WRTWO
+  jsr print::number_a
   lda THE_ITEM
   jsr WRTWO
   lda #':'
@@ -147,12 +144,19 @@ MSGBAS = 0
   jsr WRTWO
   lda HERE
   jsr WRTWO
+  lda #':'
+  jsr CHROUT
+  lda THERE+1
+  jsr WRTWO
+  lda THERE
+  jsr WRTWO
   lda #']'
   jsr CHROUT
+  */
   wait:
     jsr GETIN
   beq wait
   rts
 .endproc 
-
+.code
 __PROGRAM_END__:
