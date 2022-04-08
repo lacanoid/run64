@@ -1,6 +1,6 @@
 .include "defs-auto.inc"
 .include "macros/basics.s"
-.include "imenu_lib/print.s"
+.include "ilib/print.s"
 
 .macro ColorSet c
     lda #c 

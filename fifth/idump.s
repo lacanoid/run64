@@ -3,7 +3,7 @@ jmp MAIN
 
 .include "defs-auto.inc"
 .include "macros/basics.s"
-.include "imenu_lib/print.s"
-.include "imenu_lib/idump.s"
+.include "ilib/print.s"
+.include "ilib/idump.s"
 
 MAIN = idump::main

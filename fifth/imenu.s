@@ -1,6 +1,6 @@
 jmp MAIN
-.include "imenu_lib/core.s"
-.include "imenu_lib/idump.s"
+.include "ilib/core.s"
+.include "ilib/idump.s"
 MAIN = imenu::main
 
 MenuRoot "Home"

@@ -1,11 +1,11 @@
 .include "defs64.inc"
 .include "macros/basics.s"
 
-.include "imenu_lib/macros.inc"
-.include "imenu_lib/print.s"
+.include "ilib/macros.inc"
+.include "ilib/print.s"
 
 .scope imenu
-.include "imenu_lib/handlers/index.s"
+.include "ilib/handlers/index.s"
 .data
   INIT_THERE=$C000
   
