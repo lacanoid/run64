@@ -148,6 +148,14 @@
     rts
   .endproc
 
+  .proc acc
+    sta arg
+    lda #0
+    sta arg+1
+    jmp number
+  .endproc
+
+  
 
   .proc number
     ; print a 16 bit unsigned binary integer from stack in base 10

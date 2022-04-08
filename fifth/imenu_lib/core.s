@@ -127,12 +127,15 @@
 .proc here_set_for_method_a
   cmp #METHODS::PRINT 
   beq skip
-    clc
     jsr here_set_to_the_item
-    lda #4
+    lda #2
+    jsr here_advance_a
+    jsr here_read_byte
     jmp here_advance_a
   skip:
   jsr here_set_to_the_item
+  lda #3
+  jmp here_advance_a
   rts 
 .endproc 
 
@@ -150,7 +153,9 @@
 .proc here_read_byte
   ldx #0
   lda (HERE,x)
+  pha
   IInc HERE
+  pla
   rts
 .endproc
 

@@ -61,10 +61,6 @@ EndMenuHandler
 .endmacro
 
 .proc print_z_title
-  jsr here_set_to_the_item
-  lda #2
-  jsr here_advance_a
-  jsr here_deref
   jmp print_z_from_here
   rts
 .endproc

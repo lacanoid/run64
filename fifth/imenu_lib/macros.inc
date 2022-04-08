@@ -45,11 +45,8 @@
   .endif
   .scope
     .addr HNDL_MENU
-    .data
-        __title__: 
-        .byte title, 0
-    .code
-    .addr __title__
+    .byte .strlen(title)+1
+    .byte title, 0
     .scope 
 .endmacro
 
@@ -60,11 +57,8 @@
       .addr __next_item__
     __item__:
       .addr handler
-      .data
-        __title__: 
-        .byte title, 0
-      .code
-      .addr __title__
+      .byte .strlen(title)+1
+      .byte title, 0
 .endmacro
 
 .macro MenuSub title, id
