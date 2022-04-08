@@ -17,7 +17,7 @@
 
   HISTORY: .res MAX_HISTORY * 2
   HISTORY_PTR: .byte 0
-
+  HEAP: .word __PROGRAM_END__
   BUILTIN_HANDLERS:
     .word HNDL_HEADING
     .word HNDL_ECHO

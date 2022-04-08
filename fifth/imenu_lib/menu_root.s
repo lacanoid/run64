@@ -2,10 +2,7 @@
 Menu "Home", MENU_ROOT
   MenuHeading "This is the root menu"
   MenuEcho "echo me"
-  MenuAction "white"
-    lda #1
-    sta 53280
-    rts
+  MenuDirectory "ls"
   MenuSub "Border"
     MenuAction "white"
       lda #1

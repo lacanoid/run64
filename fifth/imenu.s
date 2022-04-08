@@ -17,8 +17,8 @@ MSGBAS = 0
   ISet 53280,0
   CSet COLOR, 15
   jsr load_root
+  jsr fetch_items
   main_loop:
-    jsr fetch_items
     jsr print_menu
     jsr handle_keys
   jmp main_loop
@@ -114,11 +114,13 @@ MSGBAS = 0
 
 .proc do_action 
   lda SELECTED_INDEX
-  jmp action_item_a
+  jsr action_item_a
+  jmp fetch_items
 .endproc
 
 .proc do_back 
-  jmp go_back
+  jsr go_back
+  jmp fetch_items
 .endproc
 
 .proc print_debug

@@ -105,6 +105,30 @@
       rts 
   .endproc
 
+  .proc spaces_to
+    pha
+    sta column+1
+    lda #' '
+    ora CHAR_OR
+    sta rewrite+1
+    lda COLOR
+    sta color+1
+    loop: 
+      lda COLUMN
+      column: cmp #$FF
+      beq exit
+      ldx #0
+      rewrite: lda #' '
+      sta (PP,x)
+      color: lda #$FF
+      sta (CP,x)
+      jsr _advance
+    bcc loop
+    exit:
+    pla
+    rts
+  .endproc
+
   .proc nl
     pha
     lda COLUMN
@@ -191,5 +215,16 @@
       rts
   .endproc
 
+  .proc z
+    loop:
+      lda arg
+      beq exit
+      jsr char
+      IInc arg
+      bra loop
+    exit:
+      rts
+  .endproc
+  
 .endscope
 

@@ -34,7 +34,6 @@ MenuHandler HNDL_LINK
     ;lda #4
     ;jsr here_advance_a
     jsr here_deref 
-    ;jsr here_read_item
     jmp go_to_here
 EndMenuHandler
 
