@@ -1,3 +1,6 @@
+.ifndef __DEFS_INCLUDED__
+__DEFS_INCLUDED__ = 128
+
 .include "defs.inc"
 
 ; keyboard
@@ -97,5 +100,4 @@ INDCMP    = $FF7A  ; indirect CMP to other bank
 PRIMM     = $FF7D  ; print immediate
 C64_MODE  = $FF4D  ; go 64 mode
 
-
-
+.endif
