@@ -36,10 +36,7 @@ __PRINT_INCLUDED__ = 1
 
   .proc space
     lda #' '
-    ldx #0
-    ora CHAR_OR
-    sta (PP,x)
-    jmp _advance
+    jmp _char
   .endproc
 
   .proc char
@@ -75,10 +72,10 @@ __PRINT_INCLUDED__ = 1
     clc
     rewrite:
     adc #$ff 
-    ora CHAR_OR
   .endproc
   ; passthrough
   .proc _char
+    ora CHAR_OR
     ldx #0
     sta (PP,x)
     lda COLOR
@@ -109,70 +106,31 @@ __PRINT_INCLUDED__ = 1
       rts 
   .endproc
 
-  .proc spaces_to
-    pha
-    sta column+1
-    lda #' '
-    ora CHAR_OR
-    sta rewrite+1
-    lda COLOR
-    sta color+1
-    loop: 
-      lda COLUMN
-      column: cmp #$FF
-      beq exit
-      ldx #0
-      rewrite: lda #' '
-      sta (PP,x)
-      color: lda #$FF
-      sta (CP,x)
-      jsr _advance
-    bcc loop
-    exit:
-    pla
+  .proc nl
+    spaces: 
+      lda #' '
+      jsr _char
+    bcc spaces
     rts
   .endproc
-
-  .proc nl
-    pha
-    lda COLUMN
-    beq exit
-    
-    lda #' '
-    ora CHAR_OR
-    sta rewrite+1
-    lda COLOR
-    sta color+1
-    loop: 
-      ldx #0
-      rewrite:
+  .proc spaces_to
+    eor #$FF
+    sec
+    adc #40
+    tay 
+    spaces: 
       lda #' '
-      sta (PP,x)
-      color: 
-      lda #$FF
-      sta (CP,x)
-      jsr _advance
-    bcc loop
-    exit:
-    pla
+      jsr _char
+      cpy COLUMN
+    bne spaces
     rts
   .endproc
   .proc clear_rest
-    pha
-    lda COLUMN
-    beq exit
-    
-    lda #' '
-    sta rewrite+1
-    loop: 
-      ldx #0
-      rewrite:
+    spaces: 
       lda #' '
-      sta (PP,x)
-      jsr _advance
-    bne loop
-    exit:
-    pla
+      jsr _char
+    bcc spaces
+    bne spaces
     rts
   .endproc
 
@@ -183,8 +141,8 @@ __PRINT_INCLUDED__ = 1
     jmp number
   .endproc
   
-  .proc number_ay
-    sta arg
+  .proc number_xy
+    stx arg
     sty arg+1
   .endproc
   ;passthrough
@@ -222,20 +180,54 @@ __PRINT_INCLUDED__ = 1
       rts
   .endproc
 
-  .proc z_ay
-    sta arg
-    sty arg+1
-  .endproc
-  .proc z
+  .proc z_at_xy
+    stx read+1
+    sty read+2
+    ;jsr word_xy
     loop:
-      lda arg
+      read: lda $FADE
       beq exit
+      IInc read+1
       jsr char
-      IInc arg
       bra loop
     exit:
       rts
   .endproc
+
+  .proc z_at_xy_plus_a
+    stx x2a +1
+    sty y2a+1
+    clc
+    x2a: adc #00
+    sta read+1
+    y2a: lda #00
+    adc #0
+    sta read+2
+    loop:
+      read: lda $FADE
+      beq exit
+      IInc read+1
+      jsr char
+      bra loop
+    exit:
+      rts
+  .endproc
+
+  .proc len_at_xy
+    stx read+1
+    sty read+2
+    tax 
+    loop:
+      read: lda $FADE
+      dex
+      beq exit
+      jsr char
+      IInc read+1
+      bra loop
+    exit:
+      rts
+  .endproc
+
 
   .proc byte_a
     pha
@@ -245,31 +237,23 @@ __PRINT_INCLUDED__ = 1
     lsr
     jsr nybble_a
     pla
-
-    pha
-    and #$0f
-    jsr nybble_a
-    pla
-    rts
   .endproc
 
   .proc nybble_a
+    and #$0f
     cmp #10
-    bcs letter
-      add #'0'
-      jsr char
-      rts
-    letter:
-      add #'a'-10
-      jsr char
-      rts
+    bcc skip
+    adc #6
+    skip:
+    add #'0'
+      jmp char
   .endproc
 
-  .proc word_ay
-    pha
+  .proc word_xy
+    stx rw+1
     tya
     jsr byte_a
-    pla
+    rw: lda #$ff
     jmp byte_a
   .endproc
 .endscope

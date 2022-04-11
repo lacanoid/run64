@@ -15,6 +15,23 @@ __HELPERS_INCLUDED__ = 1
   adc arg1
 .endmacro
 
+.macro ldxy arg
+  .if (.match (.left (1, {arg}), #))
+    ldx #<(.right (.tcount ({arg})-1, {arg}))
+    ldy #>(.right (.tcount ({arg})-1, {arg}))
+  .else
+    ldx arg
+    ldy arg+1
+  .endif
+.endmacro
+
+.macro stxy arg
+  stx arg
+  sty arg+1
+.endmacro
+
+
+
 .macro CClear arg1
   lda #0
   sta arg1
@@ -185,7 +202,7 @@ __HELPERS_INCLUDED__ = 1
 .endmacro
 .macro PopX
     __push_x_rewrite:
-    ldx $FF
+    ldx #$FF
   .endscope
 .endmacro
 
@@ -195,7 +212,7 @@ __HELPERS_INCLUDED__ = 1
 .endmacro
 .macro PopY
     __push_y_rewrite:
-    ldx $FF
+    ldx #$FF
   .endscope
 .endmacro
 .endif

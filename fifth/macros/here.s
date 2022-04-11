@@ -79,7 +79,7 @@
   .proc deref
     jsr read_byte
     pha
-    jsr here_read_byte
+    jsr here_read_a
     sta HERE+1
     pla 
     sta HERE 

@@ -332,4 +332,62 @@ last_one:
     .byte _D_ | _IM, _C_ | _AY, INV | INV, MIS, INV | INV, _C_ | _AX, _C_ | _AX, MIS
   ;end
 
+/*
+
+; -----------------------------------------------------------------------------
+; addressing mode table - nybbles provide index into MODE2 table
+; for opcodes XXXXXXY0, use XXXXXX as index into table
+; for opcodes WWWXXY01  use $40 + XX as index into table
+; use right nybble if Y=0; use left nybble if Y=1
+
+MODE    .BYTE $40,$02,$45,$03   ; even opcodes
+        .BYTE $D0,$08,$40,$09
+        .BYTE $30,$22,$45,$33
+        .BYTE $D0,$08,$40,$09
+        .BYTE $40,$02,$45,$33
+        .BYTE $D0,$08,$40,$09
+        .BYTE $40,$02,$45,$B3
+        .BYTE $D0,$08,$40,$09
+        .BYTE $00,$22,$44,$33
+        .BYTE $D0,$8C,$44,$00
+        .BYTE $11,$22,$44,$33
+        .BYTE $D0,$8C,$44,$9A
+        .BYTE $10,$22,$44,$33
+        .BYTE $D0,$08,$40,$09
+        .BYTE $10,$22,$44,$33
+        .BYTE $D0,$08,$40,$09
+        .BYTE $62,$13,$78,$A9   ; opcodes ending in 01
+
+; addressing mode format definitions indexed by nybbles from MODE table
+
+; left 6 bits define which characters appear in the assembly operand
+; left 3 bits are before the address; next 3 bits are after
+
+; right-most 2 bits define length of binary operand
+
+; index               654 321
+; 1st character       $(# ,),  
+; 2nd character        $$ X Y    length  format      idx mode
+MODE2   .BYTE $00   ; 000 000    00                  0   error
+        .BYTE $21   ; 001 000    01      #$00        1   immediate
+        .BYTE $81   ; 100 000    01      $00         2   zero-page
+        .BYTE $82   ; 100 000    10      $0000       3   absolute
+        .BYTE $00   ; 000 000    00                  4   implied
+        .BYTE $00   ; 000 000    00                  5   accumulator
+        .BYTE $59   ; 010 110    01      ($00,X)     6   indirect,X
+        .BYTE $4D   ; 010 011    01      ($00),Y     7   indirect,Y
+        .BYTE $91   ; 100 100    01      $00,X       8   zero-page,X
+        .BYTE $92   ; 100 100    10      $0000,X     9   absolute,X
+        .BYTE $86   ; 100 001    10      $0000,Y     A   absolute,Y
+        .BYTE $4A   ; 010 010    10      ($0000)     B   indirect
+        .BYTE $85   ; 100 001    01      $00,Y       C   zero-page,Y
+        .BYTE $9D   ; 100 111    01      $0000*      D   relative
+; * relative is special-cased so format bits don't match
+; character lookup tables for the format definitions in MODE2
+CHAR1   .BYTE $2C,$29,$2C       ; ","  ")"  ","
+        .BYTE $23,$28,$24       ; "#"  "("  "$"
+
+CHAR2   .BYTE $59,$00,$58       ; "Y"   0   "X"
+        .BYTE $24,$24,$00       ; "$"  "$"   0
+*/
 .endscope

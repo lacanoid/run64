@@ -38,13 +38,18 @@ check: $(PROGRAMS)
 5th: 5th.o
 
 imenu: imenu.o
-	$(CC) $(LDFLAGS) -t c64 -C c64-asm.cfg -u __EXEHDR__ -o imenu imenu.o
+	$(CC) $(LDFLAGS) -t c64 -C ilib.cfg -u __EXEHDR__ -o imenu imenu.o
 imenu.o: imenu.s
 	$(AS) $(ASFLAGS) -t c64 -o imenu.o imenu.s
 
+imenu.128: imenu.128.o
+	$(CC) $(LDFLAGS) -t c128 -C ilib.128.cfg  -u __EXEHDR__ -o imenu.128 imenu.128.o
+imenu.128.o: imenu.s
+	$(AS) $(ASFLAGS) -t c128 -o imenu.128.o imenu.s
+
 
 idump: idump.o
-	$(CC) $(LDFLAGS) -t c64 -C c64-asm.cfg -u __EXEHDR__ -o idump idump.o
+	$(CC) $(LDFLAGS) -t c64 -C ilib.cfg -u __EXEHDR__ -o idump idump.o
 idump.o: idump.s
 	$(AS) $(ASFLAGS) -t c64 -o idump.o idump.s
 

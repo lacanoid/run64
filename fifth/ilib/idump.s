@@ -7,6 +7,19 @@
     sta COLOR
 .endmacro
 
+.macro signed arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8
+  .ifnblank arg1 
+    .if (arg1<0)
+      .word ((-arg1 ^ $FFFF) + 1) & $FFFF
+    .else
+      .word arg1
+    .endif
+    .ifnblank arg2
+      signed arg2, arg3, arg4, arg5, arg6, arg7, arg8
+    .endif 
+  .endif 
+.endmacro
+
 .scope idump
   .include "dis.s"  
   DP = $FB
@@ -14,31 +27,41 @@
   .data
     CMODE: .byte 1
     HOME: .word $0000
-    title: .asciiz "IDMP  M"
-    rest: .byte 40
-    line_cnt: .byte 0
+    TITLE: .asciiz "IDMP  M"
     DP_TMP: .word 0
+    LINE_CNT: .word 0
     MODE_PTR: .word MODES_TABLE+8
     MODES_TABLE:
-    .word dis::print_instruction 
-    .byte "DIS" 
-    .res 3
-    .word print_line_hex
-    .byte "DEF"
-    .res 3
-    .word print_line_bytes
-    .byte "BYT"
-    .res 3
-    .word print_line_mixed
-    .byte "MIX"
-    .res 3
-    .word print_line_words
-    .byte "WRD"
-    .res 3
-    .word print_line_text
-    .byte "TXT"
-    .res 3
+      .word dis::print_instruction 
+      .byte "DIS" 
+      .res 3
+      .word print_line_hex
+      .byte "DEF"
+      .res 3
+      .word print_line_bytes
+      .byte "BYT"
+      .res 3
+      .word print_line_mixed
+      .byte "MIX"
+      .res 3
+      .word print_line_words
+      .byte "WRD"
+      .res 3
+      .word print_line_text
+      .byte "TXT"
+      .res 3
+    KEY_CODES:
+      .byte $3, 'q', 'm'
+      .byte 0
+      .addr exit, exit, key_mode
+    DKEY_CODES:
+      .byte $91, $9d, $11, $1d
+      .byte 'w', 'a', 's', 'd'
+      .byte 0
+      signed -$80, -$1000, $80, $1000 
+      signed -$10, -$1, $10, $1
   .code
+
 
 
   ::idump_main:
@@ -47,24 +70,19 @@
     lda #14
     jsr CHROUT
     ISet 53280,0
-
-    ::main_loop:
+    jsr set_mode
+  .endproc
+  .proc main_loop
     loop:
- 
-    .proc set_mode 
-      ISet MODE_PTR, MODES_TABLE
-      lda CMODE
-      clc
-      asl 
-      asl 
-      asl
-      IAddA MODE_PTR
-    .endproc
+      jsr set_mode
+
       CSet COLOR,1
       jsr print::reset
       jsr print::rev_on
-      ISet DP, title
-      jsr print_z
+      ldx #<TITLE
+      ldy #>TITLE 
+      jsr print::z_at_xy
+
       lda CMODE
       jsr print::nybble_a
 
@@ -81,11 +99,10 @@
       
 
       IMov DP, HOME
-      CSet line_cnt, 24
-      CSet rest, 40
+      CSet LINE_CNT, 24
       line:
         jsr print_line
-        dec line_cnt
+        dec LINE_CNT
       bne line
 
       wait: 
@@ -94,48 +111,54 @@
 
       BraLt #'0', not_digit
       BraGe #'0'+MODES, not_digit
-      sec 
+      sec
       sbc #'0'
       sta CMODE
       jmp main_loop
       not_digit:
-      BraEq #$3,exit
-      JmpEq #$91,key_up
-      JmpEq #$9d,key_left 
-      JmpEq #$11,key_down 
-      JmpEq #$1d,key_right 
-      and #$7F
-      BraEq #'q',exit
-      JmpEq #'m',key_mode
-      JmpEq #'w',key_up 
-      JmpEq #'s',key_down 
-      JmpEq #'a',key_sub_1
-      JmpEq #'d',key_add_1 
-      bra wait
-    exit:
-      IMov DP, DP_TMP
-      lda #147
-      jsr CHROUT 
+      ldxy #DKEY_CODES
+      pha
+      jsr lookup
+      pla
+      bcs not_dkey
+      txa
+      adc HOME
+      sta HOME
+      tya
+      adc HOME+1
+      sta HOME+1
+      jmp main_loop
+      
+      not_dkey:
+      ldxy #KEY_CODES
+      
+      jsr lookup
+
+      bcs wait
+      stx rwj+1
+      sty rwj+2
+      rwj: jmp $FADE 
+      
+    .endproc
+
+  .proc set_mode 
+    ISet MODE_PTR, MODES_TABLE
+    lda CMODE
+    clc
+    asl 
+    asl 
+    asl
+    IAddA MODE_PTR
+    rts 
+  .endproc
+  
+    
+  .proc exit
+    IMov DP, DP_TMP
+    lda #147
+    jsr CHROUT 
     rts
   .endproc
-
-  .proc key_up
-    ISubB HOME, $80
-    jmp main_loop
-  .endproc 
-
-  .proc key_down
-    IAddB HOME, $80
-    jmp main_loop
-  .endproc   
-  .proc key_left
-    ISubB HOME+1, $10
-    jmp main_loop
-  .endproc 
-  .proc key_right 
-    IAddB HOME+1, $10
-    jmp main_loop
-  .endproc 
 
   .proc key_mode
     inc CMODE
@@ -148,29 +171,20 @@
       jmp main_loop
   .endproc
 
-  .proc key_sub_1
-    ISubB HOME, $1
-    jmp main_loop
-  .endproc 
 
-  .proc key_add_1
-    IAddB HOME, $1
-    jmp main_loop
-  .endproc   
 
   .proc print_line
     ColorSet 1
+    ldx DP
     ldy DP+1
-    lda DP
-    jsr print::word_ay
+    jsr print::word_xy
     jsr print::space
     jsr print::space
-    ColorSet 12
     IMov rewrite+1, MODE_PTR
     rewrite:
     jmp ($FADE)
-  
   .endproc
+
   .proc choose_color
     IfTrue
       lda #1
@@ -331,5 +345,46 @@
     rts
   .endproc
 
-
-.endscope
+  .proc lookup
+    stx rw+1
+    sty rw+2
+    sta rwa+1
+    ldy #0
+    find:
+      jsr read
+      beq not_found    ; if 0 terminator, give up
+      rwa: cmp #00
+      beq found        ; found, so don't advance y
+      iny              
+    bne find            ; if y rolls over, give up
+    not_found:
+      sec
+      rts
+    found:            ; y is at found char, double and store for later
+      tya 
+      clc
+      asl 
+      sta rwf+1
+      
+    skip:
+      iny             ; start looking after the found char
+      beq not_found   ; if y rolls over, give up
+      jsr read
+    bne skip
+    tya               ; y is at 0 terminator byte, add the offset we stored earlier + 1
+    sec 
+    
+    rwf: adc #00      
+    tay               ; y is at the looked up word
+    jsr read
+    tax  
+    iny
+    jsr read
+    tay
+    clc
+    rts 
+    read:
+    rw: lda $FEED,y
+    rts
+  .endproc      
+ .endscope

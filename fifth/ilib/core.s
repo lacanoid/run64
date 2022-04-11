@@ -1,4 +1,4 @@
-.include "defs64.inc"
+.include "defs-auto.inc"
 .include "macros/basics.s"
 
 .include "ilib/macros.inc"
@@ -7,7 +7,11 @@
 .scope imenu
 .include "ilib/handlers/index.s"
 .data
-  INIT_THERE=$C000
+  .ifdef __C128__
+    INIT_THERE=$9000
+  .else 
+    INIT_THERE=$C000
+  .endif    
   
   MAX_HISTORY = 16
   MAX_ITEMS = 128
@@ -160,12 +164,12 @@
   beq skip
     lda #2
     jsr here_set_to_the_item_plus_a
-    jsr here_read_byte
+    jsr here_read_a
     beq count_em
     jsr here_advance_a
     rts
     count_em:
-    jsr here_read_byte
+    jsr here_read_a
     bne count_em
     rts
   skip:
@@ -194,12 +198,30 @@
   rts
 .endproc
 
-.proc here_read_byte
+.proc here_read_a
+  stx rw+1
   ldx #0
   lda (HERE,x)
-  pha
   IInc HERE
+  pha 
+  rw: ldx #0
   pla
+  rts
+.endproc
+
+.proc here_read_x
+  ldx #0
+  lda (HERE,x)
+  IInc HERE
+  tax
+  rts
+.endproc
+
+.proc here_read_y
+  ldy #0
+  lda (HERE),y
+  tay
+  IInc HERE
   rts
 .endproc
 
@@ -219,17 +241,17 @@
 .endproc
 
 .proc here_read_item
-  jsr here_read_byte
+  jsr here_read_a
   sta THE_ITEM
-  jsr here_read_byte
+  jsr here_read_a
   sta THE_ITEM+1
   rts
 .endproc
 
 .proc here_deref
-  jsr here_read_byte
+  jsr here_read_a
   pha
-  jsr here_read_byte
+  jsr here_read_a
   sta HERE+1
   pla 
   sta HERE 
@@ -239,7 +261,7 @@
 
 .proc print_z_from_here
   char:
-    jsr here_read_byte
+    jsr here_read_a
     cmp #0
     beq done
     jsr print::char

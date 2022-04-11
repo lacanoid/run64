@@ -5,133 +5,178 @@ MenuHandler HNDL_DIRECTORY
     LDA #dirname_end-dirname
     LDX #<dirname
     LDY #>dirname
-    JSR $FFBD      ; call SETNAM
+    JSR SETNAM
 
     LDA #$02       ; filenumber 2
     LDX $BA
     BNE skip
     LDX #$08       ; default to device number 8
-  skip:
-    LDY #$00       ; secondary address 0 (required for dir reading!)
-    JSR $FFBA      ; call SETLFS
+    skip: 
 
-    JSR $FFC0      ; call OPEN (open the directory)
+    LDY #$02       ; secondary address 0 (required for dir reading!)
+    JSR SETLFS
+
+    JSR OPEN       ; (open the directory)
     BCC ok
     jmp error     ; quit if OPEN failed
     ok:
 
     LDX #$02       ; filenumber 2
-    JSR $FFC6      ; call CHKIN
+    JSR CHKIN
 
-    LDY #$04       ; skip 4 bytes on the first dir line
-    BNE skip2
-  next:
-    LDY #$02       ; skip 2 bytes on all other lines
-  skip2:
-    JSR getbyte    ; get a byte from dir and ignore it
-    DEY
-    BNE skip2
-  
     jsr add_item_there
-    lda #<HNDL_FILE
+    lda #<HNDL_DISK
     jsr there_write_byte
-    lda #>HNDL_FILE
+    lda #>HNDL_DISK
     jsr there_write_byte
-
     lda #0
     jsr there_write_byte
-    ldy #0
-    JSR getbyte    ; get low byte of basic line number
-    sta tmp
-    JSR getbyte    ; get high byte of basic line number
-    sta tmp+1
+
+    ldy #142
+    jsr skip_y
     
-    skip3:
+    ldy #18             ; disk name
+    jsr read_sy     
+
+    ldy #2              ; DISK_ID
+    jsr read_y
+
+    ldy #1              
+    jsr skip_y
+
+    ldy #2              ; OS
+    jsr read_y
+    
+    ldy #89
+    jsr skip_y
+
+    lda #$ff
+    sta cnt
+    read_file:
+
+      jsr add_item_there
+      lda #<HNDL_FILE
+      jsr there_write_byte
+      lda #>HNDL_FILE
+      jsr there_write_byte
+      lda #0
+      jsr there_write_byte
+
+      inc cnt
+      lda cnt
+      and #7
+      beq not_first
+        ldy #2
+        jsr skip_y
+      not_first:
+      ldy #3
+      jsr store_y      ; store TYPE, TRACK, SECTOR
+      ldy #16
+      jsr read_sy      ; FILENAME
+      ldy #3
+      jsr flush_y      ; output TYPE, TRACK, SECTOR
+      ldy #9
+      jsr skip_y
+      ldy #2
+      jsr read_y       ; SIZE 
+      jmp exit
+    bra read_file
+    error:
+      ; Akkumulator contains BASIC error code
+
+      ; most likely error:
+      ; A = $05 (DEVICE NOT PRESENT)
+    exit:
+      LDA #$02       ; filenumber 2
+      JSR $FFC3      ; call CLOSE
+
+      JSR $FFCC     ; call CLRCHN
+      RTS
+
+    getbyte:
+      JSR READST      ; call READST (read status byte)
+      BNE end       ; read error or end of file
+      JMP CHRIN      ; call CHRIN (read byte from directory)
+      rts
+    end:
+      PLA            ; don't return to dir reading loop
+      PLA
+      JMP exit
+
+    skip_y:
       jsr getbyte
-      cmp #'"'
-    bne skip3
+      dey 
+    bne skip_y 
+    rts
 
-  char:
-    JSR getbyte
-    beq break
-    cmp #'"'
-    beq break
-    iny
-    JSR there_write_byte
-    clc
-    bcc char
-  break:
-    ; write terminator and length
-    lda #0
-    jsr there_write_byte
-
-    ; write file length that we stored earlier
-    lda tmp
-    jsr there_write_byte
-    lda tmp+1
-    jsr there_write_byte
-
-  ; ignore the spaces
-  skip4:
-    JSR getbyte
-    beq break4
-    cmp #' '
-  beq skip4 
-  break4:
-  ; read file type
-  .scope 
-    loop:
-    jsr there_write_byte
-    JSR getbyte
-    beq break
-    cmp #' '
-    bne loop
-    break:
-  .endscope
-  pha
-    lda #0
-    jsr there_write_byte
-  pla
-  .scope 
-    beq break
-    loop:
+    read_y:
       jsr getbyte
-    bne loop
-    break:
-  .endscope
+      jsr there_write_byte 
+      dey 
+    bne read_y 
+    rts  
 
-  jmp next      ; no RUN/STOP -> continue
-  error:
-    ; Akkumulator contains BASIC error code
+    store_y:
+      jsr getbyte
+      sta tmp,y
+      dey 
+    bne store_y 
+    rts   
 
-    ; most likely error:
-    ; A = $05 (DEVICE NOT PRESENT)
-  exit:
-    LDA #$02       ; filenumber 2
-    JSR $FFC3      ; call CLOSE
+    flush_y:
+      lda tmp,y
+      jsr there_write_byte 
+      dey 
+    bne flush_y
+    rts   
 
-    JSR $FFCC     ; call CLRCHN
-    RTS
 
-  getbyte:
-    JSR $FFB7      ; call READST (read status byte)
-    BNE end       ; read error or end of file
-    JMP $FFCF      ; call CHRIN (read byte from directory)
-  end:
-    PLA            ; don't return to dir reading loop
-    PLA
-    JMP exit
+    read_sy:
+      jsr getbyte
+      cmp #$A0
+      bne not_a0 
+        lda #0
+        jsr there_write_byte
+        dey
+        jmp skip_y  
+      not_a0:
+      jsr there_write_byte 
+      dey 
+    bne read_sy 
+    rts   
+
 
   dirname:  .byte "$"      ; filename used to access directory
   dirname_end:
   .data   
-    tmp: .word 0 
+    cnt: .byte 0
+    tmp: 
+    .res 4
   .code 
 EndMenuHandler
 
 .macro MenuDirectory title
   MenuItem HNDL_DIRECTORY, title
 .endmacro
+
+MenuHandler HNDL_DISK
+  PRINT:
+    jsr print_z_title
+    ;jsr print::space
+    rts
+    jsr here_read_a
+    sta print::arg
+    jsr here_read_a
+    sta print::arg+1
+    lda #'.'
+    jsr print::char
+    jsr imenu::print_z_from_here
+    lda #2
+;    jsr print::spaces_to
+    jsr print::number
+  rts
+EndMenuHandler
+
 
 MenuHandler HNDL_FILE
   ACTION:
@@ -141,17 +186,31 @@ MenuHandler HNDL_FILE
   PRINT:
     jsr print_z_title
     ;jsr print::space
-    jsr here_read_byte
-    sta print::arg
-    jsr here_read_byte
-    sta print::arg+1
-    lda #'.'
-    jsr print::char
-    jsr imenu::print_z_from_here
-    lda #2
+    lda #30
     jsr print::spaces_to
-    jsr print::number
-  rts
+
+    jsr here_read_a
+    and #7
+   
+    clc
+    asl
+    asl
+    ldx #<FILE_TYPES
+    ldy #>FILE_TYPES
+    jsr print::z_at_xy_plus_a
+    jsr print::space 
+    lda #2
+    jsr here_advance_a
+    jsr here_read_x
+    jsr here_read_y
+    jsr print::number_xy
+    rts 
+  FILE_TYPES:
+  .byte "del",0
+  .byte "seq",0
+  .byte "prg",0
+  .byte "usr",0
+  .byte "rel",0
 EndMenuHandler
 
 Menu "File", MENU_FILE
