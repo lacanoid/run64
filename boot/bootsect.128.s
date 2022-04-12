@@ -28,9 +28,9 @@ prg:    .asciiz ""      ; don't load a .PRG - we do that in stage2
 
 ; config parameters
 bootctl:.byte 0       ; boot control
-bootbgc:.byte 11      ; background color
+bootbgc:.byte 6       ; background color
 bootfgc:.byte 1       ; foreground color
-bootexc:.byte 11      ; border color
+bootexc:.byte 6       ; border color
 
 coladj = $ce5c  ; map of vic -> vdc colors
 vdcout = $cdcc  ; vdcout routine
@@ -78,6 +78,12 @@ cfg2:   lda bootexc
         bmi cfg3
         sta EXTCOL
 cfg3:
+; copy settings
+        ldx #4
+@loop21:lda bootctl-1,X
+        sta __CARTHDR_LOAD__ + 9 - 1,X
+        dex
+        bne @loop21
 
 cmds128:                ; print commands to execute
         leaxy cmds
@@ -127,50 +133,6 @@ colors:
 ; go to 64 mode, preserving program through c65 reset routine and running it
 ; this is called from $0C00, which is the user entry point
 .segment "RUN64"
-run64:
-;        jsr STOP
-;        bne run65
-;        rts             ; stop was presseed, do nothing
-run65:
-        leaxy banner
-        jsr print
-
-; Screen memory at $400 survives transition to c64 mode. 
-; Below $400 is wiped on reset. Above $800 (up to $D000) is the loaded program.
-
-; copy go64 routine to boot block screen memory, so that boot block buffer can be freed
-        LDX  #< (__VICGO64_SIZE__ + __CARTHDR_SIZE__ + __AUTOSTART64_SIZE__ + 1)
-@loop4: LDA __VICGO64_LOAD__ - 1, X
-        STA VICGO64 - 1, X
-        DEX
-        BNE @loop4
-
-; copy settings
-        ldx #4
-@loop21:lda bootctl-1,X
-        sta VICCRTB + 9 - 1,X
-        dex
-        bne @loop21
-
-; adjust EAL (end-of load pointer) for 64 mode
-        clc
-        lda EAL
-        sbc SAL
-        sta EAL
-        lda EAL+1
-        sbc SAL+1
-        sta EAL+1
-        clc
-        lda EAL
-        adc #< C64DEST
-        sta EAL
-        lda EAL+1
-        adc #> C64DEST
-        sta EAL+1
-;        tax
-
-        jmp VICGO64  ; VICGO64 + 3
-
 
 DQUOTE = $22
 BLUE = $1F
@@ -179,11 +141,8 @@ CR = $0D
 UP = $91
 HOME = $13
 
-banner:
-        .byte 14,145,"GO 64  ",0
-
 cmds:
-        .byte 27,"T"   ; fix the screen top
+;        .byte 27,"T"   ; fix the screen top
 ;        .byte 14       ; lowercase
         .byte CR,CR
         .byte "DLOAD", DQUOTE
@@ -194,7 +153,8 @@ fnadr9:
         .byte CR, CR, CR, CR, CR
 ;        .byte "SYS3072"
         .byte "RUN"
-        .byte HOME
+;       .byte HOME
+        .byte UP,UP,UP,UP,UP,UP,UP
         .byte 0
 
 keys:   .byte CR

@@ -13,6 +13,8 @@ c1541 $DISKIMG -write c/smon
 c1541 $DISKIMG -write c/uname
 c1541 $DISKIMG -write c/setup
 c1541 $DISKIMG -write fifth/5th
+c1541 $DISKIMG -write fifth/imenu
+c1541 $DISKIMG -write fifth/idump
 c1541 $DISKIMG -write tools/kmon
 c1541 $DISKIMG -write tools/pip.128
 c1541 $DISKIMG -write s/empty '================'

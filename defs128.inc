@@ -91,6 +91,13 @@ JRUN_A_PROGRAM = $AF99 ; run a loaded program
 
 ; kernal magic api
 CRTI      = $FF33  ; return from interrupt
-C64MODE   = $FF4D  ; go 64 mode
+GETCFG    = $FF6B  ; get MMU conf for a bank number
+JSRFAR    = $FF6E  ; indirect JSR to other bank
+JMPFAR    = $FF71  ; indirect JMP to other bank
+INDFET    = $FF74  ; indirect LDA from other bank
+INDSTA    = $FF77  ; indirect STA to other bank
+INDCMP    = $FF7A  ; indirect CMP to other bank
+PRIMM     = $FF7D  ; print immediate
+C64_MODE  = $FF4D  ; go 64 mode
 
 .endif
