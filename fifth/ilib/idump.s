@@ -23,7 +23,7 @@
 .scope idump
   .include "dis.s"  
   DP = $FB
-  MODES = 6
+  MODES = (END_MODES_TABLE-MODES_TABLE)/8
   .data
     CMODE: .byte 1
     HOME: .word $0000
@@ -44,12 +44,16 @@
       .word print_line_mixed
       .byte "MIX"
       .res 3
+      .word print_line_chars
+      .byte "CHR"
+      .res 3
       .word print_line_words
       .byte "WRD"
       .res 3
       .word print_line_text
       .byte "TXT"
       .res 3
+    END_MODES_TABLE:
     KEY_CODES:
       .byte $3, 'q', 'm'
       .byte 0
@@ -228,6 +232,17 @@
       jmp print::nl
   .endproc
 
+  .proc print_line_chars
+    ColorSet 7
+    ldy #16
+    loop:
+      jsr dump_char
+      jsr print::space 
+      dey 
+    bne loop
+    jmp print::nl
+  .endproc
+
   .proc print_line_text
     ldy #32
     loop:
@@ -280,12 +295,12 @@
         tya
         and #$1
         IfTrue 
-          ColorSet 11
+          ColorSet 1
         Else 
           ColorSet 12
         EndIf
         ;CSet char_mask, $80
-        pla 
+        pla ; pha from before
         jsr print::byte_a
         ;CSet char_mask, $0
       done:

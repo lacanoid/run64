@@ -1,10 +1,6 @@
 MenuHandler HNDL_ACTION
   ACTION:
     jmp (HERE)
-    wait:
-      jsr GETIN
-    beq wait
-    rts
 EndMenuHandler
 
 

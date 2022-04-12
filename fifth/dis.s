@@ -1,3 +1,4 @@
+
 .macro FirstTwo arg1
   .local here
   here:
@@ -118,7 +119,6 @@
   .endproc
 
   .proc do_AB
-
     jmp dump_sword
   .endproc
   .proc do_AX
@@ -161,21 +161,12 @@
   .proc do_RE 
     lda #'$'
     jsr print::char
-
-    ldy #$00
+    ;jsr print::space 
     jsr read_data
-    bpl skip
-      dey        ; decrement high byte to $ff for a negative delta
-    skip:
-    clc
-    adc DP   ; .A still holds delta
-    pha 
-    tya         ; .X is the high byte
-    adc DP+1
+    ldxy DP
+    adsxy 
     ColorSet 7
-    jsr print::byte_a
-    pla
-    jmp print::byte_a
+    jmp print::word_xy
   .endproc
   .proc do_ZP
     ColorSet 7

@@ -1,3 +1,4 @@
+
 .scope dos 
   .proc ls
       LDA #dirname_end-dirname

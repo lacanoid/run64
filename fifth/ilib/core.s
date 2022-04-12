@@ -1,11 +1,12 @@
 .include "defs-auto.inc"
 .include "macros/basics.s"
 
-.include "ilib/macros.inc"
-.include "ilib/print.s"
+.include "macros.inc"
+.include "print.s"
+.include "xy.s"
 
 .scope imenu
-.include "ilib/handlers/index.s"
+.include "handlers/index.s"
 .data
   .ifdef __C128__
     INIT_THERE=$9000
@@ -44,19 +45,21 @@
 .endproc
 
 .proc add_item_here
-  lda HERE
+  ldx HERE
   ldy HERE+1
-  jmp add_item_ay
+  jmp add_item_xy
 .endproc
 
 .proc add_item_there
-  lda THERE
+  ldx THERE
   ldy THERE+1
-  jmp add_item_ay
+  jmp add_item_xy
 .endproc
 
-.proc add_item_ay
-  sta rw+1
+.proc add_item_xy
+  pha
+  PushX
+  stx rw+1
   lda CNT_ITEMS
   cmp #MAX_ITEMS
   bcs skip
@@ -68,7 +71,9 @@
     sta MENU_ITEMS+0,x
     tya
     sta MENU_ITEMS+1,x
-  skip:
+  skip: 
+  PopX
+  pla
   rts
 .endproc
 
@@ -96,6 +101,19 @@
   jmp set_the_item_to_a
 .endproc
 
+.proc ld_item_a
+  clc
+  asl
+  tax
+  lda MENU_ITEMS++1,x
+  tay
+  lda MENU_ITEMS,x
+  tax
+  IMov HERE, THE_ITEM
+  rts
+.endproc
+
+
 .proc set_the_item_to_a
   clc
   asl
@@ -108,40 +126,7 @@
   rts
 .endproc
 
-.proc handler_method_a
-  pha
-  jsr here_set_to_the_item
-  jsr here_deref 
-  pla
-  pha 
-  jsr here_advance_a
-  jsr here_deref
-  pla
-  pha
-  IMov rewrite+1, HERE
-  lda HERE+1
-  beq skip
-  pla
-  jsr here_set_for_method_a
-  rewrite:
-  jsr $FADE
-  clc
-  rts
-  skip: 
-  pla
-  sec 
-  rts
-.endproc
 
-
-.proc print_item_a
-  jsr set_the_item_to_a
-.endproc
-;passthrough
-.proc print_the_item
-  lda #METHODS::PRINT
-  jmp handler_method_a
-.endproc
 
 .proc action_item_a
   jsr set_the_item_to_a
@@ -159,33 +144,97 @@
   jmp handler_method_a
 .endproc
 
-.proc here_set_for_method_a
-  cmp #METHODS::PRINT 
-  beq skip
-    lda #2
-    jsr here_set_to_the_item_plus_a
-    jsr here_read_a
-    beq count_em
-    jsr here_advance_a
-    rts
-    count_em:
-    jsr here_read_a
-    bne count_em
-    rts
-  skip:
-  lda #3
-  jmp here_set_to_the_item_plus_a
-.endproc 
 
-.proc here_set_to_the_item_plus_a
+.proc print_item_xy
+  stxy THE_ITEM
+  phxy
+  adxy #3
+  stxy HERE 
+  plxy
+  goxy
+  goxy
+  jpxy
+.endproc
+
+
+.proc method_item_xy
+  stxy THE_ITEM
+  jsr here_set_for_method_xy
+  goxy
+  adxy 
+  goxy
+  cpy #0
+  beq skip
+  jsxy
   clc
-  adc THE_ITEM
-  sta HERE
-  lda #0
-  adc THE_ITEM+1
-  sta HERE+1
+  rts
+  skip: 
+  ;pla; pha from before
+  sec 
+  rts
+.endproc
+
+
+.proc handler_method_a
+  jsr here_set_for_method_a
+  ldxy THE_ITEM
+  goxy
+  adxy 
+  goxy
+  cpy #0
+  beq skip
+  jsxy
+  clc
+  rts
+  skip: 
+  ;pla; pha from before
+  sec 
+  rts
+.endproc
+.proc here_set_for_method_xy
+  pha
+  phxy
+    adxy #2
+    rdxy 
+    beq count_em
+    adxy
+    bra done
+    count_em:
+      rdxy 
+    bne count_em
+    beq done
+  done: 
+  stxy HERE
+  plxy
+  pla
   rts 
 .endproc 
+
+.proc here_set_for_method_a
+  
+  ldxy THE_ITEM
+  pha
+  cmp #METHODS::PRINT 
+  beq skip
+    
+    adxy #2
+    rdxy 
+    beq count_em
+    adxy
+    bra done
+    count_em:
+      rdxy 
+    bne count_em
+    beq done
+
+  skip:
+    adxy #3
+  done: 
+  stxy HERE
+  pla
+  rts 
+.endproc 
+
 
 
 .proc here_set_to_the_item
@@ -199,29 +248,32 @@
 .endproc
 
 .proc here_read_a
-  stx rw+1
-  ldx #0
-  lda (HERE,x)
+  lda HERE
+  sta rw+1
+  lda HERE+1
+  sta rw+2
+  rw: lda $FEED  
   IInc HERE
-  pha 
-  rw: ldx #0
-  pla
   rts
 .endproc
 
 .proc here_read_x
+  pha
   ldx #0
   lda (HERE,x)
   IInc HERE
   tax
+  pla
   rts
 .endproc
 
 .proc here_read_y
+  pha
   ldy #0
   lda (HERE),y
   tay
   IInc HERE
+  pla
   rts
 .endproc
 
@@ -249,12 +301,9 @@
 .endproc
 
 .proc here_deref
-  jsr here_read_a
-  pha
-  jsr here_read_a
-  sta HERE+1
-  pla 
-  sta HERE 
+  ldxy HERE
+  goxy
+  stxy HERE
   rts
 .endproc
 
@@ -390,7 +439,9 @@
         jsr print::space
       EndIf
     pla
-    jsr print_item_a
+    jsr ld_item_a
+    jsr print_item_xy
+
     jsr print::nl
     inc PRINT_INDEX
     bne item
@@ -438,7 +489,9 @@
 
 .proc do_action 
   lda SELECTED_INDEX
-  jsr action_item_a
+  jsr ld_item_a
+  lda #METHODS::ACTION
+  jsr method_item_xy
   jmp fetch_items
 .endproc
 

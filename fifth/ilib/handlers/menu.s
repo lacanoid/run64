@@ -2,25 +2,19 @@ MenuHandler HNDL_MENU
   ACTION:
     jmp go_to_the_item
   ITEMS:
-    ;jsr here_set_to_the_item_body
     lda HERE+1
     loop:
       cmp #0
       beq exit
 
-      IMov tmp, HERE
-      IAddB HERE,2
-      jsr add_item_here
-      IMov HERE, tmp
+      ldxy HERE
+      adxy #2
+      jsr add_item_xy
       jsr here_deref
       lda HERE+1
-      
     bne loop
   exit:
     rts
-  .data   
-    tmp: .word 0 
-  .code 
 EndMenuHandler
 
 MenuHandler HNDL_LINK

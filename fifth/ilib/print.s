@@ -246,7 +246,7 @@ __PRINT_INCLUDED__ = 1
     adc #6
     skip:
     add #'0'
-      jmp char
+    jmp char
   .endproc
 
   .proc word_xy
