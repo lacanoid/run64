@@ -58,9 +58,9 @@ MenuHandler HNDL_DIRECTORY
     read_file:
       JSR READST      ; call READST (read status byte)
       BNE exit
-
       
       inc cnt
+      lda cnt
       and #7
       beq not_first
         ldy #2
@@ -70,13 +70,14 @@ MenuHandler HNDL_DIRECTORY
       ldy #3
       jsr store_y      ; store TYPE, TRACK, SECTOR
 
+/*
       lda tmp+2
       bne found_file
         lda #27
         jsr skip_y
         jmp read_file
       found_file: 
-
+*/
       jsr add_item_there
       lda #<HNDL_FILE
       jsr there_write_byte
@@ -87,8 +88,10 @@ MenuHandler HNDL_DIRECTORY
 
       ldy #16
       jsr read_sy      ; FILENAME
+      
       ldy #3
       jsr flush_y      ; output TYPE, TRACK, SECTOR
+      
       ldy #9
       jsr skip_y
       ldy #2
