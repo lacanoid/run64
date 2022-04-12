@@ -27,17 +27,19 @@
   COLOR_SEL = 11
   COLOR_HDR = 6
 
+  FQUIT: .byte 0
   CUR_MENU: .word 0
   SELECTED_INDEX: .byte 0
+  TOP_INDEX: .byte 0
   PRINT_INDEX:.word 0
   HISTORY_PTR: .byte 0
   OLD_THERE: .word INIT_THERE
   KEY_CODES:
     .byte $11, $91, $1d, $9d 
-    .byte $0d, $03
+    .byte $0d, $03, 'q'
     .byte 0
     .addr do_next, do_prev, do_action, do_back
-    .addr do_action, do_back
+    .addr do_action, do_back, do_quit
   BUILTIN_HANDLERS:
     .word HNDL_HEADING
     .word HNDL_ECHO
@@ -94,12 +96,13 @@
   sta CUR_MENU
   sty CUR_MENU+1
   CSet SELECTED_INDEX, 0 
+  CSet TOP_INDEX, 0 
   rts
 .endproc
 
 .proc set_menu_to_the_item
   IMov CUR_MENU, THE_ITEM
-  CSet SELECTED_INDEX, 0 
+  CSet TOP_INDEX, 0 
   rts
 .endproc
 
@@ -317,7 +320,8 @@
 .proc go_to_here
   jsr history_push
   IMov CUR_MENU, HERE
-  CSet SELECTED_INDEX, 0 
+  CSet SELECTED_INDEX, 0
+  CSet TOP_INDEX, 0 
   rts
 .endproc
 
@@ -325,12 +329,14 @@
   jsr history_push
   IMov CUR_MENU, THE_ITEM
   CSet SELECTED_INDEX, 0 
+  CSet TOP_INDEX, 0 
   rts
 .endproc
 
 .proc go_back
   jsr history_pop
   CSet SELECTED_INDEX, 0 
+  CSet TOP_INDEX, 0 
   rts
 .endproc
 
@@ -347,23 +353,42 @@
   main_loop:
     jsr print_menu
     jsr handle_keys
-  bra main_loop
+    lda FQUIT
+  beq main_loop
   rts
 .endproc
 
 .proc print_menu
   jsr print::reset
-  CSet PRINT_INDEX, 0
+
+
+
+  lda SELECTED_INDEX
+  cmp TOP_INDEX
+  bcc top_fix
+  sbc #23
+  bmi top_ok
+  cmp TOP_INDEX
+  bcc top_ok
+  top_fix:
+  sta TOP_INDEX
+  top_ok:
+  
   CSet COLOR, COLOR_HDR
   jsr print::rev_on
   ldxy CUR_MENU
   jsr print_item_xy
   jsr print::nl
   jsr print::rev_off
+
+  CSet PRINT_INDEX, 0
   item:
     lda PRINT_INDEX
+    cmp #24
+    bcs break
+    adc TOP_INDEX
     cmp CNT_ITEMS
-    beq break
+    bcs break
     pha
       IfEq SELECTED_INDEX
         CSet COLOR, COLOR_SEL
@@ -432,6 +457,12 @@
   jsr go_back
   jmp fetch_items
 .endproc
+
+.proc do_quit 
+  inc FQUIT
+  rts
+.endproc
+
 
 .proc fetch_items ; get items from the current menu
   jsr clear_items
