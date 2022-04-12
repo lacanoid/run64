@@ -6,7 +6,7 @@ jmp MAIN
 MAIN = imenu::main
 
 MenuRoot "Home"
-  MenuDirectory "ls 8"
+  MenuDirectory "ls 8", 8
   MenuDirectory "ls 9", 9
   MenuDirectory "ls 10", 10
   MenuDirectory "ls 11", 11
