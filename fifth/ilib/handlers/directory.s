@@ -8,11 +8,7 @@ MenuHandler HNDL_DIRECTORY
     JSR SETNAM
 
     LDA #$02       ; filenumber 2
-    LDX $BA
-    BNE skip
-    LDX #$08       ; default to device number 8
-    skip: 
-
+    jsr here_read_x
     LDY #$02       ; secondary address 0 (required for dir reading!)
     JSR SETLFS
 
@@ -175,8 +171,13 @@ MenuHandler HNDL_DIRECTORY
   .code 
 EndMenuHandler
 
-.macro MenuDirectory title
+.macro MenuDirectory title, device
   MenuItem HNDL_DIRECTORY, title
+  .ifnblank device
+    .byte device
+  .else 
+    .byte 8
+  .endif
 .endmacro
 
 MenuHandler HNDL_DISK

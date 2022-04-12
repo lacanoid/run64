@@ -6,16 +6,10 @@ jmp MAIN
 MAIN = imenu::main
 
 MenuRoot "Home"
-  MenuHeading "This is the root menu 1"
-  MenuHeading "This is the root menu 2"
-  MenuHeading "This is the root menu 3"
-  MenuHeading "This is the root menu 4"
-  MenuHeading "This is the root menu 1"
-  MenuHeading "This is the root menu 4"
-  MenuHeading "This is the root menu 1"
-  MenuHeading "This is the root menu 2"
-  MenuHeading "This is the root menu 3"
-  MenuHeading "This is the root menu 4"
+  MenuDirectory "ls 8"
+  MenuDirectory "ls 9", 9
+  MenuDirectory "ls 10", 10
+  MenuDirectory "ls 11", 11
   MenuAction "dump items"
     ISet idump::HOME, imenu::MENU_ITEMS
     jmp idump::main
@@ -24,7 +18,6 @@ MenuRoot "Home"
     jmp idump::main
   MenuAction "idump"
     jmp idump::main
-  MenuDirectory "ls"
   MenuSub "Border"
     MenuAction "white"
       lda #1
