@@ -70,21 +70,19 @@ MenuHandler HNDL_DIRECTORY
       ldy #3
       jsr store_y      ; store TYPE, TRACK, SECTOR
 
-/*
       lda tmp+2
       bne found_file
         lda #27
         jsr skip_y
         jmp read_file
       found_file: 
-*/
+
       jsr add_item_there
       lda #<HNDL_FILE
       jsr there_write_byte
       lda #>HNDL_FILE
       jsr there_write_byte
-      lda #0
-      jsr there_write_byte
+      lda there_write_zero
 
       ldy #16
       jsr read_sy      ; FILENAME
@@ -143,16 +141,18 @@ MenuHandler HNDL_DIRECTORY
       jsr getbyte
       cmp #$A0
       bne not_a0 
-        lda #0
-        jsr there_write_byte
-        dey
-        jmp skip_y  
-      not_a0:
-      jsr there_write_byte 
-      dey 
-    bne read_sy 
-    rts   
     
+      not_a0:
+      jsr there_write_byte
+      dey 
+    bne read_sy
+    readsy_done:
+    jmp there_write_zero
+    readsy_end:
+    dey
+    jsr skip_y  ; always returns +z
+    beq readsy_done 
+
     store_y:
       jsr getbyte
       sta tmp,y

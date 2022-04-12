@@ -232,11 +232,16 @@
   rts
 .endproc
 
-
+.proc there_write_zero
+  lda #0
+.endproc
+;passthrough
 .proc there_write_byte
+  PushX
   ldx #0
   sta (THERE,x)
   IInc THERE
+  PopX
   rts
 .endproc
 
