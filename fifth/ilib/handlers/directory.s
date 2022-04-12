@@ -76,13 +76,13 @@ MenuHandler HNDL_DIRECTORY
         jsr skip_y
         jmp read_file
       found_file: 
-
       jsr add_item_there
       lda #<HNDL_FILE
       jsr there_write_byte
       lda #>HNDL_FILE
       jsr there_write_byte
-      lda there_write_zero
+      lda #0
+      jsr there_write_byte
 
       ldy #16
       jsr read_sy      ; FILENAME
@@ -140,18 +140,17 @@ MenuHandler HNDL_DIRECTORY
     read_sy:
       jsr getbyte
       cmp #$A0
-      bne not_a0 
-    
-      not_a0:
+      beq readsy_end
       jsr there_write_byte
       dey 
     bne read_sy
     readsy_done:
-    jmp there_write_zero
+    lda #0
+    jmp there_write_byte
     readsy_end:
     dey
-    jsr skip_y  ; always returns +z
-    beq readsy_done 
+    jsr skip_y  
+    beq readsy_done
 
     store_y:
       jsr getbyte
