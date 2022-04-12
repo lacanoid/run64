@@ -1,6 +1,7 @@
 .include "defs-auto.inc"
 .include "macros/basics.s"
 .include "ilib/print.s"
+.include "ilib/xy.s"
 
 .macro ColorSet c
     lda #c 
@@ -121,9 +122,7 @@
       jmp main_loop
       not_digit:
       ldxy #DKEY_CODES
-      pha
-      jsr lookup
-      pla
+      jsr xy::lookup
       bcs not_dkey
       txa
       adc HOME
@@ -136,8 +135,8 @@
       not_dkey:
       ldxy #KEY_CODES
       
-      jsr lookup
-
+      jsr xy::lookup
+      
       bcs wait
       stx rwj+1
       sty rwj+2
@@ -360,46 +359,4 @@
     rts
   .endproc
 
-  .proc lookup
-    stx rw+1
-    sty rw+2
-    sta rwa+1
-    ldy #0
-    find:
-      jsr read
-      beq not_found    ; if 0 terminator, give up
-      rwa: cmp #00
-      beq found        ; found, so don't advance y
-      iny              
-    bne find            ; if y rolls over, give up
-    not_found:
-      sec
-      rts
-    found:            ; y is at found char, double and store for later
-      tya 
-      clc
-      asl 
-      sta rwf+1
-      
-    skip:
-      iny             ; start looking after the found char
-      beq not_found   ; if y rolls over, give up
-      jsr read
-    bne skip
-    tya               ; y is at 0 terminator byte, add the offset we stored earlier + 1
-    sec 
-    
-    rwf: adc #00      
-    tay               ; y is at the looked up word
-    jsr read
-    tax  
-    iny
-    jsr read
-    tay
-    clc
-    rts 
-    read:
-    rw: lda $FEED,y
-    rts
-  .endproc      
  .endscope

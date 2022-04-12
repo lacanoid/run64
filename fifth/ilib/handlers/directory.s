@@ -70,6 +70,12 @@ MenuHandler HNDL_DIRECTORY
       ldy #3
       jsr store_y      ; store TYPE, TRACK, SECTOR
 
+      lda tmp+2
+      bne found_file
+        lda #27
+        jsr skip_y
+        jmp read_file
+      found_file: 
 
       jsr add_item_there
       lda #<HNDL_FILE
@@ -78,7 +84,6 @@ MenuHandler HNDL_DIRECTORY
       jsr there_write_byte
       lda #0
       jsr there_write_byte
-
 
       ldy #16
       jsr read_sy      ; FILENAME
@@ -108,6 +113,9 @@ MenuHandler HNDL_DIRECTORY
       inc 53280
       jsr CHRIN      ; call CHRIN (read byte from directory)
       rts
+      .data
+        got_byte: .byte 0
+      .code
     end:
       PLA            ; don't return to dir reading loop
       PLA
@@ -115,20 +123,18 @@ MenuHandler HNDL_DIRECTORY
       PLA
       ;brk
       JMP exit
-
+    
     skip_y:
       jsr getbyte
       dey 
     bne skip_y 
     rts
-
     read_y:
       jsr getbyte
       jsr there_write_byte 
       dey 
     bne read_y 
     rts  
-
    
     read_sy:
       jsr getbyte
@@ -199,9 +205,9 @@ MenuHandler HNDL_FILE
     IMov CURRENT_FILE, THE_ITEM
     jmp go_to_the_item
   ITEMS:
-    ISet THE_ITEM, MENU_FILE
+    ldxy #MENU_FILE 
     lda #METHODS::ITEMS
-    jmp handler_method_a
+    jmp method_item_xy
   PRINT:
     jsr print_z_title
     ;jsr print::space
@@ -214,8 +220,7 @@ MenuHandler HNDL_FILE
     clc
     asl
     asl
-    ldx #<FILE_TYPES
-    ldy #>FILE_TYPES
+    ldxy #FILE_TYPES
     jsr print::z_at_xy_plus_a
     jsr print::space 
     lda #2

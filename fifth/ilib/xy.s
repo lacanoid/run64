@@ -17,14 +17,14 @@ __XY_INCLUDED__ = 1
   sty arg+1
 .endmacro
 
-.macro ldpxy
+.macro xyld
   .local rw
   sty rw+2
   rw: lda $FA00,x
 .endmacro
 
 
-.macro stpxy
+.macro xyst
   .local rw
   sty rw+2
   rw: sta $FA00,x
@@ -57,11 +57,11 @@ __XY_INCLUDED__ = 1
   dex
 .endmacro
 
-.macro rdxy 
+.macro xyrd 
   jsr xy::read
 .endmacro
 
-.macro wrxy 
+.macro xywr 
   jsr xy::write
 .endmacro
 
@@ -181,20 +181,20 @@ __XY_INCLUDED__ = 1
   .endproc
 
   .proc read
-    ldpxy
+    xyld
     inxy
     rts
   .endproc 
 
   .proc write
-    stpxy
+    xyst
     inxy
     rts
   .endproc 
 
   .proc pop
     dexy
-    ldpxy
+    xyld
     rts
   .endproc 
 
@@ -202,7 +202,7 @@ __XY_INCLUDED__ = 1
     PushX
     PushY
       adxy
-      ldpxy
+      xyld
     PopY
     PopX
     rts
@@ -252,5 +252,53 @@ __XY_INCLUDED__ = 1
     pla
     rts
   .endproc
+
+
+  .proc lookup
+    pha
+    stx rw+1
+    sty rw+2
+    sta rwa+1
+    ldy #0
+    find:
+      jsr read
+      beq not_found    ; if 0 terminator, give up
+      rwa: cmp #00
+      beq found        ; found, so don't advance y
+      iny              
+    bne find            ; if y rolls over, give up
+    not_found:
+      pla; pha from before
+      sec
+      rts
+    found:            ; y is at found char, double and store for later
+      tya 
+      clc
+      asl 
+      sta rwf+1
+      
+    skip:
+      iny             ; start looking after the found char
+      beq not_found   ; if y rolls over, give up
+      jsr read
+    bne skip
+    tya               ; y is at 0 terminator byte, add the offset we stored earlier + 1
+    sec 
+    
+    rwf: adc #00      
+    tay               ; y is at the looked up word
+    jsr read
+    tax  
+    iny
+    jsr read
+    tay
+    pla
+    clc
+    rts 
+    read:
+    rw: lda $FEED,y
+    rts
+  .endproc      
+
 .endscope 
 .endif

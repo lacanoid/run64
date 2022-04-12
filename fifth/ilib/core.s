@@ -20,23 +20,31 @@
   THE_ITEM: .word 9
   HERE = $FD
   THERE = $FB
-  CUR_INDEX = $2
-  
-  CUR_MENU: .word 0
 
+  COLOR_BG = 1
+  COLOR_BRD = 12
+  COLOR_FG = 0
+  COLOR_SEL = 11
+  COLOR_HDR = 6
+
+  CUR_MENU: .word 0
   SELECTED_INDEX: .byte 0
   PRINT_INDEX:.word 0
-  CNT_ITEMS: .byte 0, 0 ; one for alignment
-
-  MENU_ITEMS: .res MAX_ITEMS * 2
-
-  HISTORY: .res MAX_HISTORY * 4
   HISTORY_PTR: .byte 0
   OLD_THERE: .word INIT_THERE
+  KEY_CODES:
+    .byte $11, $91, $1d, $9d 
+    .byte $0d, $03
+    .byte 0
+    .addr do_next, do_prev, do_action, do_back
+    .addr do_action, do_back
   BUILTIN_HANDLERS:
     .word HNDL_HEADING
     .word HNDL_ECHO
     .word HNDL_MENU
+  CNT_ITEMS: .byte 0, 0 ; one for alignment
+  MENU_ITEMS: .res MAX_ITEMS * 2
+  HISTORY: .res MAX_HISTORY * 4
 .code
 
 .proc clear_items
@@ -128,23 +136,6 @@
 
 
 
-.proc action_item_a
-  jsr set_the_item_to_a
-.endproc
-;passthrough
-.proc action_the_item  
-  lda #METHODS::ACTION
-  jmp handler_method_a
-.endproc
-
-.proc fetch_items ; get items from the current menu
-  jsr set_the_item_to_menu
-  jsr clear_items
-  lda #METHODS::ITEMS
-  jmp handler_method_a
-.endproc
-
-
 .proc print_item_xy
   stxy THE_ITEM
   phxy
@@ -175,32 +166,16 @@
 .endproc
 
 
-.proc handler_method_a
-  jsr here_set_for_method_a
-  ldxy THE_ITEM
-  goxy
-  adxy 
-  goxy
-  cpy #0
-  beq skip
-  jsxy
-  clc
-  rts
-  skip: 
-  ;pla; pha from before
-  sec 
-  rts
-.endproc
 .proc here_set_for_method_xy
   pha
   phxy
     adxy #2
-    rdxy 
+    xyrd 
     beq count_em
     adxy
     bra done
     count_em:
-      rdxy 
+      xyrd 
     bne count_em
     beq done
   done: 
@@ -210,37 +185,7 @@
   rts 
 .endproc 
 
-.proc here_set_for_method_a
-  
-  ldxy THE_ITEM
-  pha
-  cmp #METHODS::PRINT 
-  beq skip
-    
-    adxy #2
-    rdxy 
-    beq count_em
-    adxy
-    bra done
-    count_em:
-      rdxy 
-    bne count_em
-    beq done
 
-  skip:
-    adxy #3
-  done: 
-  stxy HERE
-  pla
-  rts 
-.endproc 
-
-
-
-.proc here_set_to_the_item
-  IMov HERE, THE_ITEM
-  rts
-.endproc 
 
 .proc here_advance_a
   IAddA HERE
@@ -321,6 +266,7 @@
 .endproc
 
 .proc history_push
+  PushX
   ldx HISTORY_PTR
   cpx #MAX_HISTORY*4
   bcs skip
@@ -339,10 +285,12 @@
     stx HISTORY_PTR 
     IMov OLD_THERE, THERE
   skip:
+  PopX
   rts
 .endproc
 
 .proc history_pop
+  PushX
   ldx HISTORY_PTR
   beq skip
     dex 
@@ -361,20 +309,10 @@
     sta CUR_MENU
     stx HISTORY_PTR 
   skip:
+  PopX
   rts
 .endproc
 
-.proc go_to_ay
-  sty rwy+1
-  sta rwa+1
-  jsr history_push
-  rwa: lda #$ff 
-  sta CUR_MENU
-  rwy: ldy #$ff 
-  sty CUR_MENU+1
-  CSet SELECTED_INDEX, 0 
-  rts
-.endproc
 
 .proc go_to_here
   jsr history_push
@@ -401,8 +339,8 @@
 
   lda #14
   jsr CHROUT
-  ISet 53280,0
-  CSet COLOR, 15
+  CSet EXTCOL, COLOR_BRD
+  CSet BGCOL0, COLOR_BG
   
   jsr load_root
   jsr fetch_items
@@ -416,11 +354,10 @@
 .proc print_menu
   jsr print::reset
   CSet PRINT_INDEX, 0
-  jsr set_the_item_to_menu
-  CSet COLOR, 1
+  CSet COLOR, COLOR_HDR
   jsr print::rev_on
-  lda #0
-  jsr handler_method_a
+  ldxy CUR_MENU
+  jsr print_item_xy
   jsr print::nl
   jsr print::rev_off
   item:
@@ -429,20 +366,19 @@
     beq break
     pha
       IfEq SELECTED_INDEX
-        lda #1
-        sta COLOR
-        lda #'>'
-        jsr print::char
+        CSet COLOR, COLOR_SEL
+        jsr print::rev_on
       Else
         lda #12
-        sta COLOR
-        jsr print::space
+        CSet COLOR, COLOR_FG
       EndIf
+      jsr print::space
     pla
     jsr ld_item_a
     jsr print_item_xy
 
     jsr print::nl
+    jsr print::rev_off
     inc PRINT_INDEX
     bne item
   break:
@@ -451,15 +387,12 @@
 
 .proc handle_keys
   wait: 
-  jsr GETIN
+    jsr GETIN
   beq wait
-    JmpEq #$11, do_next
-    JmpEq #$91, do_prev
-    JmpEq #$0D, do_action
-    JmpEq #$1D, do_action
-    JmpEq #$03, do_back
-    JmpEq #$9D, do_back
-  jmp wait
+    ldxy #KEY_CODES
+    jsr xy::lookup
+  bcs wait
+  jpxy
 .endproc
 
 .proc load_root
@@ -499,4 +432,16 @@
   jsr go_back
   jmp fetch_items
 .endproc
+
+.proc fetch_items ; get items from the current menu
+  jsr clear_items
+  ldxy CUR_MENU 
+  lda #METHODS::ITEMS
+  jsr method_item_xy
+  CSet EXTCOL, COLOR_BRD
+  CSet BGCOL0, COLOR_BG
+  rts
+.endproc
+
+
 .endscope
