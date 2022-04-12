@@ -6,10 +6,10 @@ jmp MAIN
 MAIN = imenu::main
 
 MenuRoot "Home"
-  MenuDirectory "ls 8", 8
-  MenuDirectory "ls 9", 9
-  MenuDirectory "ls 10", 10
-  MenuDirectory "ls 11", 11
+  MenuDirectory "ls", 
+  MenuDirectory "ls", 9
+  MenuDirectory "ls", 10
+  MenuDirectory "ls", 11
   MenuAction "dump items"
     ISet idump::HOME, imenu::MENU_ITEMS
     jmp idump::main

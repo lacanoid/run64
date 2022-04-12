@@ -1,27 +1,33 @@
 MenuHandler HNDL_DIRECTORY
+  PRINT:
+    jsr print_z_from_here
+    jsr print::space
+    jsr here_read_x
+    txa
+    jsr print::number_a
+    rts
   ACTION:
     jmp go_to_the_item
   ITEMS:
+    inc 53280
+    CSet STATUS,0
     LDA #dirname_end-dirname
-    LDX #<dirname
-    LDY #>dirname
+    ldxy #dirname
     JSR SETNAM
 
     LDA #$02       ; filenumber 2
     jsr here_read_x
     LDY #$02       ; secondary address 0 (required for dir reading!)
     JSR SETLFS
-
-    inc 53280
     JSR OPEN       ; (open the directory)
     BCC ok
     jmp error     ; quit if OPEN failed
     ok:
-    inc 53280
+    lda STATUS
+    JmpTrue error 
+    
     LDX #$02       ; filenumber 2
     JSR CHKIN
-    
-    inc 53280
     
     jsr add_item_there
     lda #<HNDL_DISK
@@ -57,6 +63,8 @@ MenuHandler HNDL_DIRECTORY
       
       inc cnt
       lda cnt
+      cmp #32
+      bcs exit
       and #7
       beq not_first
         ldy #2
@@ -92,22 +100,30 @@ MenuHandler HNDL_DIRECTORY
       jsr read_y       ; SIZE 
     jmp read_file
     error:
+      brk
       ; Akkumulator contains BASIC error code
 
       ; most likely error:
       ; A = $05 (DEVICE NOT PRESENT)
     exit:
+      JSR $FFCC     ; call CLRCHN
       LDA #$02       ; filenumber 2
       JSR $FFC3      ; call CLOSE
-
-      JSR $FFCC     ; call CLRCHN
-      CSet 53280,0
+      lda #0
+      sta 53280
+      wait:
+        inc 53280
+        dec 53280
+        jsr GETIN
+        
+      beq wait
       RTS
 
     getbyte:
       JSR READST      ; call READST (read status byte)
       BNE end       ; read error or end of file
       inc 53280
+      
       jsr CHRIN      ; call CHRIN (read byte from directory)
       rts
       .data
