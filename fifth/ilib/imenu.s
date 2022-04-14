@@ -63,16 +63,17 @@
     rts
   .endproc
 
-  .proc print_menu
+  .proc print_header
     jsr print::reset
-    print_header:
     CMov COLOR, COLOR_HDR
     jsr print::rev_on
     ldxy CUR_MENU
     jsr print_item_xy
     jsr print::nl
-    jsr print::rev_off
-
+    jmp print::rev_off
+  .endproc
+  .proc print_menu
+    jsr print_header
     lda SCROLL_HEIGHT
     beq empty
 
@@ -175,9 +176,9 @@
   .endproc
 
   .proc do_reload 
-    jsr clear_items
-    jsr on_items_loaded
-    jsr print_menu
+    jsr print_header
+    jsr print::clear_rest
+    jsr there_clear
     jmp fetch_items
   .endproc
 
