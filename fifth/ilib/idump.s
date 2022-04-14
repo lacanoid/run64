@@ -1,3 +1,6 @@
+.ifndef ::__IDUMP_INCLUDED__
+.out "IDUMP"
+::__IDUMP_INCLUDED__ = 1
 .include "defs-auto.inc"
 .include "macros/basics.s"
 .include "ilib/print.s"
@@ -360,3 +363,4 @@
   .endproc
 
  .endscope
+ .endif

@@ -2,42 +2,28 @@ MenuHandler HNDL_MENU
   ACTION:
     jmp go_to_the_item
   ITEMS:
-    lda HERE+1
-    loop:
-      cmp #0
-      beq exit
-
-      ldxy HERE
-      adxy #2
-      jsr add_item_xy
-      jsr here_deref
-      lda HERE+1
-    bne loop
-  exit:
-    rts
+    ldxy HERE
+    jmp there_write_xy
 EndMenuHandler
 
 MenuHandler HNDL_LINK
   ACTION:
     ;lda #4
     ;jsr here_advance_a
-    jsr here_deref 
-    jmp go_to_here
+    ldxy HERE
+    goxy
+    jmp go_to_xy
 EndMenuHandler
-
 
 .macro MenuLink title, id
   MenuItem HNDL_LINK, title
   .addr id
 .endmacro
 
-
-
 MenuHandler HNDL_BACK_LINK
   ACTION:
     jmp go_back 
 EndMenuHandler
-
 
 .macro MenuBackLink title
   .ifnblank title
@@ -49,7 +35,6 @@ EndMenuHandler
 
 .proc print_z_title
   jmp print_z_from_here
-  rts
 .endproc
 
 .macro Menu title, id
@@ -88,7 +73,7 @@ EndMenuHandler
 .endmacro
 
 .macro EndMenu
-      __next_item__ = 0
+      __next_item__: .addr 0
     .endscope
   .endscope
 .endmacro

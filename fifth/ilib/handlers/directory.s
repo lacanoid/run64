@@ -9,33 +9,33 @@ MenuHandler HNDL_DIRECTORY
   ACTION:
     jmp go_to_the_item
   ITEMS:
+    jsr there_begin_items
+
     inc 53280
     CSet STATUS,0
-    LDA #dirname_end-dirname
+    lda #dirname_end-dirname
     ldxy #dirname
-    JSR SETNAM
+    jsr SETNAM
 
-    LDA #$02       ; filenumber 2
+    lda #0
+    stx STATUS
+
+    lda #$02       ; filenumber 2
     jsr here_read_x
-    LDY #$02       ; secondary address 0 (required for dir reading!)
-    JSR SETLFS
-    JSR OPEN       ; (open the directory)
-    BCC ok
+    stx FA
+
+    ldy #$02       ; secondary address 0 (required for dir reading!)
+    jsr SETLFS
+    jsr OPEN       ; (open the directory)
+    bcc ok
     jmp error     ; quit if OPEN failed
     ok:
-    lda STATUS
-    JmpTrue error 
     
-    LDX #$02       ; filenumber 2
-    JSR CHKIN
+    ldx #$02       ; filenumber 2
+    jsr CHKIN
     
-    jsr add_item_there
-    lda #<HNDL_DISK
-    jsr there_write_byte
-    lda #>HNDL_DISK
-    jsr there_write_byte
-    lda #0
-    jsr there_write_byte
+    ldxy #HNDL_DISK
+    jsr there_begin_item
 
     ldy #142
     jsr skip_y
@@ -55,11 +55,12 @@ MenuHandler HNDL_DIRECTORY
     ldy #89
     jsr skip_y
 
+    jsr there_finish_item
     lda #$ff
     sta cnt
     read_file:
-      JSR READST      ; call READST (read status byte)
-      BNE exit
+      jsr READST      ; call READST (read status byte)
+      bne exit
       
       inc cnt
       lda cnt
@@ -80,13 +81,9 @@ MenuHandler HNDL_DIRECTORY
         jsr skip_y
         jmp read_file
       found_file: 
-      jsr add_item_there
-      lda #<HNDL_FILE
-      jsr there_write_byte
-      lda #>HNDL_FILE
-      jsr there_write_byte
-      lda #0
-      jsr there_write_byte
+
+      ldxy #HNDL_FILE
+      jsr there_begin_item
 
       ldy #16
       jsr read_sy      ; FILENAME
@@ -98,44 +95,36 @@ MenuHandler HNDL_DIRECTORY
       jsr skip_y
       ldy #2
       jsr read_y       ; SIZE 
+
+      jsr there_finish_item
     jmp read_file
     error:
-      brk
       ; Akkumulator contains BASIC error code
 
       ; most likely error:
       ; A = $05 (DEVICE NOT PRESENT)
     exit:
-      JSR $FFCC     ; call CLRCHN
-      LDA #$02       ; filenumber 2
-      JSR $FFC3      ; call CLOSE
-      lda #0
-      sta 53280
-      wait:
-        inc 53280
-        dec 53280
-        jsr GETIN
-        
-      beq wait
-      RTS
+      jsr there_cancel_item
+      lda #$02       ; filenumber 2
+      jsr CLOSE      ; call CLOSE
+      jsr CLRCHN     ; call CLRCHN
+      rts
 
     getbyte:
-      JSR READST      ; call READST (read status byte)
-      BNE end       ; read error or end of file
+      jsr READST      ; call READST (read status byte)
+      bne end       ; read error or end of file
       inc 53280
       
       jsr CHRIN      ; call CHRIN (read byte from directory)
       rts
-      .data
-        got_byte: .byte 0
-      .code
     end:
-      PLA            ; don't return to dir reading loop
-      PLA
-      PLA
-      PLA
+      ;jsr there_cancel_item
+      pla            ; don't return to dir reading loop
+      pla
+      pla
+      pla
       ;brk
-      JMP exit
+      jmp exit
     
     skip_y:
       jsr getbyte

@@ -1,8 +1,8 @@
 .enum METHODS
-  PRINT=0
-  ACTION=2
-  ITEMS=4
-  BACK=6
+  PRINT=0     ; HERE is set to the item title, defaults to printz
+  ACTION=2    ; provide 
+  ITEMS=4     ; must write the address of the first item to THERE
+  
 .endenum
 
 .macro MenuHandler arg
@@ -12,8 +12,8 @@
     .word __print__
     .word __action__
     .word __items__
-    .word __back__
 .endmacro
+
 .macro EndMenuHandler
     .ifdef PRINT
       __print__ = PRINT

@@ -17,12 +17,30 @@ __XY_INCLUDED__ = 1
   sty arg+1
 .endmacro
 
+.macro stixy arg
+  phxy
+  ldxy arg
+  jsr xy::finish_stixy
+.endmacro
+
+.macro wrixy arg
+  phxy
+  ldxy arg
+  jsr xy::finish_wrixy
+.endmacro
+
+
 .macro xyld
   .local rw
   sty rw+2
   rw: lda $FA00,x
 .endmacro
 
+.macro xyldh
+  .local rw
+  sty rw+2
+  rw: lda $FA01,x
+.endmacro
 
 .macro xyst
   .local rw
@@ -30,7 +48,27 @@ __XY_INCLUDED__ = 1
   rw: sta $FA00,x
 .endmacro
 
-.macro ldixy
+.macro xysth
+  .local rw
+  sty rw+2
+  rw: sta $FA01,x
+.endmacro
+
+.macro xyin
+  .local rw
+  sty rw0+2
+  rw0: inc $FA00,x
+.endmacro
+
+.macro xyde
+  .local rw
+  sty rw0+2
+  rw0: dec $FA00,x
+.endmacro
+
+
+
+.macro ldxya
   jsr xy::indexed
 .endmacro
 .macro phxy
@@ -40,6 +78,9 @@ __XY_INCLUDED__ = 1
   jsr xy::plxy
 .endmacro
 
+.macro xypl
+  jsr xy::xypl
+.endmacro
 
 .macro inxy
   .local skip
@@ -141,16 +182,34 @@ __XY_INCLUDED__ = 1
   .endproc
 
   .proc plxy
-
     ldx sp
     ldy sp+1
-
+  .endproc
+  ;passthrough
+  .proc drop
     inc sp
     inc sp
     bne skip
       inc sp+1
     skip:
+    rts 
+  .endproc
 
+  .proc xypl
+    pha
+    lda sp
+    xyst 
+    lda sp+1
+    xysth
+    pla
+    jmp drop
+  .endproc
+
+  .proc set ; write top of stack to (xy)
+    lda sp
+    xyst 
+    lda sp+1
+    xysth
     rts 
   .endproc
 
@@ -164,18 +223,13 @@ __XY_INCLUDED__ = 1
     rw: jmp ($FADE)
   .endproc
 
-
   .proc deref
     pha
     sty lo+2
     sty hi+2
-    stx hi+1
-
+    hi: ldy $AA01,x
     lo: lda $AA00,x
     tax
-    ldy #1
-    hi: lda $AABB,y 
-    tay
     pla
     rts  
   .endproc
@@ -207,6 +261,23 @@ __XY_INCLUDED__ = 1
     PopX
     rts
   .endproc 
+
+  .proc finish_stixy 
+    lda sp
+    xyst 
+    lda sp+1
+    xysth
+    plxy
+    rts 
+  .endproc
+  .proc finish_wrixy 
+    lda sp
+    xywr 
+    lda sp+1
+    xywr 
+    plxy
+    rts 
+  .endproc
 
   .proc adds 
     pha
@@ -242,9 +313,10 @@ __XY_INCLUDED__ = 1
 
   .proc sub
     pha
-    stx rw+1
+    sta rw+1
+    txa 
     sec
-    rw: adc #00
+    rw: sbc #00
     tax
     bcs skip 
       dey
@@ -299,6 +371,6 @@ __XY_INCLUDED__ = 1
     rw: lda $FEED,y
     rts
   .endproc      
-
+   
 .endscope 
 .endif
