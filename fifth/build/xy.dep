@@ -1,0 +1,4 @@
+build/xy.o:	xy.s ../defs-auto.inc ../defs64.inc ../defs.inc macros/basics.s macros/ifelse.s macros/helpers.s macros/pointers.s ilib/print.s ilib/idump.s ../defs-auto.inc ../defs64.inc macros/basics.s macros/ifelse.s macros/helpers.s macros/pointers.s ilib/print.s ilib/xy.s dis.s
+
+xy.s ../defs-auto.inc ../defs64.inc ../defs.inc macros/basics.s macros/ifelse.s macros/helpers.s macros/pointers.s ilib/print.s ilib/idump.s ../defs-auto.inc ../defs64.inc macros/basics.s macros/ifelse.s macros/helpers.s macros/pointers.s ilib/print.s ilib/xy.s dis.s:
+
