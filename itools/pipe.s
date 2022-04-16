@@ -1,5 +1,6 @@
 .ifndef ::__PIPE_INCLUDED__
 ::__PIPE_INCLUDED__=1
+
 .macro pipe fn
   jsr pipe::fn
 .endmacro
@@ -8,6 +9,7 @@
   .pushseg
   .data
     buffer: .res 16
+    cnt: .byte 0
   .popseg
 
   input = _input+1
@@ -15,18 +17,13 @@
   catch = _catch+1
 
   _input: jsr $FEED
-  bcs eof_or_throw
+  bcs throw
   rts
 
   _output: jsr $FEED
   bcs throw
   rts
 
-  eof_or_throw:
-  cmp #0
-  bne throw
-    sec
-    rts
   throw:
     sta rwerr+1
     pla
@@ -61,59 +58,73 @@
   .endproc 
 
   .proc skip_y
-    jsr _input
-    dey 
-    bne skip_y
-    
+    sty cnt
+    loop:
+      jsr _input
+      dec cnt
+    bne loop
     rts
   .endproc
 
+  .proc copy_all
+    loop: 
+      jsr _input
+      jsr _output 
+    bne loop
+    rts  
+  .endproc 
+
   .proc copy_y
-    jsr _input
-    jsr _output 
-    dey 
-    bne copy_y 
+    sty cnt
+    loop: 
+      jsr _input
+      jsr _output 
+      dec cnt
+    bne loop
     rts  
   .endproc 
    
   .proc copy_until
+    sty cnt
     sta rw+1
     loop:
     jsr _input
-    rw:cmp #$A0
+    rw: cmp #$A0
     beq end
     jsr _output
-    dey 
-    bne copy_until
+    dec cnt
+    bne loop
     done:
-    lda #0
-    jmp _output
+      lda #0
+      jmp _output
     end:
-    dey
-    jsr skip_y 
+      dec cnt
+    skip:
+      jsr _input
+      dec cnt
+    bne skip    
     beq done
   .endproc
+
   .proc buffer_y
-    jsr _input
-    sta buffer,y
-    dey 
-    bne buffer_y 
+    sty cnt
+    loop:
+      jsr _input
+      ldy cnt
+      sta buffer,y
+      dec cnt
+    bne loop
     rts   
   .endproc
   .proc flush_y
+    sty cnt
+    loop:
+      ldy cnt
       lda buffer,y
       jsr _output 
-      dey 
-    bne flush_y
+      dec cnt
+    bne loop
     rts  
   .endproc
 .endscope
 .endif
-
-.scope file
-  .proc open
-    jsr xy::findz
-    jsr SETNAM
-    jsr OPEN
-  .endproc
-.endscope

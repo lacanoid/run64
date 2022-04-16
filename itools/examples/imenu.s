@@ -89,5 +89,9 @@ MenuRoot "menu"
       ptr: .word 0
       dirname:  .byte "$"      ; filename used to access directory
       end_dirname:
+  MenuAction "scroll"
+    loop:
+      print "abcdefg"
+    bra loop
 EndMenu
 

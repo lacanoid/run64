@@ -39,6 +39,8 @@
 
   .proc on_load
     IMov THERE, INIT_THERE
+    lda #12
+    jsr CHROUT
     lda #14
     jsr CHROUT
     jsr restore_colors
@@ -68,21 +70,25 @@
   .proc print_header
     print reset
     CMov COLOR, COLOR_HDR
+    /*
     lda CNT_ITEMS
     print number_a
+    print space
+    lda PRINT_CNT
+    print number_a
+    */
     print rev_on
     ldxy CUR_MENU
+
     jsr print_item_xy
     print nl
     print rev_off
     rts
   .endproc
   .proc print_menu
-    jsr print_header
     lda SCROLL_HEIGHT
-    beq empty
-
     sta PRINT_CNT
+    beq empty
     cmp #24
     bcc no_scroll
     full_scroll: 
@@ -99,6 +105,7 @@
     top_ok:
     no_scroll:
       CMov PRINT_INDEX, TOP_INDEX
+      jsr print_header
     item:
       lda PRINT_INDEX
       pha
@@ -109,12 +116,11 @@
           lda #12
           CMov COLOR, COLOR_FG
         EndIf
-        print space
+        ;print space
       pla
       
       jsr ld_item_a
       jsr print_item_xy
-      
       print nl
       print rev_off
       inc PRINT_INDEX
