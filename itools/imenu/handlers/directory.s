@@ -1,4 +1,5 @@
 .include "../../pipe.s"
+.include "../../file.s"
 
 MenuHandler HNDL_DIRECTORY
   PRINT:
@@ -11,20 +12,28 @@ MenuHandler HNDL_DIRECTORY
   ACTION:
     jmp go_to_the_item
   ITEMS:
-    ldxy #getbyte
+    ldxy #file::read_busy
     pipe set_input
     ldxy #there_write_a
     pipe set_output
     ldxy #error
     pipe set_catch
+
+    lda #$ff
+    sta cnt
     
     jsr there_begin_items
 
     inc 53280
-    ;CSet STATUS,0
+    jsr here_read_a
+    pha
+      print number_a
+    pla 
     ldxy #dirname
-    jsr open_file    
-    
+    file open_r
+    bcs error             ; quit if OPEN failed
+    sta rwclose+1         ; save the file number 
+
     ldxy #HNDL_DISK
     jsr there_begin_item
 
@@ -48,8 +57,6 @@ MenuHandler HNDL_DIRECTORY
     pipe skip_y
 
     jsr there_finish_item
-    lda #$ff
-    sta cnt
     each_file:
       jsr READST      ; call READST (read status byte)
       bne exit
@@ -90,31 +97,18 @@ MenuHandler HNDL_DIRECTORY
       jsr there_finish_item
     jmp each_file
     exit:      
-    lda #$02       ; filenumber 2
-    jsr CLOSE      ; call CLOSE
-    jsr CLRCHN     ; call CLRCHN
-    rts
-    .proc open_file
-      jsr xy::findz
-      jsr SETNAM
-
-      lda #$02       ; filenumber 2
-      jsr here_read_x
-
-      ldy #$02       ; secondary address 0 (required for dir reading!)
-      jsr SETLFS
-      jsr OPEN       ; (open the directory)
-      bcc ok
-      jmp error     ; quit if OPEN failed
-      ok:
-
-      ldx #$02       ; filenumber 2
-      jmp CHKIN
-    .endproc
-
+      rwclose: lda #$02       ; filenumber 2
+      jsr CLOSE      ; call CLOSE
+      jsr CLRCHN     ; call CLRCHN
+      rts
+   
     .proc error
       pha
       jsr there_cancel_item
+      pla
+      cmp #0
+      beq exit
+      pha
       ldxy #HNDL_FILE_ERROR
       jsr there_begin_item
       jsr there_write_zero
@@ -123,23 +117,11 @@ MenuHandler HNDL_DIRECTORY
       jsr there_finish_item
       jmp exit
     .endproc 
-    
-    .proc getbyte
-      jsr READST      ; call READST (read status byte)
-      bne st       ; read error or end of file
+    .proc readbyte
+      file read
       inc 53280
-      jsr CHRIN      ; call CHRIN (read byte from directory)
-      clc 
-      rts
-      st: cmp #64
-      bne err
-      lda #0
-      err:
-      sec
       rts
     .endproc
-
-
   dirname:  .byte "$" ,0     ; filename used to access directory
   .data   
     cnt: .byte 0
@@ -214,5 +196,26 @@ Menu "File", MENU_FILE
   MenuHeading "open"
   MenuHeading "delete"
   MenuAction "read"
-    
+    ldxy CUR_MENU
+    adxy #3
+    lda #8
+    file open_r
+    bcs error
+    pha
+    loop: 
+      CSet QTSW, 1
+      file read_busy
+      bcs done
+      print char
+    bra loop
+    done:
+      pla
+      jsr CLOSE
+      jsr CLRCHN
+      wait: jsr GETIN
+      beq wait 
+      rts
+    error:
+      print "error"
+    rts
 EndMenu

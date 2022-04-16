@@ -26,10 +26,18 @@
 
 .scope print
   .data
-    PP = $D1
-    CP = $F3
+    PP = _write_char+1
+    CP = _write_color+1
     COLUMNS = 40
+    ROWS = 25
+    WIN_LEFT: .byte 0 
+    WIN_WIDTH: .byte 30
+    WIN_TOP: .byte 0 
+    WIN_HEIGHT: .byte ROWS
     COLUMN: .byte 0
+    COLUMNS_LEFT: .byte 0
+    ROW: .byte 0
+    ROWS_LEFT: .byte 0
     CHAR_OR: .byte 0
     arg: .word 0
   .code
@@ -51,9 +59,24 @@
   .endproc
 
   .proc reset
+    pha
+    lda #12
+    jsr CHROUT
     ISet CP, COLORAM
     ISet PP, VICSCN
-    CSet COLUMN,COLUMNS
+    ldx WIN_TOP
+    beq skip
+    set_row:
+      IAddB CP, COLUMNS
+      IAddB PP, COLUMNS
+      dex
+    bne set_row
+    skip:
+    CMov COLUMN,WIN_LEFT
+    CMov COLUMNS_LEFT,WIN_WIDTH
+    CMov ROW,WIN_TOP
+    CMov ROWS_LEFT,WIN_HEIGHT
+    pla
     rts
   .endproc
 
@@ -97,37 +120,90 @@
     adc #$ff 
   .endproc
   ; passthrough
-  .proc _char
+  _char:
     ora CHAR_OR
-    ldx #0
-    sta (PP,x)
+    pha 
+    ldx ROWS_LEFT
+    bne not_eos
+    jsr scroll_up
+    not_eos:
+    pla
+    ldx COLUMN
+  _write_char:
+    sta $FEED,x
     lda COLOR
-    sta (CP,X)
-  .endproc
+  _write_color:    
+    sta $FEED,x
   ; passthrough
-  .proc _advance
-    inc CP
-    inc PP
-    bne skip
-      inc CP+1
-      inc PP+1
-      lda PP+1
-      cmp #>(VICSCN+1024)
-      bne skip
-      jsr reset
-      lda #0  
-      sec
-      rts ; +z, +c
-    skip:
-    dec COLUMN
-    beq nl
-      clc 
-      rts ; -z, -c
-    nl: 
-      CSet COLUMN,COLUMNS
+  _advance:
+    dec COLUMNS_LEFT
+    beq eol
+    inc COLUMN
+    clc 
+    rts 
+    eol:
+      CMov COLUMN,WIN_LEFT
+      CMov COLUMNS_LEFT,WIN_WIDTH
+      inc ROW
+      dec ROWS_LEFT
+      beq eos
+      IAddB PP, COLUMNS
+      IAddB CP, COLUMNS
+    eos:
       sec
       rts 
-  .endproc
+
+  .proc scroll_up
+    .pushseg
+    .data
+      cur_row: .byte 0
+      rows_left: .byte 0
+    .popseg
+    PushX
+    PushY
+    pha 
+      ISet wrs+1, VICSCN 
+      ISet wrc+1, COLORAM
+      ISet rds+1, VICSCN+COLUMNS
+      ISet rdc+1, COLORAM+COLUMNS
+
+      CSet cur_row,$FF
+      CMov rows_left, WIN_HEIGHT
+      dec rows_left
+     
+      row:
+        inc cur_row
+        lda cur_row
+        cmp WIN_TOP
+        bcc skip_row
+
+        ldx WIN_WIDTH
+        ldy WIN_LEFT
+        col:
+          rds: lda $FEED, y
+          wrs: sta $FEED, y
+          rdc: lda $FEED, y
+          wrc: sta $FEED, y
+          iny
+          dex
+        bne col
+        dec rows_left
+        beq done
+
+        skip_row:
+          IAddB rds+1, COLUMNS
+          IAddB wrs+1, COLUMNS
+          IAddB rdc+1, COLUMNS
+          IAddB wrc+1, COLUMNS
+      bra row
+      done: 
+      dec ROW
+      inc ROWS_LEFT
+    pla
+    PopY
+    PopX
+    rts
+  .endproc 
 
   .proc nl
     spaces: 
@@ -137,9 +213,7 @@
     rts
   .endproc
   .proc spaces_to
-    eor #$FF
-    sec
-    adc #40
+    rts
     tay 
     spaces: 
       lda #' '
@@ -149,11 +223,12 @@
     rts
   .endproc
   .proc clear_rest
-    spaces: 
-      lda #' '
-      jsr _char
-    bcc spaces
-    bne spaces
+    nls: 
+      lda ROWS_LEFT 
+      beq exit 
+      jsr nl
+    bra nls
+    exit:
     rts
   .endproc
 
@@ -235,22 +310,6 @@
     exit:
       rts
   .endproc
-
-  .proc len_at_xy
-    stx read+1
-    sty read+2
-    tax 
-    loop:
-      read: lda $FADE
-      dex
-      beq exit
-      jsr char
-      IInc read+1
-      bra loop
-    exit:
-      rts
-  .endproc
-
 
   .proc byte_a
     pha

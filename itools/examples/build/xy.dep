@@ -1,0 +1,4 @@
+build/xy.o:	xy.s ../../defs64.inc ../../defs.inc ../xy.s ../macros/basics.inc ../macros/ifelse.inc ../macros/helpers.inc ../macros/pointers.inc
+
+xy.s ../../defs64.inc ../../defs.inc ../xy.s ../macros/basics.inc ../macros/ifelse.inc ../macros/helpers.inc ../macros/pointers.inc:
+
