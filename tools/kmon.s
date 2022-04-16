@@ -93,7 +93,7 @@ kmon:
         TSX                 ; store stack pointer in memory 
         STX SP
 
-        LDY #MSG0-MSGBAS    ; display "?" to indicate error and go to new line
+        LDY #MSG0-MSGBAS    ; display 
         JSR SNDMSG
 
 ; -----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ kmon:
 ; redirect input
         lda #1
         jsr CHKIN
-        jsr WRTWO
+;        jsr WRTWO
 
 ; -----------------------------------------------------------------------------
 ; main loop

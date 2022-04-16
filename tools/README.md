@@ -16,9 +16,9 @@ They include:
 1. kmon o(ld) command
 1. kmon m(emory) command
 1. kmon c(hdir) command
-1. pip CLI options
+1. pip CLI options &check;
 1. pip file copying
-1. pip ASCII/ANSI mode
+1. pip ASCII/ANSI mode &check;
 1. pip hex mode
 1. pip pause mode
 
