@@ -9,8 +9,7 @@ is quite accesible in c64 mode
 so basically the same code should run, with some adaptations.
 
 Why do this? So you can run c64 programs in 80 columns!
-It works with programs which use KERNAL to print to screen.
-This includes BASIC and figforth.
+It works great with programs which use BASIC/KERNAL to print to screen.
 
 It provides 80 column support as well as additional features, 
 such as c128 escape sequences and windowing.
@@ -27,15 +26,19 @@ adapted with the following modifications:
 - declare.src replaced with defs64.inc
 - variables PNT,USER,LSXP,LSTP,INDX,TBLX,PNTR,COLOR,RVS,QTSW,INSRT now in their corresponding c64 locations
 - updated swapper to support this
-- editor.src replaced with vdc64.s
+- editor.src replaced with vdc64.s, where most of the customization is
 - wrapper to run this as a normal c64 program, check for vdc
 - functions for 128 like memory management for 64 mode (getcfg, indfet, fetch)
-- 40/80 key is not readable in c64 mode
-- initialize to 80 column mode with current vic colors
-- switched colors 11 and 12 on vdc, this seems to match vic colors better. 
-- freed up zero page locations $dd-$f2 as they are not used by the new editor
+- 40/80 key is not readable in c64 mode, so initialize to 80 column mode with current vic colors
+- switched vdc colors 11 and 12, this seems to match vic colors better. 
+- frees up 14 zero page locations $e4-$f2 as they are not used by the new editor
 - conditional assembly for keyboard scan and function key routines
-- locations of new c128 variables are mostly different
+- locations of new editor variables are mostly different, on c128 they are around $0a00, here they are after jump table at $c000.
+
+Using
+-----
+Load and run "vdc64" program on c128 in c64 mode. It will install itself in the $C000-$CFFF area.
+
 - STOP+RESTORE will deactivate the editor and return to 40 column mode
 - you can reactivate the 80 column mode and the new editor with SYS 49152
 - switch between 40/80 mode with command PRINT CHR$(27);"X"
