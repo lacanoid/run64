@@ -67,23 +67,22 @@
     rts
   .endproc
 
-  .proc print_header
+  .proc print_header_xy
+    phxy
     print reset
     CMov COLOR, COLOR_HDR
-    /*
-    lda CNT_ITEMS
-    print number_a
-    print space
-    lda PRINT_CNT
-    print number_a
-    */
     print rev_on
-    ldxy CUR_MENU
+    plxy
 
     jsr print_item_xy
     print nl
     print rev_off
     rts
+  .endproc
+
+  .proc print_header
+    ldxy CUR_MENU
+    jmp print_header_xy
   .endproc
   .proc print_menu
     lda SCROLL_HEIGHT

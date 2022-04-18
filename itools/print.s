@@ -28,12 +28,12 @@
   .data
     PP = _write_char+1
     CP = _write_color+1
-    COLUMNS = 40
-    ROWS = 25
+    COLUMNS: .byte 40
+    ROWS: .byte 25
     WIN_LEFT: .byte 0 
-    WIN_WIDTH: .byte 30
     WIN_TOP: .byte 0 
-    WIN_HEIGHT: .byte ROWS
+    WIN_WIDTH: .byte 40
+    WIN_HEIGHT: .byte 25
     COLUMN: .byte 0
     COLUMNS_LEFT: .byte 0
     ROW: .byte 0
@@ -58,7 +58,31 @@
     rts
   .endproc
 
+  .proc set_tl
+    stx WIN_LEFT
+    sty WIN_TOP
+    rts
+  .endproc 
+
+  .proc set_wh
+    stx WIN_WIDTH
+    sty WIN_HEIGHT
+    rts
+  .endproc 
+
+  .proc reset_window
+    CClear WIN_LEFT
+    CClear WIN_TOP
+    CMov WIN_WIDTH, COLUMNS
+    CMov WIN_HEIGHT, ROWS
+    jmp reset
+  .endproc
+
+
   .proc reset
+    jsr $FFED ; SCRORG
+    stx COLUMNS
+    sty ROWS
     pha
     lda #12
     jsr CHROUT
@@ -67,8 +91,10 @@
     ldx WIN_TOP
     beq skip
     set_row:
-      IAddB CP, COLUMNS
-      IAddB PP, COLUMNS
+      lda COLUMNS
+      IAddA CP
+      lda COLUMNS
+      IAddA PP
       dex
     bne set_row
     skip:
@@ -88,21 +114,21 @@
   .proc char
     sta rewrite+1
     and #$E0
-    beq c80       ; $0 -> $80
+    beq c80       ; $00 - $80 -> $80
 
     cmp #$40       
-    beq c40      ; $40 -> $40
+    beq c40      ; $40 - $40 -> $00
 
     cmp #$20       
-    beq c00       ; $20 -> $00
+    beq c00       ; $20 - $0 -> $20 
 
     cmp #$A0
-    bcc cC0       ; $60 & $80 -> $C0
-    beq c40       ; $A0 -> $40
+    bcc cC0       ; $60 & $80 - $C0 -> $A0 & $C0
+    beq c40       ; $A0 - $40  -> $60
     
     cmp #$C0
-    bne c00       ; $E0 -> $00
-    ;pass through ; $C0 -> $80
+    bne c00       ; $E0 - $00 -> $E0
+    ;pass through ; $C0 - $80 -> $40
     c80:
       lda #$80
       bne done
@@ -147,8 +173,10 @@
       inc ROW
       dec ROWS_LEFT
       beq eos
-      IAddB PP, COLUMNS
-      IAddB CP, COLUMNS
+      lda COLUMNS
+      IAddA PP
+      lda COLUMNS
+      IAddA CP
     eos:
       sec
       rts 
@@ -164,9 +192,13 @@
     pha 
       ISet wrs+1, VICSCN 
       ISet wrc+1, COLORAM
-      ISet rds+1, VICSCN+COLUMNS
-      ISet rdc+1, COLORAM+COLUMNS
-
+      ISet rds+1, VICSCN
+      lda COLUMNS
+      IAddA rds+1
+      ISet rdc+1, COLORAM
+      lda COLUMNS
+      IAddA rdc+1
+      
       CSet cur_row,$FF
       CMov rows_left, WIN_HEIGHT
       dec rows_left
@@ -191,10 +223,14 @@
         beq done
 
         skip_row:
-          IAddB rds+1, COLUMNS
-          IAddB wrs+1, COLUMNS
-          IAddB rdc+1, COLUMNS
-          IAddB wrc+1, COLUMNS
+          lda COLUMNS 
+          IAddA rds+1
+          lda COLUMNS 
+          IAddA wrs+1
+          lda COLUMNS 
+          IAddA rdc+1
+          lda COLUMNS
+          IAddA wrc+1
       bra row
       done: 
       dec ROW
@@ -213,7 +249,6 @@
     rts
   .endproc
   .proc spaces_to
-    rts
     tay 
     spaces: 
       lda #' '

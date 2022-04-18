@@ -203,11 +203,11 @@ Menu "File", MENU_FILE
     bcs error
     pha
     loop: 
-      CSet QTSW, 1
       file read_busy
       bcs done
       print char
-    bra loop
+      JSR $FFE1 
+    bne loop
     done:
       pla
       jsr CLOSE

@@ -92,6 +92,8 @@ MenuRoot "menu"
   MenuAction "scroll"
     loop:
       print "abcdefg"
-    bra loop
+      JSR $FFE1 
+    bne loop
+    rts
 EndMenu
 
