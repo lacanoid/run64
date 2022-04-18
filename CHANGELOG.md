@@ -1,9 +1,9 @@
 Version 0.7
 ===========
-- new BRK handler in bootsect.128 for c128 mode which automatically starts c64 programs in c64 mode. now you can just RUN "PROGRAM"
-- new vdc64 program to use VDC chip in C128 in C64 mode 
-- new 5th mini forth interpreter & shell
-- convert from to trigrams in kmon (#)
+- new BRK handler in bootsect.128 for c128 mode which automatically starts c64 programs in c64 mode
+- now you can just RUN "PROGRAM" in c128 mode and it use the appropriate mode.
+- new vdc64 program to use VDC chip in C128 in C64 mode, providing support for 80 columns
+- convert from and to trigrams in kmon (#)
 - improved directory layout and build process
 - pip interactive and ASCII/ANSI mode
 
