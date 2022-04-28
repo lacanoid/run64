@@ -1176,6 +1176,33 @@ INSTALL_TBUFFR:
         BNE @loop
         RTS
 ; -----------------------------------------------------------------------------
+; load a program
+
+CMDOLD:
+        jsr INSTALL_TBUFFR
+        lda #0
+        sta runflags
+        jsr GETFNADR
+        beq CMDOLD1
+CMDOLDGO:
+        JSR SETNAMX
+
+        lda CHRPNT
+        sta COUNT      
+
+        ; call resident code in TBUFF which does not return on success
+        jsr __TBUFFR_RUN__+3
+        bcc CMDOLD1   ; no error
+        jsr hexout    ; print error code
+        lda #'@'
+        sta BUF
+        lda #0
+        sta BUF+1
+        JMP STRT2
+CMDOLD1:
+        rts
+
+; -----------------------------------------------------------------------------
 ; load and run a program
 
 CMDRUN:
@@ -1189,7 +1216,7 @@ CMDRUNGO:
         sta COUNT      
 
         ; call resident code in TBUFF which does not return on success
-        jsr __TBUFFR_RUN__+3
+        jsr jrunprg
         bcc CMDRUN1   ; no error
         jsr hexout    ; print error code
         lda #'@'
@@ -1290,13 +1317,13 @@ CMDDI0:.asciiz "@8,$"
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
-KEYW:   .byte "bdeghijmnrx@>#"
+KEYW:   .byte "bdeghijmnorx@>#"
 HIKEY:  .byte "$+&%lsv"
 KEYTOP  =*
 
 ; vectors corresponding to commands above
-KADDR: .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1 
-        .WORD JSUB-1, DSPLYM-1, CMDNEW-1, CMDRUN-1, EXIT-1, DSTAT-1, ALTM-1, TRIGRAM-1
+KADDR:  .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1 
+        .WORD JSUB-1, DSPLYM-1, CMDNEW-1, CMDOLD-1, CMDRUN-1, EXIT-1, DSTAT-1, ALTM-1, TRIGRAM-1
 
 ; -----------------------------------------------------------------------------
 MODTAB: .BYTE $10,$0A,$08,02    ; modulo number systems
@@ -1310,11 +1337,15 @@ PRGEND:
 ; -----------------------------------------------------------------------------
 ; Tape buffer (resident) section
 .segment "TBUFFR"
+ jrunmon:
         jmp run_mon
+ jrunprg:
         jmp run_prg
 ; -----------------------------------------------------------------------------
 loadflags:
         .word 0
+runflags:
+        .word $80
 loaddev:
         .word 8
 ; run a monitor
@@ -1361,10 +1392,12 @@ TBSTART1:
         LDA #0            ; disable kernel control messages
         JSR SETMSG        ; and enable error messages
 
+        bit runflags
+        bmi TBSTART2
+        jmp (ISOFT_RESET)
+TBSTART2:
         lda #$0D
         jsr CHROUT
-;        LDY #MSG2_0-MSGBAS2    ;
-;        JSR SNDMSG2
 
 .ifdef __C128__
 .else
@@ -1374,14 +1407,14 @@ TBSTART1:
 
         ; start a program
 .ifdef __C128__
-        jsr JRUN_A_PROGRAM
+        jmp JRUN_A_PROGRAM
 .else
         jsr LINKPRG
         jsr RUNC
         jsr STXTPT
         jmp NEWSTT
 .endif
-        rts
+;        rts
 
 IERROR_GO:
         lda NDX           ; number of keystrokes
@@ -1437,8 +1470,7 @@ SNDMSG2:
         RTS
 
 MSGBAS2  =*
-MSG2_0:   .BYTE $0d,".run",$0D+$80
-MSG2_1:   .BYTE $0d,"?io",$20+$80
+MSG2_1:   .BYTE $0d,"?",$20+$80
 .ifdef __C128__
 TB_FNLEN: .byte 8
 TB_FN:    .byte "kmon.128",0

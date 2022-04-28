@@ -80,7 +80,7 @@ cfg2:   lda bootexc
         sta EXTCOL
 cfg3:
 
-        jsr restorecrtb ; restore memory overwrittent by cartridge
+        jsr restorecrtb ; restore memory overwritten by cartridge
         CLI
 
         JSR $E453       ; modified version of BASIC cold-start (normally at $E394-$E39F)
