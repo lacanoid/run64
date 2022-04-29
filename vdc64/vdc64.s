@@ -41,7 +41,19 @@ resultRegister = $d7ff
 
         ; initialize
         jsr org
+        jsr patch
         jsr banner
+        rts
+
+patch:  ; patch SCREEN and PLOT kernal functions
+        lda #<JSCRORG
+        sta SCREEN+1
+        lda #>JSCRORG
+        sta SCREEN+2
+        lda #<JPLOT
+        sta PLOT+1
+        lda #>JPLOT
+        sta PLOT+2
         rts
 
 detect: ; detect VDC
@@ -74,7 +86,7 @@ perror:
 @pe2:
         rts
 
-emsg:   .asciiz "NO VDC. TRY C128."
+emsg:   .asciiz "NO VDC. TRY ON C128."
 
 banner: ; print banner and info
         lda COLOR
@@ -120,7 +132,7 @@ banner: ; print banner and info
         jsr LINPRT
 
 
-.if 0 ; show screen size
+.if 1 ; show screen size
         lda #' '
         jsr CHROUT
 
@@ -150,7 +162,7 @@ rows1:
 
 msg:    .byte 7
         .byte $12,$1c,$20,$96,$20,$9e,$20,$99,$20,$9a,$20,$9c,$20,$92,$05
-        .byte " VDC64 0.5 "
+        .byte " VDC64 0.6 "
         .byte 27,"X"
         .byte "RUNNING ON 80 COLUMN SCREEN",13
         .byte "TYPE CTRL-[ THEN X TO SWITCH",13
