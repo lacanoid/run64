@@ -1,7 +1,8 @@
 Version 0.7
 ===========
+- c128 versions of [kmon](docs/kmon.md) and [pip](docs/pip.md)
 - new BRK handler in bootsect.128 for c128 mode which automatically starts c64 programs in c64 mode
-- now you can just RUN "PROGRAM" in c128 mode and it use the appropriate mode.
+- now you can just RUN "PROGRAM" in c128 mode and it will run in the appropriate mode.
 - new vdc64 program to use VDC chip in C128 in C64 mode, providing support for 80 columns
 - convert from and to trigrams in kmon (#)
 - improved directory layout and build process
