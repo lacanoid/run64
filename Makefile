@@ -36,12 +36,12 @@ test: subdirs run64.d81
 #	$(X128) -debugcart -limitcycles 10000000 -sounddev dummy -silent -console -8 $+
 	$(X128) run64.d81
 
-disks: subdirs issue run64.d71 run64.d81
+disks: subdirs issue run64.d64 run64.d71 run64.d81
 
 subdirs:
-	cd boot ; make
-	cd tools ; make
-	cd vdc64 ; make
+	cd boot ; make clean ; make
+	cd tools ; make clean ; make
+	cd vdc64 ; make clean ; make
 #	cd fifth ; make $+
 
 issue:
