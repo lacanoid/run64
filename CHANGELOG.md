@@ -1,3 +1,6 @@
+Version 0.8
+===========
+
 Version 0.7
 ===========
 - c128 versions of [kmon](docs/kmon.md) and [pip](docs/pip.md)
