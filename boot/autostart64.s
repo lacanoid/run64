@@ -80,7 +80,15 @@ cfg2:   lda bootexc
         sta EXTCOL
 cfg3:
 
-        jsr restorecrtb ; restore memory overwritten by cartridge
+; restore data overwritten by cartridge autostart header from VICCRTB
+restorecrtb:   
+        LDX  #< (__CARTHDR_SIZE__ + 1)
+@loop:  LDA VICCRTB - 1, X
+        STA __CARTHDR_RUN__ - 1, X
+        DEX
+        BNE @loop
+
+; continue boot
         CLI
 
         JSR $E453       ; modified version of BASIC cold-start (normally at $E394-$E39F)
@@ -129,16 +137,6 @@ old2:
         jsr RUNC
         jsr STXTPT
         jmp NEWSTT
-
-; restore data overwritten by cartridge autostart header from VICCRTB
-restorecrtb:   
-        LDX  #< (__CARTHDR_SIZE__ + 1)
-@loop:  LDA VICCRTB - 1, X
-        STA __CARTHDR_RUN__ - 1, X
-        DEX
-        BNE @loop
-        rts
-
 
 ;DQUOTE = $22
 ;BLUE = $1F

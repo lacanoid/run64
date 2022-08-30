@@ -3,7 +3,7 @@ CC := cl65
 C1541 := c1541
 X128 := x128
 
-PROGRAMS := kmon kmon.128 pip pip.128 patch64 patch128 mtop
+PROGRAMS := kmon.64 kmon.128 pip.64 pip.128 patch64 patch128 mtop
 INCLUDES := ..
 
 ifdef CC65_HOME
@@ -24,10 +24,10 @@ clean:
 zap: clean
 	rm -rf *.dep
 
-kmon: kmon.o
-	$(CC) $(LDFLAGS) -t c64 -C c64.cfg -u __EXEHDR__ -o kmon kmon.o
-kmon.o: kmon.s
-	$(AS) $(ASFLAGS) -t c64 -o kmon.o kmon.s
+kmon.64: kmon.64.o
+	$(CC) $(LDFLAGS) -t c64 -C c64.cfg -u __EXEHDR__ -o kmon.64 kmon.64.o
+kmon.64.o: kmon.s
+	$(AS) $(ASFLAGS) -t c64 -o kmon.64.o kmon.s
 
 kmon.128: kmon.128.o
 	$(CC) $(LDFLAGS) -t c128 -C c128.cfg -o kmon.128 kmon.128.o
@@ -39,10 +39,10 @@ kmon.16: kmon.16.o
 kmon.16.o: kmon.s
 	$(AS) $(ASFLAGS) -t c16 -o kmon.16.o kmon.s
 
-pip: pip.o
-	$(CC) $(LDFLAGS) -t c64 -C c64.cfg -u __EXEHDR__ -o pip pip.o
-pip.o: pip.s
-	$(AS) $(ASFLAGS) -t c64 -o pip.o pip.s
+pip.64: pip.64.o
+	$(CC) $(LDFLAGS) -t c64 -C c64.cfg -u __EXEHDR__ -o pip.64 pip.64.o
+pip.64.o: pip.s
+	$(AS) $(ASFLAGS) -t c64 -o pip.64.o pip.s
 
 pip.128: pip.128.o
 	$(CC) $(LDFLAGS) -t c128 -C c128.cfg -o pip.128 pip.128.o

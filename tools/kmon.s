@@ -831,7 +831,7 @@ MSG0:   .BYTE 14
 .else
         .byte "64"
 .endif
-        .byte " 0.7",' '+$80
+        .byte " 0.8",' '+$80
 MSG1:   .BYTE $0D               ; header for registers
         .BYTE "*err",'*'+$80
 MSG2:   .BYTE $0D               ; header for registers
@@ -1221,6 +1221,12 @@ CMDRUNGO:
         lda CHRPNT
         sta COUNT      
 
+; clear to end of screen
+.ifdef __C128__
+        jsr PRIMM
+        .byte 13,27,"@",$91,0
+.endif
+
         ; call resident code in TBUFF which does not return on success
         jsr jrunprg
         bcc CMDRUN1   ; no error
@@ -1482,9 +1488,9 @@ TB_FNLEN: .byte 8
 TB_FN:    .byte "kmon.128",0
           .res  6
 .else
-TB_FNLEN: .byte 4
-TB_FN:    .byte "kmon"
-          .res  10
+TB_FNLEN: .byte 7
+TB_FN:    .byte "kmon.64"
+          .res  7
 .endif
 
 ; -----------------------------------------------------------------------------
