@@ -108,7 +108,7 @@ restorecrtb:
 ;        INX
 ;        BNE @loop
 ;@done:
-        jmp old
+;        jmp old
 
 ;kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
 ;@loop:  LDA keys, X
