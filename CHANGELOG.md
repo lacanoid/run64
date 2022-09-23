@@ -1,5 +1,8 @@
 Version 0.8
 ===========
+- cpm+.prg patched to boot from ram disk (M:)
+- added cpm+.d81 CP/M install disk
+- added basic runners for kmon and pip to run the appropriate version
 
 Version 0.7
 ===========
