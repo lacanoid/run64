@@ -39,6 +39,7 @@ VM1		= $0A2C	 ; 2604	VIC Text Screen/Character Base Pointer
 VM2		= $0A2D	 ; 2605	VIC Bit-Map Base Pointer
 VM3		= $0A2E	 ; 2606	VDC Text Screen Base
 VM4		= $0A2F	 ; 2607	VDC Attribute Base
+FNBANK  = $C7    ; filename bank
 SHFLAG  = $D3    ; Shift key status flag
 SFDX    = $D4    ; Current key pressed
 LSTX    = $D5    ; Keyscan Last Key Index

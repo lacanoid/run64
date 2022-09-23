@@ -1366,6 +1366,7 @@ run_mon:
         ; switch ROMs in
         lda #0
         sta $FF00
+        sta FNBANK
 .endif
         lda TB_FNLEN
         leaxy TB_FN
