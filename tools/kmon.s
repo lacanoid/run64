@@ -1227,7 +1227,7 @@ CMDRUNGO:
         .byte 13,27,"@",$91,0
 .endif
 
-        ; call resident code in TBUFF which does not return on success
+; call resident code in TBUFF which does not return on success
         jsr jrunprg
         bcc CMDRUN1   ; no error
         jsr hexout    ; print error code

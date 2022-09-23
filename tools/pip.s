@@ -39,7 +39,7 @@ MSG0:   .byte "run64 pip 0.4 ",$80
 MSG1:   .BYTE "copying ",$80,0
 MSG2:   .BYTE "error ",$80,0
 MSG3:   .BYTE $1D,$3F+$80       ; syntax error:move right, display "?"
-MSG4:   .BYTE " bytes.",13+$80,0
+MSG4:   .BYTE " bytes free.",13+$80,0
 
 ; -----------------------------------------------------------------------------
 ; main program
