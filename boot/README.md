@@ -16,7 +16,7 @@ that is LOAD + RUN. It works with many, but not all programs.
 
 - [VICE](http://vice-emu.sourceforge.net) (only needed for automated tests).
 
-- A Commodore 128 (sorry, C64 owners).
+- A Commodore 128 or a Commodore 64.
 
 - A floppy disk drive or disk-drive emulator (e.g.
   [SD2IEC](https://www.c64-wiki.com/wiki/SD2IEC)).
@@ -47,32 +47,28 @@ program (`hello`), and checks whether it boots correctly.
 To make an SD2IEC device bootable, copy `bootsect.128` to the root directory on
 the SD card.
 
-Making a bootable disk image is a little bit more involved. The boot loader must
-be located at Track 1, Sector 0. A quick and dirty way to do it (as used in the
-`test.d64` image in the Makefile) is just to write the raw contents of
-`bootsect.128` to the sector. However, bypassing DOS in this way means that if
-any data is stored in that sector alrady, it will be overwritten, and writing
-further data to the disk is liable to overwrite the boot sector.
+Boot loader uses sectors 0 and 1 on track 1. You can write it to the image with:
 
-Ideally, the sector should also be marked as allocated in the BAM (to prevent it
+    $ c1541 my_disk_image.d81 -bwrite boot/bootsect.128 1 0 -bwrite boot/autostart64.128 1 1 
+
+Ideally, the sectors should also be marked as allocated in the BAM (to prevent it
 from being overwritten), AND, a file should be created to represent the boot
 sector (so that the BAM allocation survives a `VALIDATE`), AND the file should be
 placed at the end of the directory (or at least, not at the start), so that the
 file listing isn't cluttered and `LOAD *` still works as expected.
 
-As far as I am aware, there isn't any cross-platform tool that can do all these
-things. I've got some plans for a general-purpose Python library for working
-with CBM disks, so watch this space.
+By default the boot loader loads and runs file "*" which is the first file on the disk.
+It can be useful tu use something like `kmon` here as a kind of shell.
+
+    $ c1541 my_disk_image.d81 -@ "b-a 8 1 0" -@ "b-a 8 1 1" -write tools/kmon -write tools/kmon.64 -write tools/kmon.128
 
 ## Booting the machine
 
 At startup, the C128 only looks for a boot sector on device 8, so for full
-'hands off' operation, the bootloader must be installed on this device. However,
-the `BOOT` command in C128 BASIC can be used to boot from any device (e.g. `BOOT
-U10` to boot from device 10). While this is supported by the bootloader (it will
-automatically continue loading from the same device after switching to C64
-mode), some C64 software is hardcoded to load from device 8 and will not work if
-booting off another device.
+'hands off' operation, the bootloader must be installed on this device. 
+
+On stock C64 you will have to use `LOAD"*",8` and `RUN` to start the program.
+If you are using JiffyDOS, you can autostart just by pressing the `RUN` key.
 
 ## How it works
 
@@ -94,33 +90,5 @@ remains intact, and gets jumped to during the boot process.
 
 Since control is handed over to the "cartridge" fairly early on in the boot
 process, we have to mirror portions of the KERNAL's `RESET` routine and the
-BASIC cold-start code. Once everything is ready for action, 
-print theappropriate `SYS` and `RUN` incantations to the screen, position the cursor so
-that it will be on the first command when the BASIC starts, and then inject two
-carriage-returns into the keyboard buffer.
-
-When we hand control back to BASIC, it starts consuming the keyboard buffer,
-which causes the commands cued up on the screen to be executed, and voilà! We
-have autostart!
-
-For a cleaner look, the `SYS` and `RUN` commands are printed to the screen with
-the same colour as the background, but setting `HIDECMDS` to 0 in `config.inc`
-disables this behavior.
-
-## Tested platforms
-
-So far, I've only tested this on emulator.
-
-## TODO
-
-- Tool to automatically (and correctly) install boot loader to existing
-  disks/disk-images.
-
-- When booting from SD2IEC, add option to mount a disk image or change
-  directories.
-
-- *DONE* Load program *before* going into 64 mode (MUCH faster on drives that support
-  fast serial, but will need to handle differences in memory layout).
-
-- Allow device number to be overridden, to support booting from one device and
-  loading from another.
+BASIC cold-start code. Then we restore the program with OLD (oposite of NEW)
+operation and finaly run it with NEWSTT.
