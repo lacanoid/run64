@@ -56,7 +56,6 @@ go64old:
 
 .segment "VICGO64"
 go64:
-.if !LOADMODE
 ; reloacte (copy) basic program loaded in c128 mode at $1c00/$8000 to $0801 for c64
 relocate:
         lda #< C64DEST
@@ -79,7 +78,6 @@ relocate:
         inc DE+1
         dex
         bne @loop3
-.endif
 
 ; copy C64 autostart code into place from screen to $8000, 
 ; swap bytes with original at $8000

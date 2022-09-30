@@ -106,12 +106,6 @@ kmon:
 .endif
 
 ; -----------------------------------------------------------------------------
-; redirect input
-        lda #1
-        jsr CHKIN
-;        jsr WRTWO
-
-; -----------------------------------------------------------------------------
 ; main loop
 STRT:   jsr CRLF
 
@@ -1328,14 +1322,44 @@ CMDDI1: inx
 CMDDI0:.asciiz "@8,$"
 
 ; -----------------------------------------------------------------------------
+; submit file < command
+; this redirects input from a file
+
+subfilefhi = 14
+
+SUBFILE:
+        jsr GETFNADR
+        bne @l2
+        jmp ERROR
+@l2:
+        jsr SETNAMX
+
+        lda #subfilefhi
+        tay
+        ldx FA
+        jsr SETLFS
+        jsr OPEN
+        bcc @of1
+        jmp ERROR
+        ; input opened        
+@of1:
+; redirect input
+        lda #subfilefhi
+        jsr CHKIN
+        lda STATUS
+        jsr hexout
+
+        jmp STRT
+
+; -----------------------------------------------------------------------------
 ; single-character commands
-KEYW:   .byte "bdeghijmnorx@>#"
+KEYW:   .byte "bdeghijmnorx@>#<"
 HIKEY:  .byte "$+&%lsv"
 KEYTOP  =*
 
 ; vectors corresponding to commands above
 KADDR:  .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1 
-        .WORD JSUB-1, DSPLYM-1, CMDNEW-1, CMDOLD-1, CMDRUN-1, EXIT-1, DSTAT-1, ALTM-1, TRIGRAM-1
+        .WORD JSUB-1, DSPLYM-1, CMDNEW-1, CMDOLD-1, CMDRUN-1, EXIT-1, DSTAT-1, ALTM-1, TRIGRAM-1, SUBFILE-1
 
 ; -----------------------------------------------------------------------------
 MODTAB: .BYTE $10,$0A,$08,02    ; modulo number systems
