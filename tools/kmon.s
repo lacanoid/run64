@@ -78,14 +78,14 @@ BSTACK: PLA                 ; order:Y,X,A,SR,PCL,PCH
         JSR SNDMSG
 
         lda SP
-        jsr hexout
+        jsr WRTWO
         jsr SPACE
         ldx PCL
         ldy PCH
         jsr hexoutxy
         jsr SPACE
         lda ACC
-        jsr hexout
+        jsr WRTWO
         jsr CRLF
 ; -----------------------------------------------------------------------------
 ; kmon init
@@ -111,18 +111,22 @@ STRT:   jsr CRLF
 
         ; print current drive and prompt
         lda FA
-        jsr hexout
+        jsr WRTWO
         msg prompt
 
         ; read one line of input into BUF
         ldx #0
         stx CHRPNT
 SMOVE:  jsr CHRIN
+        bcs ERROR
         sta BUF,X
         inx
         CPX #ENDIN-BUF   ; error if buffer is full
         BCS ERROR
-        cmp #13             ; keep reading until CR
+        cmp #10          ; convert lf to cr
+        bne @sm1
+        lda #13
+@sm1:   cmp #13             ; keep reading until CR
         bne SMOVE
         LDA #0              ; null-terminate input buffer
         STA BUF-1,X         ; (replacing the CR)
@@ -148,8 +152,12 @@ S1:     CMP KEYW,X          ; see if input character matches
                             ; then fall through to error handler
 ; -----------------------------------------------------------------------------
 ; handle error
-ERROR:  LDY #MSG3-MSGBAS    ; display "?" to indicate error and go to new line
+ERROR:
+        LDY #MSG3-MSGBAS    ; display "?" to indicate error and go to new line
         JSR SNDMSG
+;        JSR STATUS
+;        JSR WRTWO
+        JSR CLRCHN
         JMP STRT            ; back to main loop
 
 ; -----------------------------------------------------------------------------
@@ -1018,7 +1026,7 @@ lvlgo:
         iny
         lda (T1),y
         sta COUNT
-        jsr hexout
+        jsr WRTWO
         chrout ' '
         iny 
         lda (T1),y
@@ -1073,30 +1081,31 @@ hexoutxynl:
 
 hexoutxy:
         tya 
-        jsr hexout
+        jsr WRTWO
         txa 
-        jsr hexout
+        jsr WRTWO
         rts
-hexout:
-        pha
-        pha
-        lsr
-        lsr
-        lsr
-        lsr
-        jsr hexdig
-        jsr CHROUT
-        pla
-        and #$0f
-        jsr hexdig
-        jsr CHROUT
-        pla
-        rts
+
+; hexout:
+;         pha
+;         pha
+;         lsr
+;         lsr
+;         lsr
+;         lsr
+;         jsr hexdig
+;         jsr CHROUT
+;         pla
+;         and #$0f
+;         jsr hexdig
+;         jsr CHROUT
+;         pla
+;         rts
 hexdig:
         cmp #$0a
         bcc hdsk1
         adc #$06
-hdsk1:  adc #$30
+ hdsk1: adc #$30
         rts
 
 ; -----------------------------------------------------------------------------
@@ -1148,7 +1157,7 @@ CMDOLDGO:
         ; call resident code in TBUFF which does not return on success
         jsr __TBUFFR_RUN__+3
         bcc CMDOLD1   ; no error
-        jsr hexout    ; print error code
+        jsr WRTWO    ; print error code
         lda #'@'
         sta BUF
         lda #0
@@ -1240,7 +1249,7 @@ CMDRUNGO:
 ; call resident code in TBUFF which does not return on success
         jsr jrunprg
         bcc CMDRUN1   ; no error
-        jsr hexout    ; print error code
+        jsr WRTWO    ; print error code
         lda #'@'
         sta BUF
         lda #0
@@ -1350,7 +1359,6 @@ SUBFILE:
         jmp ERROR
 @l2:
         jsr SETNAMX
-
         lda #subfilefhi
         tay
         ldx FA
@@ -1361,10 +1369,12 @@ SUBFILE:
         ; input opened        
 @of1:
 ; redirect input
-        lda #subfilefhi
+        ldx #subfilefhi
         jsr CHKIN
+        jsr WRTWO
         lda STATUS
-        jsr hexout
+        jsr WRTWO
+        jsr CRLF
 
         jmp STRT
 
