@@ -9,15 +9,12 @@
 .import __CARTHDR_LOAD__, __CARTHDR_RUN__, __CARTHDR_SIZE__
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
 .import __VICGO64_SIZE__, __VICGO64_LOAD__, __VICGO64_RUN__
-.import __RUN64_RUN__
 .import __TBUFFR_RUN__
 .import devnum_sav
 
 bootctl = $B11   ; boot parameters
 C64DEST = $801   ; relocation destination address (c64 basic)
 DE      = $C3
-
-RUN64   = __RUN64_RUN__
 
 .segment "GO64"
 go64old:

@@ -58,4 +58,7 @@ patch128: patch128.o
 mtop: LDFLAGS += -t c64 -C c64.cfg -u __EXEHDR__
 mtop: mtop.o
 
+sjload: sjload.s
+	$(AS) $(ASFLAGS) -t c64 -o sjload sjload.s
+
 -include *.dep

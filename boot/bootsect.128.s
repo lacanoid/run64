@@ -35,6 +35,12 @@ bootexc:.byte 6       ; border color
 coladj = $ce5c  ; map of vic -> vdc colors
 vdcout = $cdcc  ; vdcout routine
 
+LOWERCASE = 14
+DQUOTE = $22
+CR = $0D
+UP = $91
+HOME = $13
+
 ; actual bootloader
 .segment "BOOT128"
 boot128:
@@ -50,6 +56,7 @@ boot128:
         sta IBRK
         lda #>AS64
         sta IBRK+1
+
         ; check for abort
         jsr STOP            ; check for stop
         beq boot128done
@@ -78,17 +85,44 @@ cfg2:   lda bootexc
         bmi cfg3
         sta EXTCOL
 cfg3:
-; copy settings
+        ; copy settings
         ldx #4
 @loop21:lda bootctl-1,X
         sta __CARTHDR_LOAD__ + 9 - 1,X
         dex
         bne @loop21
 
+        jsr colors    ; set text foreground color
+
+NEW_LOADER=1
+
+.ifdef NEW_LOADER
+        LDA #$80            ; disable kernel control messages
+        JSR SETMSG          ; and enable error messages
+
+        JSR PRIMM
+        .byte LOWERCASE,UP,0
+
+        leaxy fnadr
+        lda #fnadr9-fnadr
+        jsr SETNAM
+
+        lda #1
+        ldx FA
+        bne TBINIT1
+        ldx #8
+TBINIT1:ldy #0
+        jsr SETLFS
+
+        lda #0        ; load, not verify
+        ldxy TXTTAB
+        JSR LOAD
+
+        JMP JRUN_A_PROGRAM
+.else
 cmds128:                ; print commands to execute
         leaxy cmds
         jsr print
-        jsr colors
 
 kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
 @loop:  LDA keys, X
@@ -97,6 +131,7 @@ kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
         INC NDX
         INX
         BNE @loop
+.endif
 boot128done:    ; return to BASIC
         rts
 
@@ -132,18 +167,14 @@ colors:
 
 ; go to 64 mode, preserving program through c65 reset routine and running it
 ; this is called from $0C00, which is the user entry point
-.segment "RUN64"
+;.segment "RUN64"
 
-DQUOTE = $22
-BLUE = $1F
-LBLUE = $9A
-CR = $0D
-UP = $91
-HOME = $13
-
+.ifdef NEW_LOADER
+fnadr:
+        .byte FILE
+fnadr9:
+.else
 cmds:
-;        .byte 27,"T"   ; fix the screen top
-;        .byte 14       ; lowercase
         .byte CR,CR
         .byte "DLOAD", DQUOTE
 fnadr:
@@ -160,4 +191,4 @@ fnadr9:
 keys:   .byte CR
         .byte CR
         .byte 0 ; keystrokes to inject into keyboard buffer
-
+.endif
