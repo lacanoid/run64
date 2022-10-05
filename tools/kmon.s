@@ -1131,14 +1131,43 @@ DSPLYH:
         jmp STRT
 
 ; -----------------------------------------------------------------------------
+; load a program
+
+CMDOLD:
+        jsr INSTALL_TBUFFR
+        lda #0
+        sta runflags
+        jsr GETFNADR
+        beq CMDOLD1
+CMDOLDGO:
+        JSR SETNAMX
+
+        lda CHRPNT
+        sta COUNT      
+
+        ; call resident code in TBUFF which does not return on success
+        jsr __TBUFFR_RUN__+3
+        bcc CMDOLD1   ; no error
+        jsr hexout    ; print error code
+        lda #'@'
+        sta BUF
+        lda #0
+        sta BUF+1
+        JMP STRT2
+CMDOLD1:
+        rts
+
+; -----------------------------------------------------------------------------
 CMDBOOT:
-        jsr INSTALL_CARTHDR
         ; configure cartridge with boot filename
 .ifdef __C64__
+        jsr INSTALL_CARTHDR
         jsr GETFNADR
         beq CMDBOOT1   ; no argsuments
+
         sta CH_FNLEN
         tax
+
         ldy #0
 @l1:    lda (FNADR),Y
         sta CH_FN,Y
@@ -1175,31 +1204,15 @@ INSTALL_TBUFFR:
         DEX
         BNE @loop
         RTS
+
 ; -----------------------------------------------------------------------------
-; load a program
-
-CMDOLD:
-        jsr INSTALL_TBUFFR
-        lda #0
-        sta runflags
-        jsr GETFNADR
-        beq CMDOLD1
-CMDOLDGO:
-        JSR SETNAMX
-
-        lda CHRPNT
-        sta COUNT      
-
-        ; call resident code in TBUFF which does not return on success
-        jsr __TBUFFR_RUN__+3
-        bcc CMDOLD1   ; no error
-        jsr hexout    ; print error code
-        lda #'@'
-        sta BUF
-        lda #0
-        sta BUF+1
-        JMP STRT2
-CMDOLD1:
+; save command line on stack
+BUF_SAVE:
+        ldx #88
+@l:     lda BUF,X
+        sta $160,X
+        dex
+        bpl @l 
         rts
 
 ; -----------------------------------------------------------------------------
@@ -1207,6 +1220,9 @@ CMDOLD1:
 
 CMDRUN:
         jsr INSTALL_TBUFFR
+.ifdef __C128__
+        jsr BUF_SAVE
+.endif
         jsr GETFNADR
         beq CMDRUNLOADED
 CMDRUNGO:
@@ -1231,6 +1247,21 @@ CMDRUNGO:
         sta BUF+1
         JMP STRT2
 CMDRUN1:
+        rts
+
+; -----------------------------------------------------------------------------
+; run already loaded program
+CMDRUNLOADED:
+.ifdef __C128__
+        jsr JRUN_A_PROGRAM
+.else
+        jsr ON_ERR_SET
+        jsr CRLF
+        jsr LINKPRG
+        jsr RUNC
+        jsr STXTPT
+        jmp NEWSTT
+.endif
         rts
 
 ; -----------------------------------------------------------------------------
@@ -1275,20 +1306,6 @@ SETDEV:
         sta FA
         rts
 
-; -----------------------------------------------------------------------------
-; run already loaded program
-CMDRUNLOADED:
-.ifdef __C128__
-        jsr JRUN_A_PROGRAM
-.else
-        jsr ON_ERR_SET
-        jsr CRLF
-        jsr LINKPRG
-        jsr RUNC
-        jsr STXTPT
-        jmp NEWSTT
-.endif
-        rts
 
 ; -----------------------------------------------------------------------------
 CMDLIST:

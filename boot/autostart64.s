@@ -29,15 +29,22 @@ bootexc:.byte 14       ; border color
 hardrst: 
         STX $D016       ; modified version of RESET routine (normally at $FCEF-$FCFE)
         JSR IOINIT
-
+        ; save stuff
         lda FA          ; preserve last device number
         pha
         lda EAL         ; and end-of program address
         pha
         lda EAL+1
         pha
-        JSR RAMTAS
+        lda $d          ; count is different in c128 mode
+        pha
+
+        JSR RAMTAS      ; this erases zero page
         JSR RESTOR
+
+        ; restore stuff
+        pla
+        sta COUNT       ; restore it for c64 mode
         pla
         sta EAL+1
         pla
@@ -55,9 +62,15 @@ copy:
         STA __AUTOSTART64_RUN__ - 1, X
         DEX
         BNE @loop
-;        tya 
-;        tax
-;bootscr_data:
+
+; restore command line from stack
+restoreargs:
+        ldx #88
+@l:     lda $160,X
+        sta BUF,X
+        dex
+        bpl @l
+
         jmp init2
 
 .segment "AUTOSTART64"

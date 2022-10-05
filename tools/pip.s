@@ -44,6 +44,18 @@ MSG4:   .BYTE " bytes.",13+$80,0
 ; -----------------------------------------------------------------------------
 ; main program
 main:
+.ifdef DEBUG
+; echo args for debug
+        LDA COUNT
+        JSR WRTWO
+        LDX #0
+@L:     LDA $200,x
+        JSR WRTWO
+        INX
+        CPX #88
+        BNE @L
+.endif
+
         lda BUF      ; if run from shell or basic
         bpl main1    ; check if basic token
         lda #0
@@ -69,6 +81,14 @@ args:
         jsr SETNAMX
 
         jsr GETOPT      ; get trailing options
+
+; switch to lowercase if /a option
+        lda CLIOPT
+        and #$02
+        beq @n1
+        lda #14
+        jsr CHROUT
+@n1:
 
         ldy #0
 @l31:
