@@ -112,13 +112,21 @@ STRT:   jsr CRLF
         ; print current drive and prompt
         lda FA
         jsr WRTWO
+;        lda STATUS
+;        jsr WRTWO
         msg prompt
 
         ; read one line of input into BUF
         ldx #0
-        stx CHRPNT
-SMOVE:  jsr CHRIN
-        bcs ERROR
+        
+SMOVE:  stx CHRPNT
+        jsr CHRIN
+        tay
+        lda STATUS
+        beq @ok1
+        jsr CLRCHN
+@ok1:   ldx CHRPNT
+        tya
         sta BUF,X
         inx
         CPX #ENDIN-BUF   ; error if buffer is full
@@ -1353,16 +1361,24 @@ CMDDI0:.asciiz "@8,$"
 
 subfilefhi = 14
 
-SUBFILE:
+.proc SUBFILE
+        lda #$c0 
+        jsr SETMSG
+
         jsr GETFNADR
-        bne @l2
+        beq @of1       ; no args
+        bne @l2        ; args
         jmp ERROR
 @l2:
         jsr SETNAMX
+
         lda #subfilefhi
         tay
         ldx FA
         jsr SETLFS
+
+        lda #subfilefhi
+        jsr CLOSE
         jsr OPEN
         bcc @of1
         jmp ERROR
@@ -1371,12 +1387,10 @@ SUBFILE:
 ; redirect input
         ldx #subfilefhi
         jsr CHKIN
-        jsr WRTWO
-        lda STATUS
-        jsr WRTWO
-        jsr CRLF
-
+        bcc @of2
+@of2:
         jmp STRT
+.endproc
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
