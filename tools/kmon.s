@@ -125,6 +125,8 @@ SMOVE:  stx CHRPNT
         lda STATUS
         beq @ok1
         jsr CLRCHN
+        lda #0
+        sta STATUS
 @ok1:   ldx CHRPNT
         tya
         sta BUF,X
@@ -1255,9 +1257,12 @@ CMDRUNGO:
 .endif
 
 ; call resident code in TBUFF which does not return on success
+        jsr CLRCHN
         jsr jrunprg
         bcc CMDRUN1   ; no error
+
         jsr WRTWO    ; print error code
+DOS_ERROR:
         lda #'@'
         sta BUF
         lda #0
@@ -1265,6 +1270,7 @@ CMDRUNGO:
         JMP STRT2
 CMDRUN1:
         rts
+
 
 ; -----------------------------------------------------------------------------
 ; run already loaded program
@@ -1394,7 +1400,7 @@ subfilefhi = 14
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
-KEYW:   .byte "bdeghijmnorx@>#<"
+KEYW:   .byte "bdeghijmnorx@>#."
 HIKEY:  .byte "$+&%lsv"
 KEYTOP  =*
 
