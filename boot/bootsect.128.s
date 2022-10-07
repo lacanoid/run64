@@ -13,6 +13,15 @@
 C64DEST = $0801
 AS64    = $0C00
 
+coladj = $ce5c  ; map of vic -> vdc colors
+vdcout = $cdcc  ; vdcout routine
+
+LOWERCASE = 14
+DQUOTE = $22
+CR = $0D
+UP = $91
+HOME = $13
+
 .segment "DISKHDR"
 magic:  .byte "CBM"     ; magic number for boot sector
 
@@ -26,45 +35,45 @@ prg:    .asciiz ""      ; don't load a .PRG - we do that in stage2
 
         jmp boot128
 
-; config parameters
-bootctl:.byte 0       ; boot control
+; config parameters (offest 17)
+bootctl:.byte $00      ; boot control $80 = 80columns , $40 = run in c64 mode
 bootbgc:.byte 6       ; background color
 bootfgc:.byte 1       ; foreground color
 bootexc:.byte 6       ; border color
 
-coladj = $ce5c  ; map of vic -> vdc colors
-vdcout = $cdcc  ; vdcout routine
-
-LOWERCASE = 14
-DQUOTE = $22
-CR = $0D
-UP = $91
-HOME = $13
-
 ; actual bootloader
 .segment "BOOT128"
 boot128:
-        ; clear $800 area so that running a C64 program will trigger a BRK
+; clear $800 area so that running a C64 program will trigger a BRK
         ldx #0
         txa
 @b1:    sta $800,X
         dex
         bne @b1        
 
-        ; set BRK vector
+; set BRK vector
         lda #<AS64
         sta IBRK
         lda #>AS64
         sta IBRK+1
 
-        ; check for abort
+; check for abort
         jsr STOP            ; check for stop
         beq boot128done
 
 ;        lda SHFLAG          ; check for shift
 ;        bne boot128done
 
-        ; set colors
+; set 40/80 column mode
+        bit MODE
+        bmi @sw0      ; started in 80
+        bit bootctl
+        bpl @sw0
+        ; switch to 80 column mode
+        jsr SWAPPER
+@sw0:           
+
+; set colors
         ldx bootfgc
         bmi cfg1
         bit MODE
@@ -96,7 +105,7 @@ cfg3:
 
 NEW_LOADER=1
 
-.ifdef NEW_LOADER
+; load a program
         LDA #$80            ; disable kernel control messages
         JSR SETMSG          ; and enable error messages
 
@@ -118,34 +127,14 @@ TBINIT1:ldy #0
         ldxy TXTTAB
         JSR LOAD
 
-        JMP JRUN_A_PROGRAM
-.else
-cmds128:                ; print commands to execute
-        leaxy cmds
-        jsr print
+        lda bootctl
+        and #$40
+        beq @r1
+        jmp AS64            ; start a program in c64 mode
+@r1:    JMP JRUN_A_PROGRAM  ; start a program
 
-kbdinj: LDX #$00        ; Inject stored keystrokes into keyboard buffer
-@loop:  LDA keys, X
-        BEQ boot128done
-        STA KEYD, X
-        INC NDX
-        INX
-        BNE @loop
-.endif
 boot128done:    ; return to BASIC
         rts
-
-; print xy = null terminated string
-print:
-        stxy T1
-        LDY #$00        ; Print load/run commands to screen
-@loop:  LDA (T1),Y
-        BEQ @done
-        JSR CHROUT
-        INY
-        BNE @loop
-@done:
-        RTS
 
 ; set some colors
 colors:
@@ -169,26 +158,6 @@ colors:
 ; this is called from $0C00, which is the user entry point
 ;.segment "RUN64"
 
-.ifdef NEW_LOADER
 fnadr:
         .byte FILE
 fnadr9:
-.else
-cmds:
-        .byte CR,CR
-        .byte "DLOAD", DQUOTE
-fnadr:
-        .byte FILE
-fnadr9:
-        .byte DQUOTE
-        .byte CR, CR, CR, CR, CR
-;        .byte "SYS3072"
-        .byte "RUN"
-;       .byte HOME
-        .byte UP,UP,UP,UP,UP,UP,UP
-        .byte 0
-
-keys:   .byte CR
-        .byte CR
-        .byte 0 ; keystrokes to inject into keyboard buffer
-.endif

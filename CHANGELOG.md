@@ -1,9 +1,14 @@
 Version 0.8
 ===========
-- cpm+.prg patched to boot from ram disk (M:)
+- bootctl boot parameter for choosing 40/80 and c64mode
+- setup improvements, now saves settings
+- added assembler.128
+- added command . to kmon for sourcing text files
+- bootloader128 more beautiful and hopefully faster
+- command line args from c128 mode passed through autostart64
 - added cpm+.d81 CP/M install disk
 - added basic runners for kmon and pip to run the appropriate version
-- bootloader more beautiful
+- cpm+.prg patched to boot from ram disk (M:)
 
 Version 0.7
 ===========

@@ -92,6 +92,7 @@ JRUN_A_PROGRAM = $AF99 ; run a loaded program
 
 ; kernal magic api
 CRTI      = $FF33  ; return from interrupt
+SWAPPER   = $FF5F  ; swap 40/80 column mode
 GETCFG    = $FF6B  ; get MMU conf for a bank number
 JSRFAR    = $FF6E  ; indirect JSR to other bank
 JMPFAR    = $FF71  ; indirect JMP to other bank
