@@ -64,8 +64,8 @@ boot128:
         sta IBRK+1
 
 ; check for abort
-        jsr STOP            ; check for stop
-        beq boot128done
+;        jsr STOP            ; check for stop
+;        beq boot128done
 
 ;        lda SHFLAG          ; check for shift
 ;        bne boot128done
@@ -118,8 +118,14 @@ NEW_LOADER=1
         JSR PRIMM
         .byte LOWERCASE,UP,0
 
+        ldx #0
+@fnl2:  lda fnadr,X
+        beq @fnl1
+        inx
+        bne @fnl2
+@fnl1:  txa
+
         leaxy fnadr
-        lda #fnadr9-fnadr
         jsr SETNAM
 
         lda #1

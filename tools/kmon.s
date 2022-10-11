@@ -883,7 +883,7 @@ info:
 DSPLYM: jsr CRLF
         jsr meminfo
         jsr CRLF
-        jsr listvars
+;        jsr listvars
         jmp STRT
 
 meminfo:
@@ -946,7 +946,7 @@ msg6:    .asciiz "memsiz "
 msgEAL:  .asciiz "eal    "
 msgFNADR:.asciiz "fnadr  "
 
-DSPLYI:jsr CRLF
+DSPLYI: jsr CRLF
         jsr basicinfo
         jsr CRLF
         jsr vectorinfo

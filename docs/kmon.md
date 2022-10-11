@@ -32,25 +32,21 @@ d a
 
 List directory of disk device 10.
 
-
-### Exit to BASIC
-
-```
-x
-```
-
-Return to BASIC READY mode. When you wish to return to kmon,
-command "SYS 8".  
-
 ### Running programs
 
 #### Run
 
 ```
-r "color test"
+r hello.bas
 ```
 
-Load run the program named "color test" from current disk device.
+Load run the program named "hello.bas" from current disk device.
+
+```
+r "a:color test"
+```
+
+Load run the program named "color test" from device 10.
 
 ```
 r
@@ -66,12 +62,21 @@ b
 Reboot the system, autostarting program ":*" (which is usually kmon)
 
 ```
-b "smon"
+b smon
 ```
      
 Reboot the system, autostarting program "smon". 
 This can be useful for running programs which won't run right with `r` command.
 
+
+### Exit to BASIC
+
+```
+x
+```
+
+Return to BASIC READY mode. When you wish to return to kmon,
+command "RUN".  
 
 ### File Handling
 
