@@ -41,6 +41,12 @@ bootbgc:.byte 6       ; background color
 bootfgc:.byte 1       ; foreground color
 bootexc:.byte 6       ; border color
 
+fnadr:
+        .byte FILE
+fnadr9:
+        .byte 0
+        .res  10
+
 ; actual bootloader
 .segment "BOOT128"
 boot128:
@@ -158,6 +164,3 @@ colors:
 ; this is called from $0C00, which is the user entry point
 ;.segment "RUN64"
 
-fnadr:
-        .byte FILE
-fnadr9:

@@ -1,6 +1,6 @@
 Version 0.8
 ===========
-- bootctl boot parameter for choosing 40/80 and c64mode
+- bootctl boot parameters for choosing 40/80 columns and c64mode
 - setup improvements, now saves settings
 - added assembler.128
 - added command . to kmon for sourcing text files
