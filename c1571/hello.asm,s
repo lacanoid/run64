@@ -1,0 +1,1 @@
+START       LDX #0LOOP   LDA MSG,X       BEQ DONE       JSR $FFD2       INX       BNE LOOPDONE   RTSMSG    .BYTE 'HELLO WORLD!',13,0
