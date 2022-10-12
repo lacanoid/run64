@@ -22,6 +22,7 @@ c1541 $DISKIMG -write c/setup
 c1541 $DISKIMG -write s/empty '================'
 c1541 $DISKIMG -write s/startup,s
 c1541 $DISKIMG -write s/issue,s
+c1541 $DISKIMG -write s/ucl.dat
 c1541 $DISKIMG -write s/keys
 
 c1541 $DISKIMG -write s/empty '=-demos--------='
@@ -35,13 +36,13 @@ do
  c1541 $DISKIMG -write "$i" `basename "$i" .prg` # >/dev/null
 done
 
-c1541 $DISKIMG -write s/empty '=-extras 1541---='
+c1541 $DISKIMG -write s/empty '=-extras 1541--='
 for i in c1541/*
 do
  c1541 $DISKIMG -write "$i" # >/dev/null
 done
 
-c1541 $DISKIMG -write s/empty '=-extras 1571---='
+c1541 $DISKIMG -write s/empty '=-extras 1571--='
 if [[ "$DISKIMG" =~ ".d64" ]] ; then exit; fi
 
 for i in c1571/*
@@ -49,7 +50,7 @@ do
  c1541 "$DISKIMG" -write "$i" # >/dev/null
 done
 
-c1541 $DISKIMG -write s/empty '=-extras 1581---='
+c1541 $DISKIMG -write s/empty '=-extras 1581--='
 if [[ "$DISKIMG" =~ ".d71" ]] ; then exit; fi
 
 for i in c1581/*
@@ -57,5 +58,5 @@ do
  c1541 "$DISKIMG" -write "$i" # >/dev/null
 done
 
-c1541 $DISKIMG -write s/empty '=-user files----='
+c1541 $DISKIMG -write s/empty '=-user files---='
 

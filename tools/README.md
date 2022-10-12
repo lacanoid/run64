@@ -5,17 +5,22 @@ This directory contains a number of tools written specifically for run64.
 They include:
 
 1. [kmon](../docs/kmon.md) - command line interpreter
-1. pip - peripheral interchange program        
+1. [pip](../docs/pip.md) - file maintainance utility        
 1. patch64 - copy ROMs to RAM and apply patches, so it will run
 1. patch128 - run c64 OS in c128 mode (broken)
 
 # To do
+
+## kmon
 1. kmon run batch files
 1. kmon startup batch file 
+1. kmon aliases
 1. kmon n(ew) command
 1. kmon o(ld) command
 1. kmon m(emory) command
 1. kmon c(hdir) command
+
+## pip
 1. pip CLI options &check;
 1. pip file copying
 1. pip ASCII/ANSI mode &check;

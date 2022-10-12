@@ -1,5 +1,6 @@
 Version 0.8
 ===========
+- setup improvements, more settings
 - bootctl boot parameters for choosing 40/80 columns and c64mode
 - setup improvements, now saves settings
 - added assembler.128
