@@ -1,6 +1,7 @@
 #!/bin/bash
 
 DISKIMG=$1
+shift
 
 c1541 $DISKIMG -bwrite boot/bootsect.128 1 0 -bwrite boot/autostart64.128 1 1 
 c1541 $DISKIMG -@ "b-a 8 1 0" -@ "b-a 8 1 1" -write tools/kmon -write tools/kmon.64 -write tools/kmon.128
@@ -28,6 +29,7 @@ c1541 $DISKIMG -write s/keys
 c1541 $DISKIMG -write s/empty '=-demos--------='
 
 c1541 $DISKIMG -write c/colors
+c1541 $DISKIMG -write c/banner
 c1541 $DISKIMG -write c/hello.bas
 c1541 $DISKIMG -write c/raster
 
@@ -36,26 +38,19 @@ do
  c1541 $DISKIMG -write "$i" `basename "$i" .prg` # >/dev/null
 done
 
-c1541 $DISKIMG -write s/empty '=-extras 1541--='
-for i in c1541/*
+while [ $# -gt 0 ]
 do
- c1541 $DISKIMG -write "$i" # >/dev/null
-done
-
-c1541 $DISKIMG -write s/empty '=-extras 1571--='
-if [[ "$DISKIMG" =~ ".d64" ]] ; then exit; fi
-
-for i in c1571/*
-do
- c1541 "$DISKIMG" -write "$i" # >/dev/null
-done
-
-c1541 $DISKIMG -write s/empty '=-extras 1581--='
-if [[ "$DISKIMG" =~ ".d71" ]] ; then exit; fi
-
-for i in c1581/*
-do
- c1541 "$DISKIMG" -write "$i" # >/dev/null
+    DIR=$1
+    if [[ -d "$DIR" ]]
+    then
+        shift
+        echo "Installing from directory" $DIR
+        c1541 $DISKIMG -write s/empty '=-'`expr substr "$DIR""----------------" 1 14`
+        for i in $DIR/*
+        do
+            c1541 $DISKIMG -write "$i" # >/dev/null
+        done
+    fi
 done
 
 c1541 $DISKIMG -write s/empty '=-user files---='

@@ -1,3 +1,6 @@
+Version 0.9
+===========
+
 Version 0.8
 ===========
 - setup improvements, more settings

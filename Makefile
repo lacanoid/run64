@@ -6,7 +6,7 @@ X128 := x128
 TIME := $(shell date +%y%m%d%H%M%S)
 VOLNAME := run64 ${TIME},sy
 PROGRAMS := 
-VOLUMES := run64.d64 run64.d71 run64.d81
+VOLUMES := blank.d81 run64.d64 run64.d71 run64.d81
 
 ifdef CC65_HOME
 	AS := $(CC65_HOME)/bin/$(AS)
@@ -22,7 +22,7 @@ endif
 
 ASFLAGS = --create-dep $(@:.o=.dep)
 
-all: subdirs run64.d81
+all: subdirs blank.d81 run64.d81
 
 clean:
 	rm -f $(PROGRAMS)
@@ -32,11 +32,11 @@ clean:
 zap: clean
 	rm -rf *.dep
 
-test: subdirs run64.d81
+test: clean subdirs blank.d81
 #	$(X128) -debugcart -limitcycles 10000000 -sounddev dummy -silent -console -8 $+
-	$(X128) run64.d81
+	$(X128) blank.d81
 
-disks: subdirs issue run64.d64 run64.d71 run64.d81
+disks: subdirs issue blank.d81 run64.d64 run64.d71 run64.d81
 
 subdirs:
 	cd boot ; make clean ; make
@@ -53,16 +53,20 @@ issue:
 #	echo >> s/issue,s ; echo >> s/issue,s 
 #	fortune -o >> s/issue,s 
 
+blank.d81: ${PROGRAMS} Makefile
+	$(C1541) -format "${VOLNAME}" d81 blank.d81
+	./install.sh blank.d81
+
 run64.d64: ${PROGRAMS} Makefile
 	$(C1541) -format "${VOLNAME}" d64 run64.d64
-	./install.sh run64.d64
+	./install.sh run64.d64 c1541
 
 run64.d71: ${PROGRAMS} Makefile
 	$(C1541) -format "${VOLNAME}" d71 run64.d71
-	./install.sh run64.d71
+	./install.sh run64.d71 c1541 c1571
 
 run64.d81: ${PROGRAMS} Makefile
 	$(C1541) -format "${VOLNAME}" d81 run64.d81
-	./install.sh run64.d81
+	./install.sh run64.d81 c1541 c1571 c1581
 
 -include *.dep

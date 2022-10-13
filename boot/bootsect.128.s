@@ -76,7 +76,7 @@ boot128:
         bit bootctl
         bpl @sw0
         ; switch to 80 column mode
-        jsr SWAPPER
+        jsr JSWAPPER
 @sw0:           
 
 ; set colors
@@ -115,7 +115,7 @@ NEW_LOADER=1
         LDA #$80            ; disable kernel control messages
         JSR SETMSG          ; and enable error messages
 
-        JSR PRIMM
+        JSR JPRIMM
         .byte LOWERCASE,UP,0
 
         ldx #0

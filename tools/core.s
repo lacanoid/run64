@@ -207,6 +207,7 @@ CPY1PX: RTS
 
 ; -----------------------------------------------------------------------------
 ; convert base [$+&%]
+
 CONVRT: JSR RDPAR           ; read a parameter
 CONVRT1:
         JSR FRESH           ; output character

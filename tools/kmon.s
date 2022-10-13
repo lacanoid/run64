@@ -238,7 +238,7 @@ DCHROK: JSR CHROUT
         RTS 
 
 ; -----------------------------------------------------------------------------
-; convert base [$+&%]
+
 TRIGRAM_IN:
         lda #0
         sta TMP0
@@ -300,7 +300,7 @@ MSG0:   .BYTE 14
 .else
         .byte "64"
 .endif
-        .byte " 0.8",' '+$80
+        .byte " 0.9",' '+$80
 MSG1:   .BYTE $0D               ; header for registers
         .BYTE "*err",'*'+$80
 MSG2:   .BYTE $0D               ; header for registers
@@ -322,7 +322,7 @@ prompt:
 
 ;----------------------------------------
 
-cmdold:   lda #1
+cmdold: lda #1
         tay
         sta (TXTTAB),y
         jsr LINKPRG
@@ -454,8 +454,7 @@ msgc1: .asciiz "iirq   "
 msgc2: .asciiz "ibrk   "
 msgc3: .asciiz "inmi   "
 
-
-msgout: stx T1
+msgout:  stx T1
          sty T2
          ldy #0
 moprint:lda (T1),y
@@ -547,7 +546,7 @@ DSPLYH:
         jmp STRT
 
 ; -----------------------------------------------------------------------------
-; load a program
+; load a program and switch to editor
 
 CMDOLD:
         jsr INSTALL_TBUFFR
@@ -557,7 +556,9 @@ CMDOLD:
         beq CMDOLD1
 CMDOLDGO:
         JSR SETNAMX
-
+.ifdef __C128__
+        jsr set_autosave_key
+.endif
         lda CHRPNT
         sta COUNT      
 
@@ -573,6 +574,59 @@ CMDOLDGO:
 CMDOLD1:
         rts
 
+.ifdef __C128__
+set_autosave_key:
+@s0:
+        lda #0
+        sta TMP0+2
+
+        leaxy STAGE
+        stxy  TMP0
+
+        lda #0
+        tax
+        tay
+
+@s1:    lda sak_def,Y
+        sta STAGE,X
+        beq @sd
+        cmp #1
+        bne @s2
+        jsr sak_fnam
+@s2:    
+        inx
+        iny
+        bne @s1
+        rts  ; overflow
+@sd:
+        lda #TMP0  ; ZP register
+        ldx #8     ; key number
+        jsr JPFKEY ; redefine key
+        rts
+
+sak_def:
+        .byte "save",34,"@:",1,34,",8",0
+
+; insert current filename
+sak_fnam:
+        tya
+        pha
+
+        ldy #0
+@l1:    cpy FNLEN
+        beq @sfn1
+@l2:    lda (FNADR),Y
+        sta STAGE,x
+        inx
+        iny
+        bne @l1
+@sfn1:
+        dex
+
+@lx:    pla
+        tay
+        rts
+.endif
 ; -----------------------------------------------------------------------------
 CMDBOOT:
         ; configure cartridge with boot filename
@@ -649,7 +703,7 @@ CMDRUNGO:
 
 ; clear to end of screen
 .ifdef __C128__
-        jsr PRIMM
+        jsr JPRIMM
         .byte 13,27,"@",$91,0
 .endif
 

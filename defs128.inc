@@ -91,15 +91,16 @@ JRUN_A_PROGRAM = $AF99 ; run a loaded program
 
 
 ; kernal magic api
-CRTI      = $FF33  ; return from interrupt
-SWAPPER   = $FF5F  ; swap 40/80 column mode
-GETCFG    = $FF6B  ; get MMU conf for a bank number
-JSRFAR    = $FF6E  ; indirect JSR to other bank
-JMPFAR    = $FF71  ; indirect JMP to other bank
-INDFET    = $FF74  ; indirect LDA from other bank
-INDSTA    = $FF77  ; indirect STA to other bank
-INDCMP    = $FF7A  ; indirect CMP to other bank
-PRIMM     = $FF7D  ; print immediate
-C64_MODE  = $FF4D  ; go 64 mode
+CRTI       = $FF33  ; return from interrupt
+JSWAPPER   = $FF5F  ; swap 40/80 column mode
+JPFKEY     = $FF65  ; define a function key
+JGETCFG    = $FF6B  ; get MMU conf for a bank number
+JJSRFAR    = $FF6E  ; indirect JSR to other bank
+JJMPFAR    = $FF71  ; indirect JMP to other bank
+JINDFET    = $FF74  ; indirect LDA from other bank
+JINDSTA    = $FF77  ; indirect STA to other bank
+JINDCMP    = $FF7A  ; indirect CMP to other bank
+JPRIMM     = $FF7D  ; print immediate
+JC64_MODE  = $FF4D  ; go 64 mode
 
 .endif

@@ -87,6 +87,6 @@ FNADR     = $BB        ; (2) Pointer: Current Filename
 ; temporary ZP vars
 TMP0      = $C1        ; used to return input, often holds end address
 TMP1      = $C2        ;
-TMP2      = $C3        ; usually holds start address
+TMP2      = $C3        ; usually holds start address or bank number on 128
 TMP3      = $C4        ;
 ; -----------------------------------------------------------------------------
