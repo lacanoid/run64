@@ -602,13 +602,29 @@ set_autosave_key:
 @sd:
         txa
         tay
+        
+        ldx FA
+        txa
+        cpx #10
+        bcc @sdn1
+        lda #'1'
+        sta STAGE,Y
+        iny
+        txa
+        sec
+        sbc #10
+@sdn1:  clc
+        adc #'0'
+        sta STAGE,Y
+        iny
+
         lda #TMP0  ; ZP register
         ldx #8     ; key number
         jsr JPFKEY ; redefine key
         rts
 
 sak_def:
-        .byte "save",34,"@:",1,34,",8",0
+        .byte "save",34,"@:",1,34,",",0
 
 ; insert current filename
 sak_fnam:

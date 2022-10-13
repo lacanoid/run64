@@ -333,7 +333,12 @@ PRINUM: PHA                 ; save accumulator
         PLA                 ; restore accumulator
 
 ; print number in specified base without leading zeros
-NMPRNT: STA DIGCNT          ; number of digits in accumulator
+NMPRNT:
+        JSR NMFORMAT
+        RTS
+        
+NMFORMAT: 
+        STA DIGCNT          ; number of digits in accumulator
         STY NUMBIT          ; bits per digit passed in Y register
 DIGOUT: LDY NUMBIT          ; get bits to process
         LDA #0              ; clear accumulator
@@ -351,6 +356,7 @@ ROLBIT: ASL U0AA0+2         ; shift bits out of low byte
         BEQ ZERSUP          ; skip output if digit is 0
 NZERO:  INC DIGCNT          ; increment digit counter
         ORA #$30            ; add numeric value to ascii '0' to get ascii char
+        STA $100,X
         JSR CHROUT          ; output character
 ZERSUP: DEX                 ; decrement number of leading zeros
         BNE DIGOUT          ; next digit
