@@ -55,7 +55,7 @@ issue:
 
 blank.d81: ${PROGRAMS} Makefile
 	$(C1541) -format "${VOLNAME}" d81 blank.d81
-	./install.sh blank.d81
+	./install_boot.sh blank.d81
 
 run64.d64: ${PROGRAMS} Makefile
 	$(C1541) -format "${VOLNAME}" d64 run64.d64

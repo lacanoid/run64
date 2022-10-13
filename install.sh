@@ -5,14 +5,15 @@ shift
 
 c1541 $DISKIMG -bwrite boot/bootsect.128 1 0 -bwrite boot/autostart64.128 1 1 
 c1541 $DISKIMG -@ "b-a 8 1 0" -@ "b-a 8 1 1" -write tools/kmon -write tools/kmon.64 -write tools/kmon.128
+c1541 $DISKIMG -write c/smon
+c1541 $DISKIMG -write c/setup 
+c1541 $DISKIMG -write c/configue
 c1541 $DISKIMG -write tools/pip -write tools/pip.64 -write tools/pip.128
 c1541 $DISKIMG -write tools/patch64
 c1541 $DISKIMG -write vdc64/vdc64
 c1541 $DISKIMG -write tools/patch128
 c1541 $DISKIMG -write vdc64/vdc128
-c1541 $DISKIMG -write c/smon
 c1541 $DISKIMG -write c/uname
-c1541 $DISKIMG -write c/setup
 #c1541 $DISKIMG -write fifth/5th
 #c1541 $DISKIMG -write fifth/imenu
 #c1541 $DISKIMG -write fifth/idump

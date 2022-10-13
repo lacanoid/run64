@@ -593,12 +593,15 @@ set_autosave_key:
         cmp #1
         bne @s2
         jsr sak_fnam
+        dex
 @s2:    
         inx
         iny
         bne @s1
         rts  ; overflow
 @sd:
+        txa
+        tay
         lda #TMP0  ; ZP register
         ldx #8     ; key number
         jsr JPFKEY ; redefine key
@@ -621,7 +624,7 @@ sak_fnam:
         iny
         bne @l1
 @sfn1:
-        dex
+;        dex
 
 @lx:    pla
         tay
