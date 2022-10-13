@@ -1,5 +1,7 @@
 Version 0.9
 ===========
+- `banner` program
+- improved installer, blank image
 
 Version 0.8
 ===========
