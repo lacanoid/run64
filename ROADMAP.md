@@ -12,13 +12,30 @@ KMON:
 * get command line args
 * batch files get stuck (64 mode only)
 * boot command must recognize drive
-+ boot command c128 mode args
+* boot command c128 mode choose program (now always runs :*)
+* boot command switch drive numbers
+* boot command boot disk images
 
 PIP:
 * hex mode (/x)
 * info mode (/i) - show only load address and length
 
+FASTLOADER:
+* ! should auto load and run program passed as arg or ":*"
+* patch64 
+
 CP/M
 * boot customizer
 * ram disk installer
 
+UNAME:
+x=peek(65534)
+c128:  23
+c64:   72
+vic20: 114
+superpet:   66
+pet 2001:   107
+pet 3008:   27
+c510:   229
+cbm2:   214
+ted:    peek reads from ram

@@ -1,0 +1,63 @@
+#!/bin/bash
+
+DISKIMG=$1
+shift
+
+if [ "$DISKIMG" = "" ]
+then
+    echo "Usage: "`basename $0`" disk-image"
+    exit 1
+fi
+
+basename=$DISKIMG
+basename=`basename -s .d64 $basename`
+basename=`basename -s .d71 $basename`
+basename=`basename -s .d81 $basename`
+
+head=`c1541 $DISKIMG -dir | head -1`
+volname=${head:3:16}
+volid=${head:20:3}
+dostyp=${head:24:3}
+
+echo "Base name:   " $basename
+echo "Volume name: " $volname
+echo "Volume id:   " $volid
+echo "DOS type:    " $dostyp
+
+bootblocks=`c1541 $DISKIMG -bam | grep '^  1 '`
+bootblocks=${bootblocks:5:2}
+
+echo "Boot blocks:  $bootblocks"
+
+payload() {
+base64 -d > /tmp/bootsect.128 <<__eof__
+Q0JNAAwAAVJVTjY0AABMIgsABgEGOioAAAAAAAAAAAAAAKIAip0ACMrQ+qkAjRYDqQyNFwMk1zAI
+LBELEAMgX/+uEwswCiTXEAS9XM6qhvGuEgswEI4h0OAL0AHovVzOohogzM2tFAswA40g0KIEvRAL
+nWQMytD3ILwLqYAgkP8gff8OkQCiAL0VC/AD6ND4iqIVoAsgvf+pAaa60AKiCKAAILr/qQCmLaQu
+INX/rRELKUDwA0wADEyZr2CiyK0h0J1X2p0f26XxnQDYncfYytDsYAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+__eof__
+
+base64 -d > /tmp/autostart64.128 <<__eof__
+otq9IwydzwbK0Pc4pa7lrIWupa/lrYWvGOaupa9pCIWvTNAGqQGFw6kIhcSNAf+mr+h4oACxrJHD
+yND55q3mxMrQ8qJLvQcHqL3/f50HB5id/3/K0O+OAP9MTf8NgF7+w8LNODAAAQAOjhbQIKP9pbpI
+pa5Ipa9IpQ1IIFD9IBX9aIULaIWvaIWuaIW6oli9UQedMwPK0PeiWL1gAZ0AAsoQ90w6A0xyA0x6
+AyBb/60LgDADjYYCrQqAMAONIdCtDIAwA40g0KJLvQcHnf9/ytD3WCBT5CC/4yAi5KL7mqkNINL/
+qQGNAgggM6WmrqSvhi2ELiBZpiCOpkyupwAAAA==
+__eof__
+}
+
+if [ "$bootblocks" = ".." ] 
+then
+    echo "Bootblock available"
+    echo "Installing run64 bootloader..."
+    payload
+    c1541 $DISKIMG -@ "b-a 8 1 0" -@ "b-a 8 1 1"  -bwrite /tmp/bootsect.128 1 0 -bwrite /tmp/autostart64.128 1 1
+else 
+    echo "Bootblock not available"
+fi
+
+c1541 $DISKIMG -dir | sed -e '1d' -e '$d' | perl -pne 's/^\d+\s*/read /;s/"\s+.*/" /' > read.lis
+c1541 $DISKIMG -dir | sed -e '1d' -e '$d' | perl -pne 's/^\d+\s*/read /;s/"\s+.*/" /' > write.lis
+
+exit 0
