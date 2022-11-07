@@ -19,7 +19,7 @@
 ; of programs loaded to basic start to about 195 blocks.
 
 	.word $031a
-	* = $031a
+	.org  $031a
 
 ; BASIC header SYS 2169 ($0879)
 ; In case this gets loaded to BASIC start (,8)
@@ -146,7 +146,7 @@ filename:
 da80code = * + 1
 	.byt $21
 
-	* = $da80
+	.org $da80
 lda80	jsr lda89	; swap cb00.. and db00..
 	jsr ldaf2	; move helper to 02e1
 	jmp lcd6a	; display message, install load vector, exit
@@ -164,7 +164,8 @@ lda89	php
 	sta ldab2
 	ldx #$05
 	ldy #$00
-ldaa5	ldaa7 = * + 2
+ldaa5	
+ldaa7 = * + 2
 	lda $db00,y
 	pha
 	ldaab = * + 2
@@ -190,7 +191,7 @@ ldace = * + 1
 	rts
 
 ; this code portion is relocatable and called both at $dace and $02e1
-	* = $02e1
+	.org $02e1
 	clc
 	.byt $24	; bit $xx
 ; iload vector
@@ -210,7 +211,7 @@ l2f6	jsr lda89	; swap cb00.. and db00..
 	cli
 	rts
 
-	* = $daec
+	.org $daec
 ldaec	jsr lda89	; swap cb00.. and db00..
 	jmp lcc05	; load/verify
 
@@ -227,7 +228,7 @@ ldafe	.byt $00
 ldaff	.byt $00
 
 ; db00
-	* = $cb00
+	.org $cb00
 lcb00	rts
 lcb01	ora $fd,x
 listDir:
@@ -668,7 +669,7 @@ lcd6a	pla
 
 ; Message
 lcdac	.byt $93,$11,$9e
-	.asc " SJLOAD 0.96 - 2009-10-03"
+	.byt " SJLOAD 0.96 - 2009-10-03"
 	.byt $0d,$00
 
 	.byt $08
