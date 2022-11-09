@@ -3,7 +3,7 @@ CC := cl65
 C1541 := c1541
 X128 := x128
 
-PROGRAMS := kmon.64 kmon.128 pip.64 pip.128 patch64 patch128 mtop
+PROGRAMS := kmon.64 kmon.128 pip.64 pip.128 patch64 patch128 mtop sjload
 INCLUDES := ..
 
 ifdef CC65_HOME
@@ -58,7 +58,9 @@ patch128: patch128.o
 mtop: LDFLAGS += -t c64 -C c64.cfg -u __EXEHDR__
 mtop: mtop.o
 
-sjload: sjload.s
-	$(AS) $(ASFLAGS) -t c64 -o sjload sjload.s
+sjload: sjload.o
+	$(CC) $(LDFLAGS) -t c64 -C sjload.cfg -o sjload sjload.o 
+sjload.o: sjload.s
+	$(AS) $(ASFLAGS) -t c64 -o sjload.o sjload.s
 
 -include *.dep

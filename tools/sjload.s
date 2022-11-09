@@ -1,4 +1,7 @@
 .feature labels_without_colons
+
+feature_colors = 2
+
 ; SJLOAD - C64 floppy speeder and disk utility
 ; based on VDOS by Edward Carroll 1986
 ; modified for Jiffy compatibility by 1570 in 2008
@@ -414,7 +417,14 @@ lloadabs2	jsr $f5d2	; loading message
 	ldx #$00
 ljlw:	dex
 	bne ljlw
+
+	lda $d020
+	sta $0110
+
 lloadinnerloop:
+	lda $0110
+	sta $d020
+
 	lda #$03
 	sta $dd00	; IEC lines inactive/high
 lwch1	bit $dd00
@@ -424,10 +434,16 @@ ltransferblock:
 	bit $dd00
 	bpl ltransferblock	; wait until 1541 sets data inactive/high
 ltransferbyte:
+.if feature_colors=2
+	nop
+	inc $d020 ; 6
+.else
 	nop		; timing critical section
+	nop     ; 2
 	nop
 	nop
-	nop
+.endif
+
 	lda #$03
 	ldx #$23
 	stx $dd00	; data=active,clock=inactive,ATN=inactive
@@ -588,9 +604,13 @@ lgiecin:
 ll3	lda $dd00
 	cmp #$40
 	bcc ll3
+.if feature_colors=1
+	inc $d020
+.else
 	nop
 	nop
 	nop
+.endif
 	nop
 	nop
 	nop
@@ -603,9 +623,13 @@ ll3	lda $dd00
 	nop
 	nop
 	nop
+.if feature_colors=1
+	dec $d020
+.else
 	nop
 	nop
 	nop
+.endif
 	ora $dd00
 	lsr
 	lsr
@@ -654,10 +678,10 @@ lcd6a	pla
 	lda #$37
 	sta $01
 	sta $92
-	lda #$00
-	sta $d021
-	lda #$06
-	sta $d020
+;	lda #$00
+;	sta $d021
+;	lda #$06
+;	sta $d020
 	lda #<lcdac
 	ldy #>lcdac
 	jsr $ab1e	; output string
@@ -668,8 +692,8 @@ lcd6a	pla
 	jmp lcd27	; install 02xx helper, swap cb00/db00, exit
 
 ; Message
-lcdac	.byt $93,$11,$9e
-	.byt " SJLOAD 0.96 - 2009-10-03"
+lcdac	.byt $93  ; ,$11,$9e
+	.byt "sjload 0.96 - 2009-10-03"
 	.byt $0d,$00
 
 	.byt $08

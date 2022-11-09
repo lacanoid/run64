@@ -75,7 +75,7 @@ ISOFT_RESET = $A002 ; basic soft reset (after BRK or RESTORE)
 
 ; basic magic api
 
-LINKPRG = $A533 ; link basic program
+LINKPRG = $A533 ; rellink basic program
 SCRTCH  = $A644 ; perform NEW
 RUNC    = $A659 ; reset execute pointer
 CLEARC  = $A663 ; perform CLEAR
@@ -83,7 +83,10 @@ STXTPT  = $A68E ; reset text pointer
 LIST    = $A69C ; perform LIST
 RUN     = $A871 ; perform RUN
 NEWSTT  = $A7AE ; executes the next BASIC statement
+
 LINPRT  = $BDCD ; print unsigned integer .a = high .x = low
+STROUT  = $AB1E ; Print a string whose Address Is in the .Y (hi) and .A (lo) Registers
+
 
 ; kernal magic api
 

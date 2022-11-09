@@ -69,4 +69,8 @@ run64.d81: ${PROGRAMS} Makefile
 	$(C1541) -format "${VOLNAME}" d81 run64.d81
 	./install.sh run64.d81 c1541 c1571 c1581
 
+
+cobol: run64.d81
+	cd cobol ; ./install.sh ../run64.d81 
+
 -include *.dep

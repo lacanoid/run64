@@ -2,6 +2,9 @@ Version 0.9
 ===========
 - `banner` program
 - improved installer, blank image
+- 'o' command - kmon.128 set key F8 to SAVE"filename",dev
+- new 'k' command to inject characters into the keyboard buffer
+- updated ramdos to one from c128 devpack
 
 Version 0.8
 ===========
