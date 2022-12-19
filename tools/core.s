@@ -361,3 +361,7 @@ NZERO:  INC DIGCNT          ; increment digit counter
 ZERSUP: DEX                 ; decrement number of leading zeros
         BNE DIGOUT          ; next digit
         RTS
+
+MODTAB: .BYTE $10,$0A,$08,02    ; modulo number systems
+LENTAB: .BYTE $04,$03,$03,$01   ; bits per digit
+

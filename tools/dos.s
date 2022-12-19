@@ -75,11 +75,11 @@ LDADDR: LDX TMP2            ; load address low byte in X
 ; -----------------------------------------------------------------------------
 ; disk status/command [@]
 DSTAT:  
-        JSR GETPAR
-        BNE CHGDEV          ; if device address was given, use it
+;        JSR GETPAR
+;        BNE CHGDEV          ; if device address was given, use it
         LDX FA              ; otherwise, default to 8
-        .BYTE $2C           ; absolute BIT opcode consumes next word (LDX TMP0)
-CHGDEV: LDX TMP0            ; load device address from parameter
+;        .BYTE $2C           ; absolute BIT opcode consumes next word (LDX TMP0)
+;CHGDEV: LDX TMP0            ; load device address from parameter
         CPX #4              ; make sure device address is in range 4-31
         BCC IOERR
         CPX #32

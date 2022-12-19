@@ -3,6 +3,7 @@ TODO:
 - *DONE* fix setting of pointer @45 
 - *DONE* properly save & restore device number (now set to 8)
 - finish the INSTALL utility program: save all blocks, run B-A
+- kmon: slow output in conversion on c128
 - bootctl, prefs
 
 end 64  = 41349 = $a185 @45

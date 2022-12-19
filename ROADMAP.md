@@ -1,5 +1,3 @@
-
-
 BOOT:
 * autoboot on c64 is broken (shell should run configured program)
 
@@ -11,6 +9,7 @@ KMON:
 * make `r!` work by running sjdos
 * get command line args
 * batch files get stuck (64 mode only)
+* batch files interrupted by @
 * boot command must recognize drive
 * boot command c128 mode choose program (now always runs :*)
 * boot command switch drive numbers

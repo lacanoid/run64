@@ -110,12 +110,21 @@ kmon:
 .include "core.s"
 
 ; -----------------------------------------------------------------------------
+; single-character commands
+KEYW:   .byte "bdeghijkmnorx@>#."
+HIKEY:  .byte "$+&%lsv"
+KEYTOP  =*
+
+; vectors corresponding to commands above
+KADDR:  .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1, JSUB-1 
+        .WORD CMDKEYS-1, DSPLYM-1, CMDNEW-1, CMDOLD-1, CMDRUN-1, EXIT-1, DSTAT-1, ALTM-1, TRIGRAM-1, SUBFILE-1
+
+; -----------------------------------------------------------------------------
 ; exit monitor [X]
 EXIT:   
         ldxy ON_ERR_SAV
         stxy IERROR
         JMP (ISOFT_RESET)   ; jump to warm-start vector to reinitialize BASIC
-
 
 ; -----------------------------------------------------------------------------
 ; variables
@@ -821,9 +830,9 @@ CMDDI3:
 CMDDI2: lda CMDDI0,X
         sta BUF,X
         bne CMDDI1
-        lda FA       ; substitute current device number
-        jsr hexdig
-        sta BUF+1
+;        lda FA       ; substitute current device number
+;        jsr hexdig
+;        sta BUF+1
 ;        inx         ; end of command        
         jmp STRT2
 CMDDI1: inx
@@ -831,7 +840,7 @@ CMDDI1: inx
         brk
         rts
 
-CMDDI0:.asciiz "@8,$"
+CMDDI0:.asciiz "@$"
 
 ; -----------------------------------------------------------------------------
 ; push text into input stream
@@ -845,7 +854,7 @@ args1:
         BEQ args1
         ldy #0
 args2:
-        cmp #$5c
+        cmp #$5f    ; is it _
         bne args21
         lda #13
 args21:
@@ -972,19 +981,6 @@ subfilefhi = 14
 .endproc
 
 ; -----------------------------------------------------------------------------
-; single-character commands
-KEYW:   .byte "bdeghijkmnorx@>#."
-HIKEY:  .byte "$+&%lsv"
-KEYTOP  =*
-
-; vectors corresponding to commands above
-KADDR:  .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1, JSUB-1 
-        .WORD CMDKEYS-1, DSPLYM-1, CMDNEW-1, CMDOLD-1, CMDRUN-1, EXIT-1, DSTAT-1, ALTM-1, TRIGRAM-1, SUBFILE-1
-
-; -----------------------------------------------------------------------------
-MODTAB: .BYTE $10,$0A,$08,02    ; modulo number systems
-LENTAB: .BYTE $04,$03,$03,$01   ; bits per digit
-
 ERRAD:  .word ON_ERR            ;
 LINKAD: .WORD BREAK             ; address of brk handler
 SUPAD:  .WORD SUPER             ; address of entry point

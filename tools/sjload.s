@@ -1,5 +1,7 @@
 .feature labels_without_colons
 
+.include "defs64.inc"
+
 feature_colors = 2
 
 ; SJLOAD - C64 floppy speeder and disk utility
@@ -682,9 +684,24 @@ lcd6a	pla
 ;	sta $d021
 ;	lda #$06
 ;	sta $d020
-	lda #<lcdac
-	ldy #>lcdac
-	jsr $ab1e	; output string
+
+;	lda #<lcdac
+;	ldy #>lcdac
+;	jsr $ab1e	; output string
+	ldx #0
+@l1:lda lcdac,X
+    beq @l2
+	jsr $ffd2
+	inx
+	bne @l1
+@l2:
+	ldx #keys9-keys
+@l3:lda keys-1,X
+	sta KEYD-1,x
+	inc NDX
+	dex
+	bne @l3
+
 	lda #<vload
 	ldy #>vload
 	sta iload
@@ -693,7 +710,12 @@ lcd6a	pla
 
 ; Message
 lcdac	.byt $93  ; ,$11,$9e
-	.byt "sjload 0.96 - 2022-12-18"
-	.byt $0d,$00
+	.byt "sjload 0.96+ - 2022-12-18",13
+	.byt 13,"load",'"',":*",'"',13,$13
+	.byt $00
+; Keystrokes
+keys:
+	.byt 13,"run",13
+keys9:
 
 	.byt $08

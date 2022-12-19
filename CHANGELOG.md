@@ -5,6 +5,7 @@ Version 0.9
 - 'o' command - kmon.128 set key F8 to SAVE"filename",dev
 - new 'k' command to inject characters into the keyboard buffer
 - updated ramdos to one from c128 devpack
+- dos commands @,$ to @$
 
 Version 0.8
 ===========
