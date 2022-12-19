@@ -693,7 +693,7 @@ lcd6a	pla
 
 ; Message
 lcdac	.byt $93  ; ,$11,$9e
-	.byt "sjload 0.96 - 2009-10-03"
+	.byt "sjload 0.96 - 2022-12-18"
 	.byt $0d,$00
 
 	.byt $08
