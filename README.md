@@ -26,3 +26,7 @@ Start with:
     $ x128 run64.d81
 
 Or write the image to disk to run on actual hardware.
+
+## References
+* Commodore sources from (https://github.com/mist64/cbmsrc)
+* C128 version of assembler from (https://github.com/dmarlowe69/C128-Assembler-Development-System)

@@ -688,6 +688,8 @@ lcd6a	pla
 ;	lda #<lcdac
 ;	ldy #>lcdac
 ;	jsr $ab1e	; output string
+
+	; print string
 	ldx #0
 @l1:lda lcdac,X
     beq @l2
@@ -695,6 +697,7 @@ lcd6a	pla
 	inx
 	bne @l1
 @l2:
+	; inject keys
 	ldx #keys9-keys
 @l3:lda keys-1,X
 	sta KEYD-1,x
