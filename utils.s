@@ -35,7 +35,8 @@ FLIP:   JMP CHROUT
         JSR CRLF            ; output CR
         LDA #$20            ; load space in A
         JSR CHROUT
-        JMP SNCLR
+;        JMP SNCLR
+        RTS
 .endproc
 
 ; -----------------------------------------------------------------------------
