@@ -4,8 +4,8 @@ A disk operating system for commodore 64/128.
 
 This project attempts to make a disk volume of useful system software for a c64/c128 system, 
 to complement ROM based software normally used on these systems.
-It is meant for be somewhat analogous to 'system disk' found on other systems.
-It makes a commodore work more like say CP/M while retaining compatibility with most legacy software.
+It is meant to be somewhat analogous to 'system disk' found on other systems.
+It makes a commodore work say more like CP/M while retaining compatibility with most legacy software.
 
 It currently includes:
 * A [boot loader](boot) to set colors and autoboot programs in appropriate mode (c64 or c128)

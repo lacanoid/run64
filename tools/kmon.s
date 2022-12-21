@@ -136,7 +136,9 @@ main1:
         ldy CHRPNT
         ldx #0
 @l1:    lda BUF,y
-        sta BUF,x
+        bne @l4
+        stx COUNT
+@l4:    sta BUF,x
         inx
         iny
         CPY #ENDIN-BUF
@@ -1018,11 +1020,26 @@ subfilefhi = 14
         jmp STRT
 .endproc
 
+.include "loader.s"
+
+.segment "CODE"
+
+; -----------------------------------------------------------------------------
+; translate input 
+translate:
+        rts
+
 ; -----------------------------------------------------------------------------
 ERRAD:  .word ON_ERR            ;
 LINKAD: .WORD BREAK             ; address of brk handler
 SUPAD:  .WORD SUPER             ; address of entry point
 PRGEND:
-
-.include "loader.s"
-
+        .byte 0
+UCLDAT:
+        .word @l20, 10
+        .byte "dir:=@$:",0
+@l20:   .word @l30, 20
+        .byte "type:=^pip /a ",0
+@l30:   .word @l40, 30
+        .byte "run:=^",0
+@l40:   .word 0

@@ -1,5 +1,4 @@
 .include "defs128.inc"
-.include "macros.inc"
 
 .segment "STARTUP"
 main:

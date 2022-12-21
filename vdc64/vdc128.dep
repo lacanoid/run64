@@ -1,4 +1,4 @@
-vdc128.o:	vdc128.s ../defs128.inc ../defs.inc ../macros.inc
+vdc128.o:	vdc128.s ../defs128.inc ../defs.inc
 
-vdc128.s ../defs128.inc ../defs.inc ../macros.inc:
+vdc128.s ../defs128.inc ../defs.inc:
 

@@ -33,13 +33,18 @@ SMOVE:  stx CHRPNT
         bne SMOVE
         LDA #0              ; null-terminate input buffer
         STA BUF-1,X         ; (replacing the CR)
+        stx COUNT
+        dec COUNT
 
         ; execute BUF
 STRT2: 
+        jsr translate
+
         LDA #0
         STA CHRPNT
-        stx COUNT
-        dec COUNT
+;        stx COUNT
+;        dec COUNT
+        lda COUNT
         beq STRT            ; repeat if buffer is empty
 
 ST1:    JSR GETCHR          ; get a character from the buffer
