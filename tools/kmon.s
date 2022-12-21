@@ -107,6 +107,27 @@ kmon:
 @nofast:
 .endif
 
+; -----------------------------------------------------------------------------
+; parse args
+        LDA BUF
+        BMI noargs   ; no args
+
+main1:  lda COUNT    ; we were run from shell
+        sta CHRPNT   ; restore command line pointer
+        beq noargs
+
+        ; copy args to input buffer and run it
+        ldy CHRPNT
+        ldx #0
+@l1:    lda BUF,y
+        sta BUF,x
+        inx
+        iny
+        CPY #ENDIN-BUF
+        BCC @l1
+
+        jmp STRT2   ; execute buffer
+noargs:
 .include "core.s"
 
 ; -----------------------------------------------------------------------------
