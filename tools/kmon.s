@@ -111,11 +111,27 @@ kmon:
 ; parse args
         LDA BUF
         BMI noargs   ; no args
+        BEQ noargs
+main1:  
+        lda COUNT    ; we were run from shell
+        jsr WRTWO
 
-main1:  lda COUNT    ; we were run from shell
+        lda COUNT
         sta CHRPNT   ; restore command line pointer
         beq noargs
 
+        ldx #0
+@l3:    lda BUF,X
+        beq @l2
+        inx
+        bne @l3
+@l2:
+        txa
+        jsr WRTWO
+
+        cpx CHRPNT
+        bcc noargs
+ 
         ; copy args to input buffer and run it
         ldy CHRPNT
         ldx #0
