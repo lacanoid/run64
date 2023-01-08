@@ -231,6 +231,8 @@ done:
         JSR SNDMSG
 
         ; exit
+        lda #0
+        sta COUNT
         lda init_state
         bne main3
         rts

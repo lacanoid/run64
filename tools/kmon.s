@@ -150,7 +150,7 @@ noargs:
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
-KEYW:   .byte "bdeghijk",92
+KEYW:   .byte "bdeghijk'"
         .byte "mnor^x@>#."
 HIKEY:  .byte "$+&%lsv"
 KEYTOP  =*
@@ -788,6 +788,8 @@ DOS_ERROR:
         sta BUF
         lda #0
         sta BUF+1
+        lDA #1
+        STA COUNT
         JMP STRT2
 CMDRUN1:
         rts
@@ -873,7 +875,8 @@ CMDDI2: lda CMDDI0,X
 ;        lda FA       ; substitute current device number
 ;        jsr hexdig
 ;        sta BUF+1
-;        inx         ; end of command        
+;        inx         ; end of command
+        stx COUNT
         jmp STRT2
 CMDDI1: inx
         bpl CMDDI2
@@ -1027,6 +1030,53 @@ subfilefhi = 14
 ; -----------------------------------------------------------------------------
 ; translate input 
 translate:
+        leaxy UCLDAT
+        stxy INDEX
+
+@loop0:
+        ldy #1
+        lda (INDEX),Y
+        beq @end
+
+        ldx CHRPNT
+        ldy #4
+@loop:
+        lda (INDEX),Y
+        beq @next 
+        cmp #' '
+        bne @l1
+        iny
+        bne @loop
+@l1:
+        cmp #'='
+        bne @cont
+@found:
+        lda (INDEX),Y
+        beq @end
+        jsr CHROUT
+        iny
+        bne @found
+        jmp @end
+@cont:
+        cmp BUF,X
+        bne @next
+
+;        jsr CHROUT
+        INY
+        INX
+        bne @loop
+
+@next:
+        ldy #0
+        lda (INDEX),Y
+        pha
+        iny
+        lda (INDEX),Y
+        sta INDEX+1
+        pla
+        sta INDEX
+        jmp @loop0
+@end:
         rts
 
 ; -----------------------------------------------------------------------------
@@ -1037,9 +1087,9 @@ PRGEND:
         .byte 0
 UCLDAT:
         .word @l20, 10
-        .byte "dir:=@$:",0
+        .byte "dir=@$:",0
 @l20:   .word @l30, 20
-        .byte "type:=^pip /a ",0
+        .byte "type=^pip /a ",0
 @l30:   .word @l40, 30
-        .byte "run:=^",0
+        .byte "run=^",0
 @l40:   .word 0

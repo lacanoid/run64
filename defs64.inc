@@ -8,7 +8,6 @@ NDX    = $C6    ; keyboard buffer count for C64 screen editor
 COLOR  = $0286  ; current foreground color
 XMAX   = $0289  ; Maximum Keyboard Buffer Size
 
-INDEX  = $22    ; Temporary pointer used when traversing text
 TXTTAB = $2B    ; Pointer to the Start of BASIC Program Text
 VARTAB = $2D    ; Pointer to the Start of the BASIC Variable Storage Area
 ARYTAB = $2F    ; Pointer to the Start of the BASIC Array Storage Area
@@ -19,6 +18,7 @@ VARNAM = $45    ; Current BASIC Variable Name
 
 VERCK  = $0A
 COUNT  = $0B
+INDEX  = $22    ; Temporary pointer used when traversing text
 
 CMP0   = $B0
 TEMP   = $B1
