@@ -21,6 +21,7 @@ MEMSIZ  = $39
 ; common
 VERCK   = $0C
 COUNT   = $0D
+INDEX   = $24
 
 ; editor
 KEYTAB  = $CC    ; Keyscan Table Pointer
