@@ -23,9 +23,6 @@ bootbgc:.byte 1        ; background color
 bootfgc:.byte 0        ; foreground color
 bootexc:.byte 14       ; border color
 
-; SXREG   = $030D  ; Storage Area for .X Index Register
-; INDEX1  = $22    ; (2) ???
-
 hardrst: 
         STX $D016       ; modified version of RESET routine (normally at $FCEF-$FCFE)
         JSR IOINIT
