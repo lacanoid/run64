@@ -73,4 +73,7 @@ run64.d81: ${PROGRAMS} Makefile
 cobol: run64.d81
 	cd cobol ; ./install.sh ../run64.d81 
 
+chicli: run64.d81
+	cd chicli ; ./install.sh ../run64.d81 
+
 -include *.dep
