@@ -14,8 +14,8 @@ c1541 $DISKIMG -write tools/patch64
 c1541 $DISKIMG -write vdc64/vdc64
 #c1541 $DISKIMG -write tools/patch128
 #c1541 $DISKIMG -write vdc64/vdc128
-c1541 $DISKIMG -write tools/kmon.64 -write tools/kmon.128
-c1541 $DISKIMG -write tools/pip.64 -write tools/pip.128
+c1541 $DISKIMG -write tools/kmon64 -write tools/kmon128
+c1541 $DISKIMG -write tools/pip64 -write tools/pip128
 c1541 $DISKIMG -write tools/sjload !
 #c1541 $DISKIMG -write fifth/5th
 #c1541 $DISKIMG -write fifth/imenu

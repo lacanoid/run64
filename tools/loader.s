@@ -137,13 +137,13 @@ SNDMSG2:
 MSGBAS2  =*
 MSG2_1:   .BYTE $0d,"?",$20+$80
 .ifdef __C128__
-TB_FNLEN: .byte 8
-TB_FN:    .byte "kmon.128",0
-          .res  6
-.else
 TB_FNLEN: .byte 7
-TB_FN:    .byte "kmon.64"
+TB_FN:    .byte "kmon128",0
           .res  7
+.else
+TB_FNLEN: .byte 6
+TB_FN:    .byte "kmon64"
+          .res  8
 .endif
 
 ; -----------------------------------------------------------------------------

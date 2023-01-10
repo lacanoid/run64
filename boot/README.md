@@ -60,7 +60,7 @@ file listing isn't cluttered and `LOAD *` still works as expected.
 By default the boot loader loads and runs file "*" which is the first file on the disk.
 It can be useful tu use something like `kmon` here as a kind of shell.
 
-    $ c1541 my_disk_image.d81 -@ "b-a 8 1 0" -@ "b-a 8 1 1" -write tools/kmon -write tools/kmon.64 -write tools/kmon.128
+    $ c1541 my_disk_image.d81 -@ "b-a 8 1 0" -@ "b-a 8 1 1" -write tools/kmon -write tools/kmon64 -write tools/kmon128
 
 ## Booting the machine
 

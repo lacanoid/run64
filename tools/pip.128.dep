@@ -1,4 +1,0 @@
-pip.128.o:	pip.s ../defs128.inc ../defs.inc ../macros.inc ../utils.s ../dos.inc
-
-pip.s ../defs128.inc ../defs.inc ../macros.inc ../utils.s ../dos.inc:
-
