@@ -72,7 +72,7 @@ restoreargs:
 
 .segment "AUTOSTART64"
         jmp old
-        jmp old2
+;        jmp old2
 
 ; continue initializaton 
 init2:

@@ -12,18 +12,23 @@
 .import __TBUFFR_RUN__
 .import devnum_sav
 
+.export AS64
+
 bootctl = $B11   ; boot parameters
 C64DEST = $801   ; relocation destination address (c64 basic)
 DE      = $C3
 
 .segment "GO64"
-go64old:
-;        jsr PRIMM
-;        .byte 14,145,"GO 64  ",0
+AS64:   ; check if running a c64 program via BRK
+        lda $03
+        cmp #$08   ; compare if in $08xx area, then c64 program
+        beq GO64GO
+        jmp $B003  ; MONITOR break entry point
+
+GO64GO:
 
 ; Screen memory at $400 survives transition to c64 mode. 
 ; Below $400 is wiped on reset. Above $800 (up to $D000) is the loaded program.
-
 ; copy go64 routine to boot block screen memory, so that boot block buffer can be freed
         LDX  #< (__VICGO64_SIZE__ + __CARTHDR_SIZE__ + __AUTOSTART64_SIZE__ + 1)
 @loop4: LDA __VICGO64_LOAD__ - 1, X
@@ -49,6 +54,7 @@ go64old:
         sta EAL+1
 ;        tax
 
+; continue execution in screen ram
         jmp VICGO64  ; VICGO64 + 3
 
 .segment "VICGO64"

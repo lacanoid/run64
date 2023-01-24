@@ -9,9 +9,9 @@
 .import __AUTOSTART64_SIZE__, __AUTOSTART64_LOAD__, __AUTOSTART64_RUN__
 .import __VICGO64_SIZE__, __VICGO64_LOAD__, __VICGO64_RUN__
 .import __CARTHDR_SIZE__, __CARTHDR_LOAD__
+.import AS64
 
 C64DEST = $0801
-AS64    = $0C00
 
 coladj = $ce5c  ; map of vic -> vdc colors
 vdcout = $cdcc  ; vdcout routine
@@ -142,8 +142,9 @@ TBINIT1:ldy #0
         lda bootctl
         and #$40
         beq @r1
-        jmp AS64            ; start a program in c64 mode
-@r1:    JMP JRUN_A_PROGRAM  ; start a program
+
+        jmp $800                ; start a program in c64 mode
+@r1:    JMP JRUN_A_PROGRAM      ; start a program
 
 boot128done:    ; return to BASIC
         rts

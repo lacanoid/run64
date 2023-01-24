@@ -7,6 +7,7 @@ Version 0.9
 - new 'k' command to inject characters into the keyboard buffer
 - updated ramdos to one from c128 devpack
 - dos commands remove comma, @,$ becomes @$
+- autostart64: handle c128 BRKs better, improved c64 program detection
 
 Version 0.8
 ===========
