@@ -337,14 +337,14 @@ pkydef:	.res 256-pkynum	;programmable function key strings
 r6510  = 1
 mmureg = r6510
 
-.include "vdc_ed1.inc"
-.include "vdc_ed2.inc"
-.include "vdc_ed3.inc"
-.include "vdc_ed4.inc"
-.include "vdc_ed5.inc"
-.include "vdc_ed6.inc"
-.include "vdc_routines.inc"
-.include "vdc_ed7.inc"
+.include "vdc_ed1.inc"    ; cint, irq
+.include "vdc_ed2.inc"    ; scroll routinessss
+.include "vdc_ed3.inc"    ; scan keyboard
+.include "vdc_ed4.inc"    ; print
+.include "vdc_ed5.inc"    ; escape functions
+.include "vdc_ed6.inc"    ; get1ch + routines
+.include "vdc_routines.inc"  ; swapper, vdc, init80
+.include "vdc_ed7.inc"    ; data tables, keymaps
 
 ; --- come c128 like memory management
 

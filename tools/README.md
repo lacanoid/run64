@@ -19,13 +19,16 @@ They include:
 1. kmon o(ld) command
 1. kmon m(emory) command
 1. kmon c(hdir) command
+1. kmon editor contexts
 
 ## pip
 1. pip CLI options &check;
 1. pip file copying
 1. pip ASCII/ANSI mode &check;
+1. pip file load address
 1. pip hex mode
 1. pip pause mode
+1. pip as engine for help (show only part of file)
 
 ## Changelog
 
