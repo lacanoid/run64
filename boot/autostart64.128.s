@@ -53,7 +53,7 @@ go64old:
 
 .segment "VICGO64"
 go64:
-; reloacte (copy) basic program loaded in c128 mode at $1c00/$8000 to $0801 for c64
+; reloacte  aprogram loaded in c128 mode at $1c00/$8000 to $0801 for c64
 relocate:
         lda #< C64DEST
         sta DE

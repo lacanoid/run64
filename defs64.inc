@@ -61,6 +61,7 @@ IQPLOP = $0306  ; Vector to the Routine That Lists BASIC Program Token as ASCII 
 IGONE  = $0308  ; Vector to the Routine That Executes the Next BASIC Program Token
 IEVAL  = $030A  ; Vector to the Routine That Evaluates a Single-Term Arithmetic Expression
 
+JDOSFA = $0313  ; JiffyDOS device number
 IIRQ   = $0314  ; Vector to IRQ Interrupt Routine
 IBRK   = $0316  ; Vector: BRK Instruction Interrupt
 INMI   = $0318  ; Vector: Non-Maskable Interrupt 

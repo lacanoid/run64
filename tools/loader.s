@@ -1,5 +1,9 @@
 ; -----------------------------------------------------------------------------
 ; Tape buffer (resident) section
+; load and run a program
+; TBUFFER      - load and run shell
+; TBUFFER+3    - load and run program, call setnam before to specify filename
+
 .segment "TBUFFR"
  jrunmon:
         jmp run_mon
@@ -72,8 +76,10 @@ TBSTART2:
 
         ; start a program
 .ifdef __C128__
+        ; c128 has an API for this
         jmp JRUN_A_PROGRAM
 .else
+        ; c64 need more work
         jsr LINKPRG
         jsr RUNC
         jsr STXTPT

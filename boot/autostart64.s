@@ -145,7 +145,7 @@ old2:
 
 ;        rts
         jsr RUNC
-        jsr STXTPT
+;        jsr STXTPT
         jmp NEWSTT
 
 ;DQUOTE = $22
