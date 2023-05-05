@@ -1,13 +1,15 @@
 Version 0.9
 ===========
-- `kmon` now takes initial command from args, so you can run stuff like: r kmon.64 r fb
+- `kmon` now takes initial command from args, so you can run stuff like: r kmon64 r fb
 - `banner` program
 - improved installer, blank image
 - 'o' command - kmon.128 set key F8 to SAVE"filename",dev
 - new 'k' command to inject characters into the keyboard buffer
-- updated ramdos to one from c128 devpack
+- updated bundled ramdos to one from c128 devpack
 - dos commands remove comma, @,$ becomes @$
 - autostart64: handle c128 BRKs better, improved c64 program detection
+- sjload program '!' now built from source, patched to auto load and run ":*"
+- added rudimentary 'c' command
 
 Version 0.8
 ===========

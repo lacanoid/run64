@@ -25,7 +25,7 @@ They include:
 1. pip CLI options &check;
 1. pip file copying
 1. pip ASCII/ANSI mode &check;
-1. pip file load address
+1. pip file load address + size
 1. pip hex mode
 1. pip pause mode
 1. pip as engine for help (show only part of file)

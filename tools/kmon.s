@@ -150,13 +150,13 @@ noargs:
 
 ; -----------------------------------------------------------------------------
 ; single-character commands
-KEYW:   .byte "bdeghijk'"
+KEYW:   .byte "bcdeghijk'"
         .byte "mnor^x@>#."
 HIKEY:  .byte "$+&%lsv"
 KEYTOP  =*
 
 ; vectors corresponding to commands above
-KADDR:  .WORD CMDBOOT-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1, JSUB-1, CMDKEYS-1, CMDKEYS-1
+KADDR:  .WORD CMDBOOT-1, CMDCHDIR-1, CMDDIR-1, CMDLIST-1, GOTO-1, DSPLYH-1, DSPLYI-1, JSUB-1, CMDKEYS-1, CMDKEYS-1
         .WORD DSPLYM-1, CMDNEW-1, CMDOLD-1, CMDRUN-1, CMDRUN-1, EXIT-1, DSTAT-1, ALTM-1, TRIGRAM-1, SUBFILE-1
 
 ; -----------------------------------------------------------------------------
@@ -863,7 +863,17 @@ CMDLIST:
         rts
 
 ; -----------------------------------------------------------------------------
-CMDDIR:           ; directory command
+.proc CMDCHDIR           ; change directory command
+        jsr GETPAR
+        bcs CMDCD3
+        lda TMP0
+        sta FA
+CMDCD3:
+        jmp STRT
+.endproc
+
+; -----------------------------------------------------------------------------
+.proc CMDDIR           ; directory command
         jsr GETPAR
         bcs CMDDI3
         lda TMP0
@@ -885,6 +895,7 @@ CMDDI1: inx
         rts
 
 CMDDI0:.asciiz "@$"
+.endproc
 
 ; -----------------------------------------------------------------------------
 ; push text into input stream

@@ -3,17 +3,21 @@ BOOT:
 
 KMON:
 * `o` - old command, load and edit. perhaps `e` or `l`
+* `c` - change command, change current disk/directory
 * use programmable function keys for:
 ** return to monitor
 ** save current program
 * make `r!` work by running sjdos
 * get command line args
 * batch files get stuck (64 mode only)
-* batch files interrupted by @
+* batch files are interrupted by @ command
+* batch files are inturrupted by running programs
+* ucl.dat
 * boot command must recognize drive
 * boot command c128 mode choose program (now always runs :*)
 * boot command switch drive numbers
 * boot command boot disk images
+* : ends input
 
 PIP:
 * hex mode (/x)

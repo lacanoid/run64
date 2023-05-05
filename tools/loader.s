@@ -2,7 +2,7 @@
 ; Tape buffer (resident) section
 ; load and run a program
 ; TBUFFER      - load and run shell
-; TBUFFER+3    - load and run program, call setnam before to specify filename
+; TBUFFER+3    - load and run program, call SETNAM beforehand to specify filename
 
 .segment "TBUFFR"
  jrunmon:
